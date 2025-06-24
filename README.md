@@ -13,8 +13,7 @@ Ansys a un *input deck* compatible con OpenRadioss.
 
 ## Entrada requerida
 
-Archivo ``.cdb`` con los bloques de nodos y elementos. En ``data/model.cdb`` se
-incluye un ejemplo mínimo. Este mismo fichero se emplea en las pruebas
+Archivo ``.cdb`` con los bloques de nodos y elementos. En ``data_files/model.cdb`` se incluye un ejemplo mínimo. Este mismo fichero se emplea en las pruebas
 unitarias (ver ``tests/test_basic.py``) y sirve de punto de partida para los
 ejemplos de la documentación.
 
@@ -26,7 +25,7 @@ ejemplos de la documentación.
 ## Ejemplo de uso
 
 ```bash
-python scripts/run_all.py data/model.cdb --inc mesh.inp --rad model_0000.rad
+python scripts/run_all.py data_files/model.cdb --inc mesh.inp --rad model_0000.rad
 ```
 
 ### Entorno virtual y OpenRadioss
@@ -42,7 +41,7 @@ python scripts/download_openradioss.py
 Después se puede ejecutar OpenRadioss sobre el fichero generado:
 
 ```bash
-python scripts/run_all.py data/model.cdb --rad model.rad \
+python scripts/run_all.py data_files/model.cdb --rad model.rad \
     --exec openradioss_bin/exec/starter_linux64_gf
 ```
 

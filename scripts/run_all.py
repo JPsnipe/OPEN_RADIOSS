@@ -23,12 +23,26 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    nodes, elements = parse_cdb(args.cdb_file)
+    nodes, elements, node_sets, elem_sets, materials = parse_cdb(args.cdb_file)
 
     if args.inc:
-        write_mesh_inp(nodes, elements, args.inc)
+        write_mesh_inp(
+            nodes,
+            elements,
+            args.inc,
+            node_sets=node_sets,
+            elem_sets=elem_sets,
+            materials=materials,
+        )
     if args.rad:
-        write_rad(nodes, elements, args.rad)
+        write_rad(
+            nodes,
+            elements,
+            args.rad,
+            node_sets=node_sets,
+            elem_sets=elem_sets,
+            materials=materials,
+        )
         if args.exec_path:
             subprocess.run([args.exec_path, '-i', args.rad], check=False)
 

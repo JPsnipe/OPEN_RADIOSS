@@ -10,8 +10,15 @@ def write_mesh_inp(
     elements: List[Tuple[int, int, List[int]]],
     outfile: str,
     mapping_file: str | None = None,
+    node_sets: Dict[str, List[int]] | None = None,
+    elem_sets: Dict[str, List[int]] | None = None,
+    materials: Dict[int, Dict[str, float]] | None = None,
 ) -> None:
-    """Write ``mesh.inp`` with element blocks derived from ``mapping.json``."""
+    """Write ``mesh.inp`` with element blocks derived from ``mapping.json``.
+
+    Optionally, node and element sets (from CMBLOCK) and basic material
+    properties can be written for later use in the starter file.
+    """
 
     if mapping_file is None:
         mapping_path = Path(__file__).with_name("mapping.json")
@@ -47,3 +54,25 @@ def write_mesh_inp(
             for eid, nids in items:
                 line = f"{eid:10d}" + "".join(f"{nid:10d}" for nid in nids)
                 f.write(line + "\n")
+
+        if node_sets:
+            for idx, (name, nids) in enumerate(node_sets.items(), start=1):
+                f.write(f"\n/GRNOD/NODE/{idx}\n")
+                f.write(f"{name}\n")
+                for nid in nids:
+                    f.write(f"{nid:10d}\n")
+
+        if elem_sets:
+            for idx, (name, eids) in enumerate(elem_sets.items(), start=1):
+                f.write(f"\n/SET/EL/{idx}\n")
+                f.write(f"{name}\n")
+                for eid in eids:
+                    f.write(f"{eid:10d}\n")
+
+        if materials:
+            for mid, props in materials.items():
+                e = props.get("EX", 210000.0)
+                nu = props.get("NUXY", 0.3)
+                rho = props.get("DENS", 7800.0)
+                f.write(f"\n/MAT/LAW1/{mid}\n")
+                f.write(f"{e} {nu} {rho}\n")

@@ -3,7 +3,13 @@
 from typing import Dict, List, Tuple
 
 
-def parse_cdb(filepath: str) -> Tuple[Dict[int, List[float]], List[Tuple[int, int, List[int]]]]:
+def parse_cdb(filepath: str) -> Tuple[
+    Dict[int, List[float]],
+    List[Tuple[int, int, List[int]]],
+    Dict[str, List[int]],
+    Dict[str, List[int]],
+    Dict[int, Dict[str, float]],
+]:
     """Parse an Ansys ``.cdb`` file containing ``NBLOCK`` and ``EBLOCK``.
 
     The parser was originally written for a minimal comma separated ``.cdb``
@@ -16,6 +22,9 @@ def parse_cdb(filepath: str) -> Tuple[Dict[int, List[float]], List[Tuple[int, in
 
     nodes: Dict[int, List[float]] = {}
     elements: List[Tuple[int, int, List[int]]] = []
+    node_sets: Dict[str, List[int]] = {}
+    elem_sets: Dict[str, List[int]] = {}
+    materials: Dict[int, Dict[str, float]] = {}
 
     with open(filepath, "r") as f:
         lines = f.readlines()
@@ -98,8 +107,42 @@ def parse_cdb(filepath: str) -> Tuple[Dict[int, List[float]], List[Tuple[int, in
                     except ValueError:
                         pass
                 i += 1
+        elif line.startswith("CMBLOCK"):
+            tokens = [t.strip() for t in line.split(',')[:3]]
+            name = tokens[1]
+            typ = tokens[2]
+            i += 1
+            if i < len(lines) and lines[i].lstrip().startswith("("):
+                i += 1
+            values: List[int] = []
+            while i < len(lines):
+                ln = lines[i].strip()
+                if not ln or any(c.isalpha() for c in ln.split(',')[0]):
+                    break
+                for part in ln.split():
+                    try:
+                        values.append(int(part))
+                    except ValueError:
+                        pass
+                i += 1
+            if 'NODE' in typ.upper():
+                node_sets[name] = values
+            else:
+                elem_sets[name] = values
+            continue
+        elif line.startswith("MPDATA"):
+            parts = [p.strip() for p in line.split(',')]
+            if len(parts) >= 7:
+                try:
+                    mid = int(parts[2])
+                    prop = parts[3]
+                    vals = [float(v) for v in parts[6:] if v]
+                    if vals:
+                        materials.setdefault(mid, {})[prop] = vals[0]
+                except ValueError:
+                    pass
+            i += 1
         else:
             i += 1
 
-
-    return nodes, elements
+    return nodes, elements, node_sets, elem_sets, materials

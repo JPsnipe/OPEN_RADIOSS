@@ -86,6 +86,7 @@ Codex must be able to:
 - Radioss Input Syntax Reference: <https://help.altair.com/hwsolvers/rad/index.htm>
 - OpenRadioss GitHub: <https://github.com/OpenRadioss/OpenRadioss>
 - Radioss Examples (Starter/Engine): <https://github.com/OpenRadioss/OpenRadioss-examples>
+- OpenRadioss User Documentation: <https://openradioss.atlassian.net/wiki/spaces/OPENRADIOSS/pages/4816906/OpenRadioss+User+Documentation>
 
 ## ✅ Development style guide
 All modules should use pure Python 3.10+, no external dependencies.

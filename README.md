@@ -14,7 +14,9 @@ Ansys a un *input deck* compatible con OpenRadioss.
 ## Entrada requerida
 
 Archivo ``.cdb`` con los bloques de nodos y elementos. En ``data/model.cdb`` se
-incluye un ejemplo mínimo.
+incluye un ejemplo mínimo. Este mismo fichero se emplea en las pruebas
+unitarias (ver ``tests/test_basic.py``) y sirve de punto de partida para los
+ejemplos de la documentación.
 
 ## Salida generada
 

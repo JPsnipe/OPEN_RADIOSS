@@ -1,6 +1,13 @@
 """CLI to convert .cdb files."""
 import argparse
 import subprocess
+import sys
+from pathlib import Path
+
+# Ensure the repository root is on sys.path when executed directly
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from cdb2rad.parser import parse_cdb
 from cdb2rad.writer_inc import write_mesh_inp

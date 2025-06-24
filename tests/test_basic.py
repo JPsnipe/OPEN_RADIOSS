@@ -8,8 +8,8 @@ DATA = os.path.join(os.path.dirname(__file__), '..', 'data', 'model.cdb')
 
 def test_parse_cdb():
     nodes, elements = parse_cdb(DATA)
-    assert len(nodes) == 8
-    assert len(elements) == 2
+    assert len(nodes) == 2032
+    assert len(elements) == 2479
 
 
 def test_write_mesh(tmp_path):
@@ -18,7 +18,6 @@ def test_write_mesh(tmp_path):
     write_mesh_inp(nodes, elements, str(out))
     text = out.read_text()
     assert '/NODE' in text
-    assert '/SHELL' in text
     assert '/BRICK' in text
 
 

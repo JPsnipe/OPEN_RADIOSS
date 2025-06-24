@@ -1,5 +1,6 @@
 """CLI to convert .cdb files."""
 import argparse
+import subprocess
 
 from cdb2rad.parser import parse_cdb
 from cdb2rad.writer_inc import write_mesh_inp
@@ -11,6 +12,7 @@ def main() -> None:
     parser.add_argument("cdb_file", help="Input .cdb file")
     parser.add_argument("--rad", dest="rad", help="Output .rad file")
     parser.add_argument("--inc", dest="inc", help="Output mesh.inp file")
+    parser.add_argument("--exec", dest="exec_path", help="Run OpenRadioss starter after generation")
 
     args = parser.parse_args()
 
@@ -20,6 +22,8 @@ def main() -> None:
         write_mesh_inp(nodes, elements, args.inc)
     if args.rad:
         write_rad(nodes, elements, args.rad)
+        if args.exec_path:
+            subprocess.run([args.exec_path, '-i', args.rad], check=False)
 
 
 if __name__ == "__main__":

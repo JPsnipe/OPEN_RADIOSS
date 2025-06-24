@@ -27,6 +27,25 @@ incluye un ejemplo mínimo.
 python scripts/run_all.py data/model.cdb --inc mesh.inp --rad model_0000.rad
 ```
 
+### Entorno virtual y OpenRadioss
+
+Para crear un entorno virtual con `pytest` y descargar la última
+versión binaria de OpenRadioss:
+
+```bash
+python scripts/create_venv.py
+python scripts/download_openradioss.py
+```
+
+Después se puede ejecutar OpenRadioss sobre el fichero generado. El propio
+script ajusta las variables de entorno necesarias (`RAD_CFG_PATH` y
+`LD_LIBRARY_PATH`) al usar `--exec`:
+
+```bash
+python scripts/run_all.py data/model.cdb --rad model.rad \
+    --exec openradioss_bin/OpenRadioss/exec/starter_linux64_gf
+```
+
 Para lanzar las pruebas:
 
 ```bash

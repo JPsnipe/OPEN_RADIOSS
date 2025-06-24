@@ -15,11 +15,21 @@ from cdb2rad.parser import parse_cdb
 from cdb2rad.writer_rad import write_rad
 
 
-def viewer_html(nodes: Dict[int, List[float]]) -> str:
-    """Return a small Three.js viewer for the given nodes."""
+MAX_POINTS = 10000
+
+
+def viewer_html(nodes: Dict[int, List[float]], max_points: int = MAX_POINTS) -> str:
+    """Return a small Three.js viewer for the given nodes.
+
+    If the mesh contains more than ``max_points`` nodes a subset is used in the
+    preview to keep the browser responsive.
+    """
     if not nodes:
         return "<p>No data</p>"
     coords = list(nodes.values())
+    if len(coords) > max_points:
+        step = max(1, len(coords) // max_points)
+        coords = coords[::step][:max_points]
     xs = [c[0] for c in coords]
     ys = [c[1] for c in coords]
     zs = [c[2] for c in coords]
@@ -122,6 +132,11 @@ if file_path:
 
     with preview_tab:
         html = viewer_html(nodes)
+        if len(nodes) > MAX_POINTS:
+            st.caption(
+                f"Mostrando un subconjunto de {MAX_POINTS} de {len(nodes)} nodos "
+                "para agilizar la vista"
+            )
         st.components.v1.html(html, height=420)
 else:
     st.info("Sube o selecciona un archivo .cdb")

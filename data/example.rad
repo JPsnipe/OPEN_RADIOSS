@@ -1,0 +1,6 @@
+/BEGIN
+/INCLUDE "mesh.inp"
+/PART/1
+/PROP/1
+/MAT/1
+/END

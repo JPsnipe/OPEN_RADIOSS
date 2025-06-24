@@ -23,6 +23,11 @@ def main() -> None:
 
     args = parser.parse_args()
 
+    if not args.rad and not args.inc:
+        # default output names when none are provided
+        args.inc = "mesh.inp"
+        args.rad = "model_0000.rad"
+
     nodes, elements, node_sets, elem_sets, materials = parse_cdb(args.cdb_file)
 
     if args.inc:

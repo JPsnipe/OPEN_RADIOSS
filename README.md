@@ -6,10 +6,10 @@ Ansys a un *input deck* compatible con OpenRadioss.
 ## ¿Qué hace el código?
 
 1. Lee bloques ``NBLOCK`` y ``EBLOCK`` de un ``.cdb``.
-2. Genera un fichero ``mesh.inp`` con las tarjetas ``/NODE``, ``/SHELL`` y
-   ``/BRICK`` según la conectividad de cada elemento.
-3. Opcionalmente crea ``model_0000.rad`` que incluye el ``mesh.inp`` y añade los
-   bloques básicos ``/BEGIN``, ``/PART``, ``/PROP``, ``/MAT`` y ``/END``.
+2. Genera un fichero ``mesh.inp`` con ``/NODE`` y bloques de elementos
+   derivados de ``mapping.json`` (``/SHELL``, ``/BRICK``, ``/TETRA``...).
+3. Crea ``model_0000.rad`` que incluye ``mesh.inp`` y define propiedades,
+   materiales, condiciones de contorno y ejemplos de contacto y carga.
 
 ## Entrada requerida
 
@@ -18,11 +18,17 @@ incluye un ejemplo mínimo.
 
 ## Salida generada
 
-- ``mesh.inp``: definición de nodos y elementos en sintaxis de bloques Radioss.
-- ``model_0000.rad`` (opcional): fichero de inicio que referencia ``mesh.inp``.
+ - ``mesh.inp``: definición de nodos y elementos.
+ - ``model_0000.rad``: fichero de inicio con propiedades, material y BCs.
 
 ## Ejemplo de uso
 
 ```bash
 python scripts/run_all.py data/model.cdb --inc mesh.inp --rad model_0000.rad
+```
+
+Para lanzar las pruebas:
+
+```bash
+pytest -q
 ```

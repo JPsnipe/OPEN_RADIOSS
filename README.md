@@ -53,3 +53,17 @@ Para lanzar las pruebas:
 ```bash
 pytest -q
 ```
+
+## Interfaz web
+
+Se incluye una pequeña interfaz en Streamlit para cargar un `.cdb`, visualizar
+el número de nodos y elementos y generar los ficheros ``mesh.inp`` y
+``model_0000.rad`` de forma interactiva. Para ejecutarla:
+
+```bash
+streamlit run src/dashboard/app.py
+```
+
+Se puede subir un archivo propio o seleccionar ``data_files/model.cdb`` como
+ejemplo. Tras pulsar *Generar input deck* se muestran las primeras líneas de
+``mesh.inp``.

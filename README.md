@@ -60,6 +60,14 @@ Se incluye una pequeña interfaz en Streamlit para cargar un `.cdb`, visualizar
 el número de nodos y elementos y generar los ficheros ``mesh.inp`` y
 ``model_0000.rad`` de forma interactiva. Para ejecutarla:
 
+Antes de lanzarla instala las dependencias del proyecto:
+
+```bash
+pip install -r requirements.txt
+```
+
+Luego ejecuta la app con:
+
 ```bash
 streamlit run src/dashboard/app.py
 ```

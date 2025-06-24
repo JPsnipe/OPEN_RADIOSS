@@ -32,11 +32,11 @@ def viewer_html(nodes: Dict[int, List[float]]) -> str:
         if r > max_r:
             max_r = r
     cam_dist = max_r * 3 if max_r > 0 else 10.0
-    return f"""
+    template = """
 <div id='c'></div>
 <script src='https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js'></script>
 <script>
-const pts = {json.dumps(coords)};
+const pts = {coords};
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 1000);
 camera.position.z = {cam_dist};
@@ -49,14 +49,15 @@ g.setAttribute('position', new THREE.BufferAttribute(verts, 3));
 const m = new THREE.PointsMaterial({{size:2,color:0x0080ff}});
 const points = new THREE.Points(g, m);
 scene.add(points);
-function animate(){
+function animate(){{
   requestAnimationFrame(animate);
   points.rotation.y += 0.01;
   renderer.render(scene, camera);
-}
+}}
 animate();
 </script>
 """
+    return template.format(coords=json.dumps(coords), cam_dist=cam_dist)
 
 
 @st.cache_data(ttl=3600)

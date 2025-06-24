@@ -1,7 +1,12 @@
 import tempfile
 from pathlib import Path
+import sys
 
 import streamlit as st
+
+root_path = str(Path(__file__).resolve().parents[2])
+if root_path not in sys.path:
+    sys.path.insert(0, root_path)
 
 from cdb2rad.parser import parse_cdb
 from cdb2rad.writer_rad import write_rad
@@ -13,6 +18,11 @@ def load_cdb(path: str):
 
 
 st.title("CDB → OpenRadioss")
+
+# Display SDEA logo
+logo_path = Path(__file__).parent / "assets" / "sdea_logo.png"
+if logo_path.exists():
+    st.image(str(logo_path), width=150)
 
 uploaded = st.file_uploader("Subir archivo .cdb", type="cdb")
 example_dir = Path("data_files")

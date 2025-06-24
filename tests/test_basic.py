@@ -12,6 +12,10 @@ def test_parse_cdb():
     assert len(elements) == 2479
     assert "BALL" in elem_sets
     assert "TARGET" in elem_sets
+    assert elem_sets["BALL"][0] == 1
+    assert elem_sets["BALL"][-1] == 715
+    assert elem_sets["TARGET"][0] == 918
+    assert elem_sets["TARGET"][-1] == 2681
 
 
 def test_write_mesh(tmp_path):

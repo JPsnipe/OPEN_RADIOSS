@@ -121,7 +121,14 @@ def parse_cdb(filepath: str) -> Tuple[
                     break
                 for part in ln.split():
                     try:
-                        values.append(int(part))
+                        val = int(part)
+                        if val < 0 and values:
+                            start = values.pop()
+                            end = abs(val)
+                            step = 1 if start <= end else -1
+                            values.extend(range(start, end + step, step))
+                        else:
+                            values.append(val)
                     except ValueError:
                         pass
                 i += 1

@@ -20,6 +20,7 @@ def main() -> None:
     parser.add_argument("--rad", dest="rad", help="Output .rad file")
     parser.add_argument("--inc", dest="inc", help="Output mesh.inp file")
     parser.add_argument("--exec", dest="exec_path", help="Run OpenRadioss starter after generation")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Show summary information during execution")
 
     args = parser.parse_args()
 
@@ -30,6 +31,12 @@ def main() -> None:
 
     nodes, elements, node_sets, elem_sets, materials = parse_cdb(args.cdb_file)
 
+    if args.verbose:
+        print(
+            f"Parsed {len(nodes)} nodes, {len(elements)} elements from '{args.cdb_file}'. "
+            f"{len(node_sets)} node sets, {len(elem_sets)} element sets, {len(materials)} materials."
+        )
+
     if args.inc:
         write_mesh_inp(
             nodes,
@@ -39,6 +46,8 @@ def main() -> None:
             elem_sets=elem_sets,
             materials=materials,
         )
+        if args.verbose:
+            print(f"Mesh include written to '{args.inc}'")
     if args.rad:
         write_rad(
             nodes,
@@ -48,8 +57,13 @@ def main() -> None:
             elem_sets=elem_sets,
             materials=materials,
         )
+        if args.verbose:
+            print(f"Starter file written to '{args.rad}'")
         if args.exec_path:
             subprocess.run([args.exec_path, '-i', args.rad], check=False)
+
+    if args.verbose:
+        print("Translation completed successfully")
 
 
 if __name__ == "__main__":

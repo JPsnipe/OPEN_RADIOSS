@@ -29,6 +29,7 @@ ejemplos de la documentación.
 
 ```bash
 python scripts/run_all.py data_files/model.cdb --inc mesh.inp --rad model_0000.rad
+python scripts/run_all.py data_files/model.cdb -v  # muestra un resumen
 ```
 
 ### Entorno virtual y OpenRadioss

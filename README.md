@@ -134,3 +134,15 @@ archivo.
 
 Tras pulsar *Generar .inc* o *Generar .rad* se muestran las primeras líneas de
 los ficheros generados.
+## Prompt sugerido para Codex
+
+El siguiente esquema sirve para crear un `model_0000.rad` completo para un caso de impacto en Radioss. El agente debe solicitar la información necesaria para cada bloque y remitir a la documentación oficial:
+
+- `/BEGIN` y `/INCLUDE` para cargar la malla (`mesh.inc`).
+- Bloques `/PART`, `/PROP` y `/MAT` asociando cada parte con sus propiedades y materiales. Usar leyes de material adecuadas al impacto, como `/MAT/LAW2` o `/MAT/LAW36`.
+- Definir condiciones de contorno con `/BCS` (y opcionalmente `/GRNOD`).
+- Incluir interfaces de contacto `/INTER` (por ejemplo, `TYPE7` para nodo-superficie o `TYPE2` para uniones rígidas) y tarjetas de fricción (`/FRICTION`, `/FRIC_ORIENT`).
+- Aplicar condiciones iniciales y cargas mediante `/IMPVEL`, `/IMPACC` o `/LOAD`.
+- Controlar la simulación con `/RUN`, `/ANIM`, `/TFILE`, `/DT` y finalizar con `/STOP`.
+
+Cada sección debe estar comentada siguiendo la [Radioss Input Reference Guide](https://help.altair.com/hwsolvers/rad/index.htm) para asegurar una sintaxis válida.

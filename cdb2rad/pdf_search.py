@@ -13,6 +13,10 @@ THEORY_MANUAL = (
     "https://2022.help.altair.com/2022/simulation/pdfs/radopen/"
     "AltairRadioss_2022_TheoryManual.pdf"
 )
+USER_GUIDE = (
+    "https://2022.help.altair.com/2022/simulation/pdfs/radopen/"
+    "AltairRadioss_2022_UserGuide.pdf"
+)
 
 
 @lru_cache(maxsize=2)

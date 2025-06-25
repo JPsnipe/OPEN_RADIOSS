@@ -379,43 +379,71 @@ if file_path:
             bc_name = st.text_input("Nombre BC", value="Fixed")
             bc_tra = st.text_input("Traslación (111/000)", value="111")
             bc_rot = st.text_input("Rotación (111/000)", value="111")
-            bc_nodes = st.text_input("Nodos comma-sep", value="1,2")
-            if st.button("Añadir BC"):
-                node_list = [int(n) for n in bc_nodes.split(',') if n.strip()]
-                st.session_state["bcs"].append({
-                    "name": bc_name,
-                    "tra": bc_tra,
-                    "rot": bc_rot,
-                    "nodes": node_list,
-                })
+            bc_set = st.selectbox(
+                "Conjunto de nodos",
+                list(node_sets.keys()),
+                disabled=not node_sets,
+            )
+            if st.button("Añadir BC") and bc_set:
+                node_list = node_sets.get(bc_set, [])
+                st.session_state["bcs"].append(
+                    {
+                        "name": bc_name,
+                        "tra": bc_tra,
+                        "rot": bc_rot,
+                        "nodes": node_list,
+                    }
+                )
             for bc in st.session_state["bcs"]:
                 st.json(bc)
 
         with st.expander("Interacciones (INTER)"):
             int_name = st.text_input("Nombre interfaz", value="Tie")
-            slave_nodes = st.text_input("Nodos esclavos", value="3,4")
-            master_nodes = st.text_input("Nodos maestros", value="5,6")
+            slave_set = st.selectbox(
+                "Conjunto esclavo",
+                list(node_sets.keys()),
+                key="slave_set",
+                disabled=not node_sets,
+            )
+            master_set = st.selectbox(
+                "Conjunto maestro",
+                list(node_sets.keys()),
+                key="master_set",
+                disabled=not node_sets,
+            )
             fric = st.number_input("Fricción", value=0.0)
-            if st.button("Añadir interfaz"):
-                s_list = [int(n) for n in slave_nodes.split(',') if n.strip()]
-                m_list = [int(n) for n in master_nodes.split(',') if n.strip()]
-                st.session_state["interfaces"].append({
-                    "name": int_name,
-                    "slave": s_list,
-                    "master": m_list,
-                    "fric": fric,
-                })
+            if st.button("Añadir interfaz") and slave_set and master_set:
+                s_list = node_sets.get(slave_set, [])
+                m_list = node_sets.get(master_set, [])
+                st.session_state["interfaces"].append(
+                    {
+                        "name": int_name,
+                        "slave": s_list,
+                        "master": m_list,
+                        "fric": fric,
+                    }
+                )
             for itf in st.session_state["interfaces"]:
                 st.json(itf)
 
         with st.expander("Velocidad inicial (IMPVEL)"):
-            vel_nodes = st.text_input("Nodos velocidad", value="1")
+            vel_set = st.selectbox(
+                "Conjunto de nodos",
+                list(node_sets.keys()),
+                key="vel_set",
+                disabled=not node_sets,
+            )
             vx = st.number_input("Vx", value=0.0)
             vy = st.number_input("Vy", value=0.0)
             vz = st.number_input("Vz", value=0.0)
-            if st.button("Asignar velocidad"):
-                n_list = [int(n) for n in vel_nodes.split(',') if n.strip()]
-                st.session_state["init_vel"] = {"nodes": n_list, "vx": vx, "vy": vy, "vz": vz}
+            if st.button("Asignar velocidad") and vel_set:
+                n_list = node_sets.get(vel_set, [])
+                st.session_state["init_vel"] = {
+                    "nodes": n_list,
+                    "vx": vx,
+                    "vy": vy,
+                    "vz": vz,
+                }
             if st.session_state["init_vel"]:
                 st.json(st.session_state["init_vel"])
 

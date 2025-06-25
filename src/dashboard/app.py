@@ -255,6 +255,11 @@ elif selected:
     file_path = str(example_dir / selected)
 
 if file_path:
+    work_dir = st.text_input(
+        "Directorio de trabajo",
+        value=st.session_state.get("work_dir", str(Path.cwd())),
+    )
+    st.session_state["work_dir"] = work_dir
     nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
     info_tab, preview_tab, inp_tab, rad_tab = st.tabs([
         "Información",
@@ -300,7 +305,9 @@ if file_path:
         use_sets = st.checkbox("Incluir name selections", value=True)
         use_mats = st.checkbox("Incluir materiales", value=True)
         inc_dir = st.text_input(
-            "Directorio de salida", value=str(Path.cwd()), key="inc_dir"
+            "Directorio de salida",
+            value=st.session_state.get("work_dir", str(Path.cwd())),
+            key="inc_dir",
         )
         inc_name = st.text_input(
             "Nombre de archivo", value="mesh", key="inc_name"
@@ -461,7 +468,9 @@ if file_path:
             "Incluir materiales de impacto", value=True
         )
         rad_dir = st.text_input(
-            "Directorio de salida", value=str(Path.cwd()), key="rad_dir"
+            "Directorio de salida",
+            value=st.session_state.get("work_dir", str(Path.cwd())),
+            key="rad_dir",
         )
         rad_name = st.text_input(
             "Nombre de archivo RAD", value="model_0000", key="rad_name"
@@ -514,33 +523,30 @@ if file_path:
                 lines = rad_path.read_text().splitlines()[:20]
                 st.code("\n".join(lines))
 
-        zip_dir = st.text_input(
-            "Directorio ZIP", value=str(Path.cwd()), key="zip_dir"
+        clean_dir = st.text_input(
+            "Directorio RAD limpio",
+            value=st.session_state.get("work_dir", str(Path.cwd())),
+            key="clean_dir",
         )
-        zip_name = st.text_input(
-            "Nombre archivo ZIP", value="clean", key="zip_name"
+        clean_name = st.text_input(
+            "Nombre archivo RAD limpio", value="minimal", key="clean_name"
         )
 
-        if st.button("Generar .zip limpio"):
-            out_dir = Path(zip_dir).expanduser()
+        if st.button("Generar .rad limpio"):
+            out_dir = Path(clean_dir).expanduser()
             out_dir.mkdir(parents=True, exist_ok=True)
             mesh_path = out_dir / "mesh.inc"
-            rad_path = out_dir / "minimal.rad"
-            zip_path = out_dir / f"{zip_name}.zip"
-            if zip_path.exists():
-                st.error("El archivo ZIP ya existe. Cambie el nombre o directorio")
+            rad_path = out_dir / f"{clean_name}.rad"
+            if rad_path.exists():
+                st.error("El archivo ya existe. Cambie el nombre o directorio")
             else:
                 write_mesh_inc(nodes, elements, str(mesh_path))
                 from cdb2rad.writer_rad import write_minimal_rad
 
                 write_minimal_rad(str(rad_path), mesh_inc=mesh_path.name)
 
-                import zipfile
-
-                with zipfile.ZipFile(zip_path, "w") as zf:
-                    zf.write(rad_path, arcname=rad_path.name)
-                    zf.write(mesh_path, arcname=mesh_path.name)
-                st.success("Archivo clean.zip generado")
-                st.write(zip_path)
+                st.success("Archivo RAD limpio generado")
+                lines = rad_path.read_text().splitlines()[:20]
+                st.code("\n".join(lines))
 else:
     st.info("Sube un archivo .cdb")

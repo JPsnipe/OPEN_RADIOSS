@@ -323,6 +323,41 @@ if file_path:
         poisson = st.number_input("Coeficiente de Poisson", value=0.3)
         density = st.number_input("Densidad", value=7800.0)
 
+        if "impact_materials" not in st.session_state:
+            st.session_state["impact_materials"] = []
+
+        with st.expander("Materiales de impacto (Johnson-Cook)"):
+            mat_id = st.number_input(
+                "ID material", value=len(st.session_state["impact_materials"]) + 1, step=1
+            )
+            dens_i = st.number_input("Densidad", value=7800.0, key="dens_i")
+            e_i = st.number_input("E", value=210000.0, key="e_i")
+            nu_i = st.number_input("Poisson", value=0.3, key="nu_i")
+            a_i = st.number_input("A", value=200.0, key="a_i")
+            b_i = st.number_input("B", value=400.0, key="b_i")
+            n_i = st.number_input("n", value=0.5, key="n_i")
+            c_i = st.number_input("C", value=0.01, key="c_i")
+            eps_i = st.number_input("EPS0", value=1.0, key="eps0_i")
+            if st.button("Añadir material"):
+                st.session_state["impact_materials"].append(
+                    {
+                        "id": int(mat_id),
+                        "LAW": "LAW2",
+                        "EX": e_i,
+                        "NUXY": nu_i,
+                        "DENS": dens_i,
+                        "A": a_i,
+                        "B": b_i,
+                        "N": n_i,
+                        "C": c_i,
+                        "EPS0": eps_i,
+                    }
+                )
+            if st.session_state["impact_materials"]:
+                st.write("Materiales definidos:")
+                for mat in st.session_state["impact_materials"]:
+                    st.json(mat)
+
 
         st.markdown("### Control del cálculo")
         runname = st.text_input("Nombre de la simulación", value="model")
@@ -333,11 +368,26 @@ if file_path:
             "Factor seguridad DT", value=0.9, min_value=0.0, max_value=1.0
         )
 
+        use_cdb_mats = st.checkbox("Incluir materiales del CDB", value=True)
+        use_impact = st.checkbox(
+            "Incluir materiales de impacto", value=True
+        )
+
 
         if st.button("Generar .rad"):
             with tempfile.TemporaryDirectory() as tmpdir:
                 rad_path = Path(tmpdir) / "model_0000.rad"
                 mesh_path = Path(tmpdir) / "mesh.inc"
+                extra = None
+                if use_impact and st.session_state["impact_materials"]:
+                    extra = {
+                        m["id"]: {
+                            k: v
+                            for k, v in m.items()
+                            if k != "id"
+                        }
+                        for m in st.session_state["impact_materials"]
+                    }
                 write_rad(
                     nodes,
                     elements,
@@ -345,7 +395,8 @@ if file_path:
                     mesh_inc=str(mesh_path),
                     node_sets=node_sets,
                     elem_sets=elem_sets,
-                    materials=materials,
+                    materials=materials if use_cdb_mats else None,
+                    extra_materials=extra,
                     thickness=thickness,
                     young=young,
                     poisson=poisson,

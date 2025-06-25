@@ -23,6 +23,7 @@ def write_rad(
     node_sets: Dict[str, List[int]] | None = None,
     elem_sets: Dict[str, List[int]] | None = None,
     materials: Dict[int, Dict[str, float]] | None = None,
+    extra_materials: Dict[int, Dict[str, float]] | None = None,
     *,
     thickness: float = DEFAULT_THICKNESS,
     young: float = DEFAULT_E,
@@ -43,13 +44,19 @@ def write_rad(
     controls.
     """
 
+    all_mats: Dict[int, Dict[str, float]] = {}
+    if materials:
+        all_mats.update(materials)
+    if extra_materials:
+        all_mats.update(extra_materials)
+
     write_mesh_inc(
         nodes,
         elements,
         mesh_inc,
         node_sets=node_sets,
         elem_sets=elem_sets,
-        materials=materials,
+        materials=all_mats if all_mats else None,
     )
 
     with open(outfile, "w") as f:
@@ -65,14 +72,25 @@ def write_rad(
         f.write(f"/PART/1/1/1\n")
         f.write(f"/PROP/SHELL/1 {thickness} 0\n")
 
-        if not materials:
+        if not all_mats:
             f.write(f"/MAT/LAW1/1 {young} {poisson} {density}\n")
         else:
-            for mid, props in materials.items():
+            for mid, props in all_mats.items():
+                law = props.get("LAW", "LAW1").upper()
                 e = props.get("EX", young)
                 nu = props.get("NUXY", poisson)
                 rho = props.get("DENS", density)
-                f.write(f"/MAT/LAW1/{mid} {e} {nu} {rho}\n")
+                if law in ("LAW2", "JOHNSON_COOK"):
+                    a = props.get("A", 0.0)
+                    b = props.get("B", 0.0)
+                    n = props.get("N", 0.0)
+                    c = props.get("C", 0.0)
+                    eps0 = props.get("EPS0", 1.0)
+                    f.write(f"/MAT/LAW2/{mid}\n")
+                    f.write(f"{rho} {e} {nu}\n")
+                    f.write(f"{a} {b} {n} {c} {eps0}\n")
+                else:
+                    f.write(f"/MAT/LAW1/{mid} {e} {nu} {rho}\n")
 
 
         # Basic engine control cards

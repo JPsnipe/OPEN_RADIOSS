@@ -71,8 +71,19 @@ def write_mesh_inc(
 
         if materials:
             for mid, props in materials.items():
+                law = props.get("LAW", "LAW1").upper()
                 e = props.get("EX", 210000.0)
                 nu = props.get("NUXY", 0.3)
                 rho = props.get("DENS", 7800.0)
-                f.write(f"\n/MAT/LAW1/{mid}\n")
-                f.write(f"{e} {nu} {rho}\n")
+                if law in ("LAW2", "JOHNSON_COOK"):
+                    a = props.get("A", 0.0)
+                    b = props.get("B", 0.0)
+                    n_val = props.get("N", 0.0)
+                    c = props.get("C", 0.0)
+                    eps0 = props.get("EPS0", 1.0)
+                    f.write(f"\n/MAT/LAW2/{mid}\n")
+                    f.write(f"{rho} {e} {nu}\n")
+                    f.write(f"{a} {b} {n_val} {c} {eps0}\n")
+                else:
+                    f.write(f"\n/MAT/LAW1/{mid}\n")
+                    f.write(f"{e} {nu} {rho}\n")

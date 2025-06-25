@@ -5,3 +5,4 @@ openradioss_bin/
 *.zip
 mesh.inc
 sample.rad
+docs/*.pdf

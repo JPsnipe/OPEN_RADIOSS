@@ -40,8 +40,12 @@ from cdb2rad.writer_rad import (
 from cdb2rad.writer_inc import write_mesh_inc
 from cdb2rad.pdf_search import (
     REFERENCE_GUIDE,
+    REFERENCE_GUIDE_URL,
     THEORY_MANUAL,
+
     USER_GUIDE,
+
+
     search_pdf,
 )
 
@@ -806,29 +810,48 @@ if file_path:
     with help_tab:
         st.subheader("Buscar en documentación")
         doc_choice = st.selectbox(
+
             "Documento",
             ["Reference Guide", "User Guide", "Theory Manual"],
+
         )
         query = st.text_input("Término de búsqueda")
         if st.button("Buscar", key="search_docs") and query:
             if doc_choice == "Reference Guide":
-                url = REFERENCE_GUIDE
-            elif doc_choice == "User Guide":
-                url = USER_GUIDE
+
+                source = (
+                    REFERENCE_GUIDE
+                    if REFERENCE_GUIDE.exists()
+                    else REFERENCE_GUIDE_URL
+                )
+                link = REFERENCE_GUIDE_URL
             else:
-                url = THEORY_MANUAL
-            results = search_pdf(url, query)
+                source = (
+                    THEORY_MANUAL
+                    if THEORY_MANUAL.exists()
+                    else THEORY_MANUAL_URL
+                )
+                link = THEORY_MANUAL_URL
+            try:
+                results = search_pdf(source, query)
+            except ImportError:
+                st.error("PyPDF2 no está instalado. Instala la dependencia para habilitar la búsqueda.")
+                results = []
+            except Exception as e:  # pragma: no cover - network errors
+                st.error(f"No se pudo buscar en el PDF: {e}")
+                results = []
+
             if results:
                 for r in results:
                     st.write(r)
-            else:
+            elif results == []:
                 st.warning("Sin coincidencias")
-        if doc_choice == "Reference Guide":
-            link = REFERENCE_GUIDE
-        elif doc_choice == "User Guide":
-            link = USER_GUIDE
+
         else:
-            link = THEORY_MANUAL
+            link = (
+                REFERENCE_GUIDE_URL if doc_choice == "Reference Guide" else THEORY_MANUAL_URL
+            )
+
         st.markdown(f"[Abrir {doc_choice}]({link})")
 else:
     st.info("Sube un archivo .cdb")

@@ -470,7 +470,7 @@ if file_path:
                 lines = rad_path.read_text().splitlines()[:20]
                 st.code("\n".join(lines))
 
-        if st.button("Generar .rar limpio"):
+        if st.button("Generar .zip limpio"):
             with tempfile.TemporaryDirectory() as tmpdir:
                 mesh_path = Path(tmpdir) / "mesh.inc"
                 rad_path = Path(tmpdir) / "minimal.rad"
@@ -479,11 +479,13 @@ if file_path:
 
                 write_minimal_rad(str(rad_path), mesh_inc=mesh_path.name)
 
-                rar_path = Path(tmpdir) / "clean.rar"
-                import subprocess
+                zip_path = Path(tmpdir) / "clean.zip"
+                import zipfile
 
-                subprocess.run(["rar", "a", str(rar_path), str(rad_path), str(mesh_path)], check=False)
-                st.success("Archivo clean.rar generado")
-                st.write(rar_path)
+                with zipfile.ZipFile(zip_path, "w") as zf:
+                    zf.write(rad_path, arcname=rad_path.name)
+                    zf.write(mesh_path, arcname=mesh_path.name)
+                st.success("Archivo clean.zip generado")
+                st.write(zip_path)
 else:
     st.info("Sube un archivo .cdb")

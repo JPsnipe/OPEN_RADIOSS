@@ -255,7 +255,11 @@ elif selected:
 
 if file_path:
     nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
-    info_tab, preview_tab = st.tabs(["Información", "Vista 3D"])
+    info_tab, preview_tab, rad_tab = st.tabs([
+        "Información",
+        "Vista 3D",
+        "Generar RAD",
+    ])
 
     with info_tab:
         st.write("Nodos:", len(nodes))
@@ -279,7 +283,23 @@ if file_path:
         for mid, props in materials.items():
             st.write(f"- ID {mid}: {props}")
 
-        if st.button("Generar input deck"):
+    with preview_tab:
+        html = viewer_html(nodes, elements)
+        if len(elements) > MAX_EDGES:
+            st.caption(
+                f"Mostrando un subconjunto de {MAX_EDGES} de {len(elements)} "
+                "elementos para agilizar la vista"
+            )
+        st.components.v1.html(html, height=420)
+
+    with rad_tab:
+        st.subheader("Opciones de cálculo")
+        thickness = st.number_input("Grosor", value=1.0, min_value=0.0)
+        young = st.number_input("Módulo E", value=210000.0)
+        poisson = st.number_input("Coeficiente de Poisson", value=0.3)
+        density = st.number_input("Densidad", value=7800.0)
+
+        if st.button("Generar .rad"):
             with tempfile.TemporaryDirectory() as tmpdir:
                 rad_path = Path(tmpdir) / "model_0000.rad"
                 mesh_path = Path(tmpdir) / "mesh.inp"
@@ -291,21 +311,13 @@ if file_path:
                     node_sets=node_sets,
                     elem_sets=elem_sets,
                     materials=materials,
+                    thickness=thickness,
+                    young=young,
+                    poisson=poisson,
+                    density=density,
                 )
                 st.success("Ficheros generados en directorio temporal")
-                st.write("Resumen de elementos traducidos:")
-                for kw, cnt in kw_counts.items():
-                    st.write(f"- {kw}: {cnt}")
-                lines = mesh_path.read_text().splitlines()[:20]
+                lines = rad_path.read_text().splitlines()[:20]
                 st.code("\n".join(lines))
-
-    with preview_tab:
-        html = viewer_html(nodes, elements)
-        if len(elements) > MAX_EDGES:
-            st.caption(
-                f"Mostrando un subconjunto de {MAX_EDGES} de {len(elements)} "
-                "elementos para agilizar la vista"
-            )
-        st.components.v1.html(html, height=420)
 else:
     st.info("Sube un archivo .cdb")

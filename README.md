@@ -25,6 +25,25 @@ ejemplos de la documentación.
  - ``mesh.inc``: definición de nodos y elementos.
  - ``model_0000.rad``: fichero de inicio con propiedades, material y BCs.
 
+## Configuración del ``.rad``
+
+El *starter* ``model_0000.rad`` sigue la sintaxis por bloques de Radioss. Un
+fichero mínimo contiene:
+
+```text
+/BEGIN
+/INCLUDE "mesh.inc"
+/PART
+...   # definición de propiedades y materiales
+/END
+```
+
+Cada bloque está descrito en detalle en la guía oficial de comandos de
+Radioss. Para depurar y ampliar estos ficheros se recomienda consultar el
+[Overview of the Input Reference Guide](https://help.altair.com/hwsolvers/rad/topics/solvers/rad/overview_ref_guide_rad_c.htm).
+En ella se explica el formato, las palabras clave disponibles y la estructura
+del ``starter`` y los ficheros ``engine``.
+
 ## Ejemplo de uso
 
 ```bash

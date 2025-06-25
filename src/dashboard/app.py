@@ -442,6 +442,11 @@ if file_path:
 
     with rad_tab:
         st.subheader("Generar RAD")
+        include_inc = st.checkbox(
+            "Incluir línea #include mesh.inc",
+            value=True,
+            key="include_inc_rad",
+        )
 
         if "impact_materials" not in st.session_state:
             st.session_state["impact_materials"] = []
@@ -754,7 +759,12 @@ if file_path:
                 if no_opts:
                     write_mesh_inc(nodes, elements, str(mesh_path))
                     from cdb2rad.writer_rad import write_minimal_rad
-                    write_minimal_rad(str(rad_path), mesh_inc=mesh_path.name, runname=runname)
+                    write_minimal_rad(
+                        str(rad_path),
+                        mesh_inc=mesh_path.name,
+                        runname=runname,
+                        include_inc=include_inc,
+                    )
                 else:
                     extra = None
                     if use_impact and st.session_state["impact_materials"]:
@@ -762,11 +772,14 @@ if file_path:
                             m["id"]: {k: v for k, v in m.items() if k != "id"}
                             for m in st.session_state["impact_materials"]
                         }
+                    if not include_inc:
+                        write_mesh_inc(nodes, elements, str(mesh_path))
                     write_rad(
                         nodes,
                         elements,
                         str(rad_path),
                         mesh_inc=str(mesh_path),
+                        include_inc=include_inc,
                         node_sets=node_sets,
                         elem_sets=elem_sets,
                         materials=materials if use_cdb_mats else None,
@@ -829,7 +842,11 @@ if file_path:
                 write_mesh_inc(nodes, elements, str(mesh_path))
                 from cdb2rad.writer_rad import write_minimal_rad
 
-                write_minimal_rad(str(rad_path), mesh_inc=mesh_path.name)
+                write_minimal_rad(
+                    str(rad_path),
+                    mesh_inc=mesh_path.name,
+                    include_inc=include_inc,
+                )
 
                 st.success("Archivo RAD limpio generado")
                 lines = rad_path.read_text().splitlines()[:20]

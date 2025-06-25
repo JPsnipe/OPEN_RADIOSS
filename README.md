@@ -112,8 +112,8 @@ el número y tipo de elementos y generar los ficheros ``mesh.inc`` y
 streamlit run src/dashboard/app.py
 ```
 
-Se puede subir un archivo propio o escoger ``data_files/model.cdb`` como
-ejemplo. La interfaz cuenta con cuatro pestañas principales:
+Se puede subir un archivo ``.cdb`` propio. La interfaz cuenta con cuatro
+pestañas principales:
 
 - **Información** resumen de nodos y elementos.
 - **Vista 3D** previsualización ligera de la malla.

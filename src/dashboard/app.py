@@ -62,6 +62,9 @@ def viewer_html(
         if r > max_r:
             max_r = r
     cam_dist = max_r * 3 if max_r > 0 else 10.0
+    cam_x = cx + cam_dist
+    cam_y = cy + cam_dist
+    cam_z = cz + cam_dist
 
     def elem_edges(nids: List[int]) -> List[Tuple[int, int]]:
         if len(nids) == 4:  # shell quad
@@ -142,7 +145,7 @@ const segments = {segs};
 const triangles = {tris};
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 1000);
-camera.position.set({cam_dist}, {cam_dist}, {cam_dist});
+camera.position.set({cam_x}, {cam_y}, {cam_z});
 const renderer = new THREE.WebGLRenderer({{antialias:true}});
 renderer.setSize(400, 400);
 document.getElementById('c').appendChild(renderer.domElement);
@@ -165,6 +168,8 @@ dlight.position.set(1,1,1);
 scene.add(dlight);
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
+controls.target.set({cx}, {cy}, {cz});
+camera.lookAt({cx}, {cy}, {cz});
 function animate(){{
   requestAnimationFrame(animate);
   controls.update();
@@ -174,7 +179,15 @@ animate();
 </script>
 """
     return template.format(
-        segs=json.dumps(edges), tris=json.dumps(faces), cam_dist=cam_dist
+        segs=json.dumps(edges),
+        tris=json.dumps(faces),
+        cam_dist=cam_dist,
+        cam_x=cam_x,
+        cam_y=cam_y,
+        cam_z=cam_z,
+        cx=cx,
+        cy=cy,
+        cz=cz,
     )
 
 

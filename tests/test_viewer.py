@@ -11,3 +11,4 @@ def test_viewer_html_basic():
     assert 'OrbitControls' in html
     assert 'LineSegments' in html
     assert 'MeshPhongMaterial' in html
+    assert 'controls.target' in html

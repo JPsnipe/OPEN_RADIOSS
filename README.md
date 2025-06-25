@@ -11,7 +11,7 @@ Ansys a un *input deck* compatible con OpenRadioss.
 3. Genera un fichero ``mesh.inp`` con ``/NODE`` y bloques de elementos
    derivados de ``mapping.json`` (``/SHELL``, ``/BRICK``, ``/TETRA``...). Las
    selecciones y los materiales se exportan en formato Radioss.
-4. Crea ``model_0000.rad`` que incluye ``mesh.inp`` y define propiedades,
+4. Crea ``model_0000.rad`` que referencia ``mesh.inp`` mediante ``#include`` y define propiedades,
    materiales, condiciones de contorno y ejemplos de contacto y carga.
 
 ## Entrada requerida

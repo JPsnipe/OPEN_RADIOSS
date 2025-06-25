@@ -149,6 +149,9 @@ pestañas principales:
   ``model_0000.rad``.
 Se incluyen casillas opcionales para **sobrescribir** los archivos
 ``.inc`` o ``.rad`` si ya existen en el directorio de salida.
+Una sección adicional permite escoger el **sistema de unidades**
+(por ejemplo ``kg-mm-s`` o ``kg-m-s``) que se aplicará a todos los
+parámetros de tiempo, velocidad y gravedad.
 - La opción **Incluir materiales del CDB** está desactivada por defecto;
   actívala si deseas copiar al starter los materiales extraídos del `.cdb`.
 

@@ -48,6 +48,7 @@ def write_rad(
     young: float = DEFAULT_E,
     poisson: float = DEFAULT_NU,
     density: float = DEFAULT_RHO,
+    units: Tuple[str, str, str] = ("kg", "mm", "s"),
 
     runname: str = DEFAULT_RUNNAME,
     t_end: float = DEFAULT_FINAL_TIME,
@@ -78,7 +79,8 @@ def write_rad(
     Parameters allow customizing material properties and basic engine
     settings such as final time, animation frequency and time-step
     controls. Gravity loading can be specified via the ``gravity``
-    parameter.
+    parameter. ``units`` defines the mass, length and time labels written
+    in the ``/BEGIN`` block.
     """
 
     all_mats: Dict[int, Dict[str, float]] = {}
@@ -103,8 +105,9 @@ def write_rad(
         f.write("/BEGIN\n")
         f.write(f"{runname}\n")
         f.write("     2024         0\n")
-        f.write("                  kg                  mm                   s\n")
-        f.write("                  kg                  mm                   s\n")
+        mass_u, len_u, time_u = units
+        f.write(f"                  {mass_u}                  {len_u}                   {time_u}\n")
+        f.write(f"                  {mass_u}                  {len_u}                   {time_u}\n")
 
         f.write("/PART/1/1/1\n")
         # General printout frequency
@@ -321,15 +324,20 @@ def write_minimal_rad(
     outfile: str,
     mesh_inc: str = "mesh.inc",
     runname: str = DEFAULT_RUNNAME,
+    units: Tuple[str, str, str] = ("kg", "mm", "s"),
 ) -> None:
-    """Generate a minimal starter file referencing only the mesh."""
+    """Generate a minimal starter file referencing only the mesh.
+
+    ``units`` controls the labels written in the ``/BEGIN`` block.
+    """
 
     with open(outfile, "w") as f:
         f.write("#RADIOSS STARTER\n")
         f.write("/BEGIN\n")
         f.write(f"{runname}\n")
         f.write("     2024         0\n")
-        f.write("                  kg                  mm                   s\n")
-        f.write("                  kg                  mm                   s\n")
+        mass_u, len_u, time_u = units
+        f.write(f"                  {mass_u}                  {len_u}                   {time_u}\n")
+        f.write(f"                  {mass_u}                  {len_u}                   {time_u}\n")
         f.write(f"#include {mesh_inc}\n")
         f.write("/END\n")

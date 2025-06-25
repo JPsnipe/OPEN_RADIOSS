@@ -53,6 +53,13 @@ from cdb2rad.pdf_search import (
 MAX_EDGES = 10000
 MAX_FACES = 15000
 
+# Available unit systems (mass, length, time)
+UNIT_SYSTEMS = {
+    "kg-mm-s": ("kg", "mm", "s"),
+    "kg-m-s": ("kg", "m", "s"),
+    "g-mm-ms": ("g", "mm", "ms"),
+}
+
 # Mappings for dropdown labels with short explanations
 LAW_DESCRIPTIONS = {
     "LAW1": "Elástico lineal",
@@ -442,6 +449,13 @@ if file_path:
     with rad_tab:
         st.subheader("Generar RAD")
 
+        unit_choice = st.selectbox(
+            "Sistema de unidades",
+            list(UNIT_SYSTEMS.keys()),
+            key="unit_choice",
+        )
+        units = UNIT_SYSTEMS[unit_choice]
+
         if "impact_materials" not in st.session_state:
             st.session_state["impact_materials"] = []
         if "bcs" not in st.session_state:
@@ -539,9 +553,21 @@ if file_path:
             runname = st.text_input(
                 "Nombre de la simulación", value=DEFAULT_RUNNAME
             )
-            t_end = input_with_help("Tiempo final", DEFAULT_FINAL_TIME, "t_end")
-            anim_dt = input_with_help("Paso animación", DEFAULT_ANIM_DT, "anim_dt")
-            tfile_dt = input_with_help("Intervalo historial", DEFAULT_HISTORY_DT, "tfile_dt")
+            t_end = input_with_help(
+                f"Tiempo final ({units[2]})",
+                DEFAULT_FINAL_TIME,
+                "t_end",
+            )
+            anim_dt = input_with_help(
+                f"Paso animación ({units[2]})",
+                DEFAULT_ANIM_DT,
+                "anim_dt",
+            )
+            tfile_dt = input_with_help(
+                f"Intervalo historial ({units[2]})",
+                DEFAULT_HISTORY_DT,
+                "tfile_dt",
+            )
             dt_ratio = input_with_help(
                 "Factor seguridad DT",
                 DEFAULT_DT_RATIO,
@@ -554,7 +580,11 @@ if file_path:
                 print_line = input_with_help("Línea cabecera", DEFAULT_PRINT_LINE, "print_line")
                 rfile_cycle = input_with_help("Ciclos entre RFILE", 0, "rfile_cycle")
                 rfile_n = input_with_help("Número de RFILE", 0, "rfile_n")
-                h3d_dt = input_with_help("Paso H3D", 0.0, "h3d_dt")
+                h3d_dt = input_with_help(
+                    f"Paso H3D ({units[2]})",
+                    0.0,
+                    "h3d_dt",
+                )
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     stop_emax = input_with_help("Emax", DEFAULT_STOP_EMAX, "stop_emax")
@@ -569,8 +599,16 @@ if file_path:
                     stop_nanim = input_with_help("NANIM", DEFAULT_STOP_NANIM, "stop_nanim")
                 with col6:
                     stop_nerr = input_with_help("NERR_POSIT", DEFAULT_STOP_NERR, "stop_nerr")
-                adyrel_start = input_with_help("ADYREL inicio", 0.0, "adyrel_start")
-                adyrel_stop = input_with_help("ADYREL fin", 0.0, "adyrel_stop")
+                adyrel_start = input_with_help(
+                    f"ADYREL inicio ({units[2]})",
+                    0.0,
+                    "adyrel_start",
+                )
+                adyrel_stop = input_with_help(
+                    f"ADYREL fin ({units[2]})",
+                    0.0,
+                    "adyrel_stop",
+                )
             else:
                 print_n = DEFAULT_PRINT_N
                 print_line = DEFAULT_PRINT_LINE
@@ -678,9 +716,9 @@ if file_path:
                 key="vel_set",
                 disabled=not node_sets,
             )
-            vx = input_with_help("Vx", 0.0, "vx")
-            vy = input_with_help("Vy", 0.0, "vy")
-            vz = input_with_help("Vz", 0.0, "vz")
+            vx = input_with_help(f"Vx ({units[1]}/{units[2]})", 0.0, "vx")
+            vy = input_with_help(f"Vy ({units[1]}/{units[2]})", 0.0, "vy")
+            vz = input_with_help(f"Vz ({units[1]}/{units[2]})", 0.0, "vz")
             if st.button("Asignar velocidad") and vel_set:
                 n_list = node_sets.get(vel_set, [])
                 st.session_state["init_vel"] = {
@@ -693,7 +731,11 @@ if file_path:
                 st.json(st.session_state["init_vel"])
 
         with st.expander("Carga de gravedad (GRAVITY)"):
-            g = input_with_help("g", 9.81, "grav_g")
+            g = input_with_help(
+                f"g ({units[1]}/{units[2]}^2)",
+                9.81,
+                "grav_g",
+            )
             nx = input_with_help("nx", 0.0, "grav_nx")
             ny = input_with_help("ny", 0.0, "grav_ny")
             nz = input_with_help("nz", -1.0, "grav_nz")
@@ -769,6 +811,7 @@ if file_path:
                     interfaces=st.session_state.get("interfaces"),
                     init_velocity=st.session_state.get("init_vel"),
                     gravity=st.session_state.get("gravity"),
+                    units=units,
 
                 )
                 st.success(f"Ficheros generados en: {rad_path}")
@@ -800,7 +843,11 @@ if file_path:
                 write_mesh_inc(nodes, elements, str(mesh_path))
                 from cdb2rad.writer_rad import write_minimal_rad
 
-                write_minimal_rad(str(rad_path), mesh_inc=mesh_path.name)
+                write_minimal_rad(
+                    str(rad_path),
+                    mesh_inc=mesh_path.name,
+                    units=units,
+                )
 
                 st.success("Archivo RAD limpio generado")
                 lines = rad_path.read_text().splitlines()[:20]

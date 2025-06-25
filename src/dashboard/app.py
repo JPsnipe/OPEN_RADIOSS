@@ -296,6 +296,10 @@ if file_path:
 
     with inp_tab:
         st.subheader("Generar mesh.inp")
+
+        use_sets = st.checkbox("Incluir name selections", value=True)
+        use_mats = st.checkbox("Incluir materiales", value=True)
+
         if st.button("Generar .inp"):
             with tempfile.TemporaryDirectory() as tmpdir:
                 inp_path = Path(tmpdir) / "mesh.inp"
@@ -303,9 +307,10 @@ if file_path:
                     nodes,
                     elements,
                     str(inp_path),
-                    node_sets=node_sets,
-                    elem_sets=elem_sets,
-                    materials=materials,
+                    node_sets=node_sets if use_sets else None,
+                    elem_sets=elem_sets if use_sets else None,
+                    materials=materials if use_mats else None,
+
                 )
                 st.success("Fichero generado en directorio temporal")
                 lines = inp_path.read_text().splitlines()[:20]

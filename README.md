@@ -124,7 +124,7 @@ ejemplo. La interfaz cuenta con cuatro pestañas principales:
 
 - **Generar RAD** para introducir parámetros de cálculo y obtener
   ``model_0000.rad``.
-- **RAD limpio (.rar)** crea un archivo ``minimal.rad`` comprimido en ``clean.rar``.
+- **RAD limpio (.zip)** crea un archivo ``minimal.rad`` comprimido en ``clean.zip``.
 
 La pestaña *Generar RAD* también permite definir condiciones de contorno
 (tarjetas ``/BCS``), contactos simples (``/INTER/TYPE2``) y velocidades

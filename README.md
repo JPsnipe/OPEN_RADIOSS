@@ -149,3 +149,14 @@ Tras pulsar *Generar .inc* o *Generar .rad* se muestran las primeras líneas de
 los ficheros generados.
 Cada pestaña permite elegir el directorio de salida y el nombre (sin extensión)
 del archivo para guardar fácilmente los resultados.
+
+## Vista 3D con Starlite
+
+Si prefieres una visualizaci\u00f3n ligera puedes usar un peque\u00f1o servidor basado en [Starlite](https://starliteproject.dev/).
+Ej\u00e9cutalo as\u00ed:
+
+```bash
+python scripts/starlite_viewer.py
+```
+
+Luego abre `http://localhost:8000/viewer?file=RUTA/AL/archivo.cdb` para rotar la malla con el rat\u00f3n.

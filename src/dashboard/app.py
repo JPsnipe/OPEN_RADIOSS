@@ -364,45 +364,86 @@ if file_path:
             st.session_state["gravity"] = None
 
         with st.expander("Definición de materiales"):
-            thickness = st.number_input("Grosor", value=1.0, min_value=0.0)
-            young = st.number_input("Módulo E", value=210000.0)
-            poisson = st.number_input("Coeficiente de Poisson", value=0.3)
-            density = st.number_input("Densidad", value=7800.0)
-
             use_cdb_mats = st.checkbox("Incluir materiales del CDB", value=False)
             use_impact = st.checkbox("Incluir materiales de impacto", value=True)
 
-            with st.expander("Materiales de impacto (Johnson-Cook)"):
-                mat_id = st.number_input(
-                    "ID material", value=len(st.session_state["impact_materials"]) + 1, step=1
-                )
-                dens_i = st.number_input("Densidad", value=7800.0, key="dens_i")
-                e_i = st.number_input("E", value=210000.0, key="e_i")
-                nu_i = st.number_input("Poisson", value=0.3, key="nu_i")
-                a_i = st.number_input("A", value=200.0, key="a_i")
-                b_i = st.number_input("B", value=400.0, key="b_i")
-                n_i = st.number_input("n", value=0.5, key="n_i")
-                c_i = st.number_input("C", value=0.01, key="c_i")
-                eps_i = st.number_input("EPS0", value=1.0, key="eps0_i")
-                if st.button("Añadir material"):
-                    st.session_state["impact_materials"].append(
-                        {
+            if use_impact:
+                with st.expander("Materiales de impacto"):
+                    mat_id = st.number_input(
+                        "ID material",
+                        value=len(st.session_state["impact_materials"]) + 1,
+                        step=1,
+                    )
+                    law = st.selectbox(
+                        "Tipo",
+                        [
+                            "LAW1",
+                            "LAW2",
+                            "LAW27",
+                            "LAW36",
+                            "LAW44",
+                        ],
+                    )
+                    dens_i = st.number_input("Densidad", value=7800.0, key="dens_i")
+                    e_i = st.number_input("E", value=210000.0, key="e_i")
+                    nu_i = st.number_input("Poisson", value=0.3, key="nu_i")
+                    extra: Dict[str, float] = {}
+                    if law == "LAW2":
+                        extra["A"] = st.number_input("A", value=200.0, key="a_i")
+                        extra["B"] = st.number_input("B", value=400.0, key="b_i")
+                        extra["N"] = st.number_input("n", value=0.5, key="n_i")
+                        extra["C"] = st.number_input("C", value=0.01, key="c_i")
+                        extra["EPS0"] = st.number_input("EPS0", value=1.0, key="eps0_i")
+                    elif law == "LAW27":
+                        extra["SIG0"] = st.number_input("SIG0", value=200.0, key="sig0")
+                        extra["SU"] = st.number_input("SU", value=0.0, key="su")
+                        extra["EPSU"] = st.number_input("EPSU", value=0.0, key="epsu")
+                    elif law == "LAW36":
+                        extra["Fsmooth"] = st.number_input("Fsmooth", value=0.0, key="fs")
+                        extra["Fcut"] = st.number_input("Fcut", value=0.0, key="fc")
+                        extra["Chard"] = st.number_input("Chard", value=0.0, key="ch")
+                    elif law == "LAW44":
+                        extra["A"] = st.number_input("A", value=0.0, key="cow_a")
+                        extra["B"] = st.number_input("B", value=0.0, key="cow_b")
+                        extra["N"] = st.number_input("N", value=1.0, key="cow_n")
+                        extra["C"] = st.number_input("C", value=0.0, key="cow_c")
+
+                    fail_type = st.selectbox(
+                        "Modo de fallo",
+                        ["Ninguno", "FAIL/JOHNSON", "FAIL/BIQUAD", "FAIL/TAB1"],
+                    )
+                    fail_params: Dict[str, float] = {}
+                    if fail_type != "Ninguno":
+                        if fail_type == "FAIL/JOHNSON":
+                            fail_params["D1"] = st.number_input("D1", value=0.0)
+                            fail_params["D2"] = st.number_input("D2", value=0.0)
+                            fail_params["D3"] = st.number_input("D3", value=0.0)
+                            fail_params["D4"] = st.number_input("D4", value=0.0)
+                            fail_params["D5"] = st.number_input("D5", value=0.0)
+                        elif fail_type == "FAIL/BIQUAD":
+                            fail_params["C1"] = st.number_input("C1", value=0.0)
+                            fail_params["C2"] = st.number_input("C2", value=0.0)
+                            fail_params["C3"] = st.number_input("C3", value=0.0)
+                        elif fail_type == "FAIL/TAB1":
+                            fail_params["Dcrit"] = st.number_input("Dcrit", value=1.0)
+
+                    if st.button("Añadir material"):
+                        data = {
                             "id": int(mat_id),
-                            "LAW": "LAW2",
+                            "LAW": law,
                             "EX": e_i,
                             "NUXY": nu_i,
                             "DENS": dens_i,
-                            "A": a_i,
-                            "B": b_i,
-                            "N": n_i,
-                            "C": c_i,
-                            "EPS0": eps_i,
                         }
-                    )
-                if st.session_state["impact_materials"]:
-                    st.write("Materiales definidos:")
-                    for mat in st.session_state["impact_materials"]:
-                        st.json(mat)
+                        data.update(extra)
+                        if fail_type != "Ninguno":
+                            data["FAIL"] = {"TYPE": fail_type, **fail_params}
+                        st.session_state["impact_materials"].append(data)
+
+                    if st.session_state["impact_materials"]:
+                        st.write("Materiales definidos:")
+                        for mat in st.session_state["impact_materials"]:
+                            st.json(mat)
 
 
         with st.expander("Control del cálculo"):
@@ -566,10 +607,6 @@ if file_path:
                     elem_sets=elem_sets,
                     materials=materials if use_cdb_mats else None,
                     extra_materials=extra,
-                    thickness=thickness,
-                    young=young,
-                    poisson=poisson,
-                    density=density,
 
                     runname=runname,
                     t_end=t_end,

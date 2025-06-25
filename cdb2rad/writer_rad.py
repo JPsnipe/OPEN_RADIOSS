@@ -78,7 +78,7 @@ def write_rad(
         f.write("                  kg                  mm                   s\n")
         f.write("                  kg                  mm                   s\n")
 
-        # 1. CONTROL CARDS
+        f.write("/PART/1/1/1\n")
         f.write(f"/RUN/{runname}/1/\n")
         f.write(f"                {t_end}\n")
         f.write("/STOP\n")
@@ -93,7 +93,12 @@ def write_rad(
 
         # 2. MATERIALS
         if not all_mats:
-            f.write(f"/MAT/LAW1/1 {young} {poisson} {density}\n")
+            f.write("/MAT/LAW1/1\n")
+            f.write("Default_Mat\n")
+            f.write("#              RHO\n")
+            f.write(f"{density}\n")
+            f.write("#                  E                  Nu\n")
+            f.write(f"{young} {poisson}\n")
         else:
             for mid, props in all_mats.items():
                 law = props.get("LAW", "LAW1").upper()
@@ -110,12 +115,33 @@ def write_rad(
                     f.write(f"{rho} {e} {nu}\n")
                     f.write(f"{a} {b} {n} {c} {eps0}\n")
                 else:
-                    f.write(f"/MAT/LAW1/{mid} {e} {nu} {rho}\n")
+                    name = props.get("NAME", f"MAT_{mid}")
+                    f.write(f"/MAT/LAW1/{mid}\n")
+                    f.write(f"{name}\n")
+                    f.write("#              RHO\n")
+                    f.write(f"{rho}\n")
+                    f.write("#                  E                  Nu\n")
+                    f.write(f"{e} {nu}\n")
 
         # 3. NODES (from include file)
         f.write(f"#include {mesh_inc}\n")
 
+
+        # Basic engine control cards
+        f.write("/STOP\n")
+        f.write(f"{t_end}\n")
+        f.write("0 0 0 1 1 0\n")
+        f.write("/TFILE/0\n")
+        f.write(f"{tfile_dt}\n")
+        f.write("/VERS/2024\n")
+        f.write("/DT/NODA/CST/0\n")
+        f.write(f"{dt_ratio} 0 0\n")
+        f.write("/ANIM/DT\n")
+        f.write(f"0 {anim_dt}\n")
+
+
         # 4. BOUNDARY CONDITIONS
+
         if boundary_conditions:
             for idx, bc in enumerate(boundary_conditions, start=1):
                 name = bc.get("name", f"BC_{idx}")

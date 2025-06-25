@@ -85,5 +85,10 @@ def write_mesh_inc(
                     f.write(f"{rho} {e} {nu}\n")
                     f.write(f"{a} {b} {n_val} {c} {eps0}\n")
                 else:
+                    name = props.get("NAME", f"MAT_{mid}")
                     f.write(f"\n/MAT/LAW1/{mid}\n")
-                    f.write(f"{e} {nu} {rho}\n")
+                    f.write(f"{name}\n")
+                    f.write("#              RHO\n")
+                    f.write(f"{rho}\n")
+                    f.write("#                  E                  Nu\n")
+                    f.write(f"{e} {nu}\n")

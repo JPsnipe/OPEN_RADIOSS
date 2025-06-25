@@ -7,6 +7,18 @@ from typing import Dict, List
 
 import streamlit as st
 
+SDEA_LOGO_URL = (
+    "https://sdeasolutions.com/wp-content/uploads/2021/11/"
+    "cropped-SDEA_Logo-ORIGINAL-250x250-1.jpg"
+)
+OPENRADIOSS_LOGO_URL = (
+    "https://openradioss.org/wp-content/uploads/2023/07/openradioss-logo.png"
+)
+ANSYS_LOGO_URL = (
+    "https://www.ansys.com/content/dam/company/brand/logos/"
+    "ansys-logos/ansys-logo.svg"
+)
+
 root_path = str(Path(__file__).resolve().parents[2])
 if root_path not in sys.path:
     sys.path.insert(0, root_path)
@@ -18,7 +30,9 @@ from cdb2rad.writer_rad import write_rad
 MAX_POINTS = 10000
 
 
-def viewer_html(nodes: Dict[int, List[float]], max_points: int = MAX_POINTS) -> str:
+def viewer_html(
+    nodes: Dict[int, List[float]], max_points: int = MAX_POINTS
+) -> str:
     """Return a small Three.js viewer for the given nodes.
 
     If the mesh contains more than ``max_points`` nodes a subset is used in the
@@ -75,12 +89,50 @@ def load_cdb(path: str):
     return parse_cdb(path)
 
 
+# Color scheme using SDEA's darker palette for better contrast
+SDEA_BLUE = "#0A2B5D"  # dark engineering blue
+SDEA_ORANGE = "#FF9A56"
+SDEA_DARK = "#000000"  # night black background
+
+style = f"""
+<style>
+.stApp {{
+    background-color: {SDEA_DARK};
+    color: #F0F0F0;
+}}
+.sdea-header {{
+    background-color: {SDEA_BLUE};
+    color: #FFFFFF;
+    padding: 10px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}}
+.sdea-header img {{
+    height: 60px;
+}}
+div.stButton>button {{
+    background-color: {SDEA_ORANGE};
+    color: #1B1825;
+}}
+</style>
+"""
+st.markdown(style, unsafe_allow_html=True)
+
 st.title("CDB → OpenRadioss")
 
-# Display SDEA logo
-logo_path = Path(__file__).parent / "assets" / "sdea_logo.png"
-if logo_path.exists():
-    st.image(str(logo_path), width=150)
+header = st.container()
+with header:
+    st.markdown('<div class="sdea-header">', unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col1:
+        st.image(SDEA_LOGO_URL, width=120)
+    with col2:
+        st.image(OPENRADIOSS_LOGO_URL, width=140)
+    with col3:
+        st.image(ANSYS_LOGO_URL, width=120)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 uploaded = st.file_uploader("Subir archivo .cdb", type="cdb")
 
@@ -99,6 +151,7 @@ if file_path:
         st.write("Nodos:", len(nodes))
         st.write("Elementos:", len(elements))
         from cdb2rad.utils import element_summary
+
         etype_counts, kw_counts = element_summary(elements)
         st.write("Tipos de elemento (CDB):")
         for et, cnt in sorted(etype_counts.items()):

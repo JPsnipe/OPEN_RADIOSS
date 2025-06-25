@@ -44,6 +44,7 @@ def main() -> None:
             nodes,
             elements,
             args.rad,
+            mesh_inc=args.inc or "mesh.inp",
             node_sets=node_sets,
             elem_sets=elem_sets,
             materials=materials,

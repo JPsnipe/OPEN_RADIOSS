@@ -1,6 +1,6 @@
 import os
 from cdb2rad.parser import parse_cdb
-from cdb2rad.writer_inc import write_mesh_inp
+from cdb2rad.writer_inc import write_mesh_inc
 from cdb2rad.writer_rad import write_rad
 from cdb2rad.utils import element_summary
 
@@ -28,8 +28,8 @@ def test_element_summary():
 
 def test_write_mesh(tmp_path):
     nodes, elements, node_sets, elem_sets, materials = parse_cdb(DATA)
-    out = tmp_path / 'mesh.inp'
-    write_mesh_inp(
+    out = tmp_path / 'mesh.inc'
+    write_mesh_inc(
         nodes,
         elements,
         str(out),
@@ -79,8 +79,8 @@ def test_write_rad(tmp_path):
 
 def test_write_mesh_without_sets_materials(tmp_path):
     nodes, elements, node_sets, elem_sets, materials = parse_cdb(DATA)
-    out = tmp_path / 'mesh_no_sets.inp'
-    write_mesh_inp(nodes, elements, str(out))
+    out = tmp_path / 'mesh_no_sets.inc'
+    write_mesh_inc(nodes, elements, str(out))
     content = out.read_text()
     assert '/GRNOD' not in content
     assert '/SET/EL' not in content

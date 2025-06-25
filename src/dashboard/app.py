@@ -22,7 +22,7 @@ if root_path not in sys.path:
 
 from cdb2rad.parser import parse_cdb
 from cdb2rad.writer_rad import write_rad
-from cdb2rad.writer_inc import write_mesh_inp
+from cdb2rad.writer_inc import write_mesh_inc
 
 
 MAX_EDGES = 10000
@@ -259,7 +259,7 @@ if file_path:
     info_tab, preview_tab, inp_tab, rad_tab = st.tabs([
         "Información",
         "Vista 3D",
-        "Generar INP",
+        "Generar INC",
         "Generar RAD",
     ])
 
@@ -295,15 +295,15 @@ if file_path:
         st.components.v1.html(html, height=420)
 
     with inp_tab:
-        st.subheader("Generar mesh.inp")
+        st.subheader("Generar mesh.inc")
 
         use_sets = st.checkbox("Incluir name selections", value=True)
         use_mats = st.checkbox("Incluir materiales", value=True)
 
-        if st.button("Generar .inp"):
+        if st.button("Generar .inc"):
             with tempfile.TemporaryDirectory() as tmpdir:
-                inp_path = Path(tmpdir) / "mesh.inp"
-                write_mesh_inp(
+                inp_path = Path(tmpdir) / "mesh.inc"
+                write_mesh_inc(
                     nodes,
                     elements,
                     str(inp_path),
@@ -337,7 +337,7 @@ if file_path:
         if st.button("Generar .rad"):
             with tempfile.TemporaryDirectory() as tmpdir:
                 rad_path = Path(tmpdir) / "model_0000.rad"
-                mesh_path = Path(tmpdir) / "mesh.inp"
+                mesh_path = Path(tmpdir) / "mesh.inc"
                 write_rad(
                     nodes,
                     elements,

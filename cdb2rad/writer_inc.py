@@ -1,11 +1,11 @@
-"""Utilities to write ``mesh.inp`` include files in Radioss format."""
+"""Utilities to write ``mesh.inc`` include files in Radioss format."""
 
 from typing import Dict, List, Tuple
 import json
 from pathlib import Path
 
 
-def write_mesh_inp(
+def write_mesh_inc(
     nodes: Dict[int, List[float]],
     elements: List[Tuple[int, int, List[int]]],
     outfile: str,
@@ -14,7 +14,7 @@ def write_mesh_inp(
     elem_sets: Dict[str, List[int]] | None = None,
     materials: Dict[int, Dict[str, float]] | None = None,
 ) -> None:
-    """Write ``mesh.inp`` with element blocks derived from ``mapping.json``.
+    """Write ``mesh.inc`` with element blocks derived from ``mapping.json``.
 
     Optionally, node and element sets (from CMBLOCK) and basic material
     properties can be written for later use in the starter file.

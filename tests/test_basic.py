@@ -3,6 +3,7 @@ from cdb2rad.parser import parse_cdb
 from cdb2rad.writer_inc import write_mesh_inc
 from cdb2rad.writer_rad import write_rad, write_minimal_rad
 from cdb2rad.utils import element_summary
+from cdb2rad.material_defaults import apply_default_materials
 
 DATA = os.path.join(os.path.dirname(__file__), '..', 'data', 'model.cdb')
 
@@ -205,6 +206,7 @@ def test_write_rad_with_type2_contact(tmp_path):
     assert '/FRICTION' in txt
 
 
+
 def test_write_rad_advanced_options(tmp_path):
     nodes, elements, node_sets, elem_sets, mats = parse_cdb(DATA)
     rad = tmp_path / 'advanced.rad'
@@ -232,4 +234,5 @@ def test_write_rad_advanced_options(tmp_path):
     assert '/RFILE/2' in text
     assert '/H3D/DT' in text
     assert '/ADYREL' in text
+
 

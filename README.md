@@ -51,6 +51,15 @@ prescrito** (`/BOUNDARY/PRESCRIBED_MOTION`) además de las fijaciones
 tradicionales (`/BCS`). Estas se pueden seleccionar desde el dashboard y se
 exportan con la sintaxis correspondiente del Reference Guide.
 
+## Materiales por defecto
+
+Cuando no se proporcionan propiedades específicas, el generador aplica
+parámetros típicos de aceros de automoción para todas las leyes de material
+soportadas (LAW1, LAW2, LAW27, LAW36 y LAW44). Estos valores incluyen
+``E=210000`` MPa, ``nu=0.3`` y ``rho=7800`` kg/m\ :sup:`3`, además de
+constantes habituales para cada ley (por ejemplo, ``A=220`` y ``B=450`` en
+Johnson--Cook).
+
 Cada bloque está descrito en detalle en la guía oficial de comandos de
 Radioss. Para depurar y ampliar estos ficheros se recomienda consultar el
 [Altair Radioss 2022 Reference Guide](https://2022.help.altair.com/2022/simulation/pdfs/radopen/AltairRadioss_2022_ReferenceGuide.pdf) es la referencia principal para la sintaxis y

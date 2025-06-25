@@ -9,6 +9,7 @@ function parameters.
 from typing import Dict, List, Tuple
 
 from .writer_inc import write_mesh_inc
+from .material_defaults import apply_default_materials
 
 DEFAULT_THICKNESS = 1.0
 DEFAULT_E = 210000.0
@@ -85,6 +86,8 @@ def write_rad(
         all_mats.update(materials)
     if extra_materials:
         all_mats.update(extra_materials)
+    if all_mats:
+        all_mats = apply_default_materials(all_mats)
 
     write_mesh_inc(
         nodes,

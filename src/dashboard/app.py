@@ -93,7 +93,8 @@ SDEA_DARK = "#1B1825"
 style = f"""
 <style>
 .stApp {{
-    background-color: #f5f5f5;
+    background-color: #000000;
+    color: white;
 }}
 .sdea-header {{
     background-color: {SDEA_DARK};

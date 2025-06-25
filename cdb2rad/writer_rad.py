@@ -77,12 +77,21 @@ def write_rad(
         f.write("     2024         0\n")
         f.write("                  kg                  mm                   s\n")
         f.write("                  kg                  mm                   s\n")
-        # radioss 2024 uses `#include` for file references
-        f.write(f"#include {mesh_inc}\n")
 
-        f.write(f"/PART/1/1/1\n")
-        f.write(f"/PROP/SHELL/1 {thickness} 0\n")
+        # 1. CONTROL CARDS
+        f.write(f"/RUN/{runname}/1/\n")
+        f.write(f"                {t_end}\n")
+        f.write("/STOP\n")
+        f.write("0 0 0 1 1 0\n")
+        f.write("/TFILE/0\n")
+        f.write(f"{tfile_dt}\n")
+        f.write("/VERS/2024\n")
+        f.write("/DT/NODA/CST/0\n")
+        f.write(f"{dt_ratio} 0 0\n")
+        f.write("/ANIM/DT\n")
+        f.write(f"0 {anim_dt}\n")
 
+        # 2. MATERIALS
         if not all_mats:
             f.write("/MAT/LAW1/1\n")
             f.write("Default_Mat\n")
@@ -114,6 +123,9 @@ def write_rad(
                     f.write("#                  E                  Nu\n")
                     f.write(f"{e} {nu}\n")
 
+        # 3. NODES (from include file)
+        f.write(f"#include {mesh_inc}\n")
+
 
         # Basic engine control cards
         f.write("/STOP\n")
@@ -126,6 +138,9 @@ def write_rad(
         f.write(f"{dt_ratio} 0 0\n")
         f.write("/ANIM/DT\n")
         f.write(f"0 {anim_dt}\n")
+
+
+        # 4. BOUNDARY CONDITIONS
 
         if boundary_conditions:
             for idx, bc in enumerate(boundary_conditions, start=1):
@@ -177,6 +192,10 @@ def write_rad(
                 f.write(f"{name}_master\n")
                 for nid in m_nodes:
                     f.write(f"{nid:10d}\n")
+
+        # 5. PARTS
+        f.write(f"/PART/1/1/1\n")
+        f.write(f"/PROP/SHELL/1 {thickness} 0\n")
 
         if init_velocity:
             nodes_v = init_velocity.get("nodes", [])

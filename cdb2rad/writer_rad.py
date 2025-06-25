@@ -144,15 +144,30 @@ def write_rad(
 
         if boundary_conditions:
             for idx, bc in enumerate(boundary_conditions, start=1):
+                bc_type = str(bc.get("type", "BCS")).upper()
                 name = bc.get("name", f"BC_{idx}")
-                tra = str(bc.get("tra", "000")).rjust(3, "0")
-                rot = str(bc.get("rot", "000")).rjust(3, "0")
                 nodes_bc = bc.get("nodes", [])
                 gid = 100 + idx
-                f.write(f"/BCS/{idx}\n")
-                f.write(f"{name}\n")
-                f.write("#  Tra rot   skew_ID  grnod_ID\n")
-                f.write(f"   {tra} {rot}         0        {gid}\n")
+
+                if bc_type == "BCS":
+                    tra = str(bc.get("tra", "000")).rjust(3, "0")
+                    rot = str(bc.get("rot", "000")).rjust(3, "0")
+                    f.write(f"/BCS/{idx}\n")
+                    f.write(f"{name}\n")
+                    f.write("#  Tra rot   skew_ID  grnod_ID\n")
+                    f.write(f"   {tra} {rot}         0        {gid}\n")
+                elif bc_type == "PRESCRIBED_MOTION":
+                    direction = int(bc.get("dir", 1))
+                    value = float(bc.get("value", 0.0))
+                    f.write(f"/BOUNDARY/PRESCRIBED_MOTION/{idx}\n")
+                    f.write(f"{name}\n")
+                    f.write("#   Dir    skew_ID   grnod_ID\n")
+                    f.write(f"    {direction}        0        {gid}\n")
+                    f.write(f"{value}\n")
+                else:
+                    f.write(f"# Unsupported BC type: {bc_type}\n")
+                    continue
+
                 f.write(f"/GRNOD/NODE/{gid}\n")
                 f.write(f"{name}_nodes\n")
                 for nid in nodes_bc:

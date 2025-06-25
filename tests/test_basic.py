@@ -142,6 +142,21 @@ def test_write_rad_with_bc(tmp_path):
     assert 'fixed' in txt
 
 
+def test_write_rad_with_prescribed(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'prescribed.rad'
+    bc = [{
+        'name': 'move',
+        'type': 'PRESCRIBED_MOTION',
+        'dir': 1,
+        'value': 5.0,
+        'nodes': [1, 2]
+    }]
+    write_rad(nodes, elements, str(rad), boundary_conditions=bc)
+    txt = rad.read_text()
+    assert '/BOUNDARY/PRESCRIBED_MOTION/1' in txt
+
+
 def test_write_rad_with_impvel(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
     rad = tmp_path / 'vel.rad'

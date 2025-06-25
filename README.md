@@ -46,6 +46,11 @@ incluyen los nodos mediante ``#include`` y se definen las condiciones de
 contorno. Finalmente se añaden partes y propiedades antes de otras
 tarjetas opcionales como contactos o cargas iniciales.
 
+Las condiciones de contorno incluyen ahora la opción de **movimiento
+prescrito** (`/BOUNDARY/PRESCRIBED_MOTION`) además de las fijaciones
+tradicionales (`/BCS`). Estas se pueden seleccionar desde el dashboard y se
+exportan con la sintaxis correspondiente del Reference Guide.
+
 Cada bloque está descrito en detalle en la guía oficial de comandos de
 Radioss. Para depurar y ampliar estos ficheros se recomienda consultar el
 [Altair Radioss 2022 Reference Guide](https://2022.help.altair.com/2022/simulation/pdfs/radopen/AltairRadioss_2022_ReferenceGuide.pdf) es la referencia principal para la sintaxis y

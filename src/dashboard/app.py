@@ -3,7 +3,9 @@ from pathlib import Path
 import sys
 import json
 import math
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional, Set
+
+import plotly.graph_objects as go
 
 import streamlit as st
 
@@ -33,52 +35,30 @@ def viewer_html(
 
     nodes: Dict[int, List[float]],
     elements: List[Tuple[int, int, List[int]]],
+    selected_eids: Optional[Set[int]] = None,
     max_edges: int = MAX_EDGES,
     max_faces: int = MAX_FACES,
 ) -> str:
-    """Return an HTML snippet with a lightweight Three.js mesh viewer.
+    """Return an HTML snippet with a Plotly-based mesh viewer."""
 
-
-    A subset of ``max_edges`` edges and ``max_faces`` triangular faces is used
-    when the mesh is large to keep the browser responsive.
-    """
+    if selected_eids:
+        elements = [e for e in elements if e[0] in selected_eids]
 
     if not nodes or not elements:
         return "<p>No data</p>"
 
-    coords = list(nodes.values())
-    if len(coords) > max_edges:
-        step = max(1, len(coords) // max_edges)
-        coords = coords[::step][:max_edges]
-
-    xs = [c[0] for c in coords]
-    ys = [c[1] for c in coords]
-    zs = [c[2] for c in coords]
-    cx = sum(xs) / len(xs)
-    cy = sum(ys) / len(ys)
-    cz = sum(zs) / len(zs)
-    max_r = 0.0
-    for x, y, z in coords:
-        r = math.sqrt((x - cx) ** 2 + (y - cy) ** 2 + (z - cz) ** 2)
-        if r > max_r:
-            max_r = r
-    cam_dist = max_r * 3 if max_r > 0 else 10.0
-    cam_x = cx + cam_dist
-    cam_y = cy + cam_dist
-    cam_z = cz + cam_dist
-
     def elem_edges(nids: List[int]) -> List[Tuple[int, int]]:
-        if len(nids) == 4:  # shell quad
+        if len(nids) == 4:
             idx = [(0, 1), (1, 2), (2, 3), (3, 0)]
-        elif len(nids) == 3:  # shell tri
+        elif len(nids) == 3:
             idx = [(0, 1), (1, 2), (2, 0)]
-        elif len(nids) in (8, 20):  # brick/hex
+        elif len(nids) in (8, 20):
             idx = [
                 (0, 1), (1, 2), (2, 3), (3, 0),
                 (4, 5), (5, 6), (6, 7), (7, 4),
                 (0, 4), (1, 5), (2, 6), (3, 7),
             ]
-        elif len(nids) in (4, 10):  # tetra
+        elif len(nids) in (4, 10):
             idx = [
                 (0, 1), (1, 2), (2, 0),
                 (0, 3), (1, 3), (2, 3),
@@ -87,20 +67,12 @@ def viewer_html(
             idx = [(i, (i + 1) % len(nids)) for i in range(len(nids))]
         return [(nids[a], nids[b]) for a, b in idx if a < len(nids) and b < len(nids)]
 
-    edges = []
-    faces = []
-    seen = set()
-
-    def add_face(tri: Tuple[int, int, int]):
-        if all(n in nodes for n in tri):
-            faces.append(nodes[tri[0]] + nodes[tri[1]] + nodes[tri[2]])
-
     def elem_faces(nids: List[int]) -> List[Tuple[int, int, int]]:
-        if len(nids) == 4:  # shell quad
+        if len(nids) == 4:
             idx = [(0, 1, 2), (0, 2, 3)]
-        elif len(nids) == 3:  # shell tri
+        elif len(nids) == 3:
             idx = [(0, 1, 2)]
-        elif len(nids) in (8, 20):  # brick/hex
+        elif len(nids) in (8, 20):
             idx = [
                 (0, 1, 2), (0, 2, 3),
                 (4, 5, 6), (4, 6, 7),
@@ -109,7 +81,7 @@ def viewer_html(
                 (2, 3, 7), (2, 7, 6),
                 (3, 0, 4), (3, 4, 7),
             ]
-        elif len(nids) in (4, 10):  # tetra
+        elif len(nids) in (4, 10):
             idx = [
                 (0, 1, 2),
                 (0, 1, 3),
@@ -120,6 +92,10 @@ def viewer_html(
             idx = []
         return [(nids[a], nids[b], nids[c]) for a, b, c in idx]
 
+    edges: List[Tuple[int, int]] = []
+    faces: List[Tuple[int, int, int]] = []
+    seen: Set[Tuple[int, int]] = set()
+
     for _eid, _et, nids in elements:
         for a, b in elem_edges(nids):
             key = tuple(sorted((a, b)))
@@ -127,69 +103,72 @@ def viewer_html(
                 continue
             if a in nodes and b in nodes:
                 seen.add(key)
-                edges.append(nodes[a] + nodes[b])
+                edges.append((a, b))
             if len(edges) >= max_edges:
                 break
         for tri in elem_faces(nids):
-            add_face(tri)
-            if len(faces) >= max_faces:
-                break
+            if len(faces) < max_faces:
+                faces.append(tri)
         if len(edges) >= max_edges and len(faces) >= max_faces:
             break
 
-    template = """
-<div id='c'></div>
-<script src='https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js'></script>
-<script src='https://cdn.jsdelivr.net/npm/three@0.154.0/examples/js/controls/OrbitControls.js'></script>
-<script>
-const segments = {segs};
-const triangles = {tris};
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 1000);
-camera.position.set({cam_x}, {cam_y}, {cam_z});
-const renderer = new THREE.WebGLRenderer({{antialias:true}});
-renderer.setSize(400, 400);
-document.getElementById('c').appendChild(renderer.domElement);
-const g = new THREE.BufferGeometry();
-const verts = new Float32Array(segments.flat());
-g.setAttribute('position', new THREE.BufferAttribute(verts, 3));
-const m = new THREE.LineBasicMaterial({{color:0x0080ff}});
-const lines = new THREE.LineSegments(g, m);
-scene.add(lines);
-const fg = new THREE.BufferGeometry();
-const fverts = new Float32Array(triangles.flat());
-fg.setAttribute('position', new THREE.BufferAttribute(fverts, 3));
-fg.computeVertexNormals();
-const fmat = new THREE.MeshPhongMaterial({{color:0xcccccc, side:THREE.DoubleSide, opacity:0.5, transparent:true}});
-const mesh = new THREE.Mesh(fg, fmat);
-scene.add(mesh);
-scene.add(new THREE.AmbientLight(0x404040));
-const dlight = new THREE.DirectionalLight(0xffffff, 0.8);
-dlight.position.set(1,1,1);
-scene.add(dlight);
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.target.set({cx}, {cy}, {cz});
-camera.lookAt({cx}, {cy}, {cz});
-function animate(){{
-  requestAnimationFrame(animate);
-  controls.update();
-  renderer.render(scene, camera);
-}}
-animate();
-</script>
-"""
-    return template.format(
-        segs=json.dumps(edges),
-        tris=json.dumps(faces),
-        cam_dist=cam_dist,
-        cam_x=cam_x,
-        cam_y=cam_y,
-        cam_z=cam_z,
-        cx=cx,
-        cy=cy,
-        cz=cz,
+    id_to_idx = {nid: i for i, nid in enumerate(nodes)}
+    pts = list(nodes.values())
+
+    line_x: List[float] = []
+    line_y: List[float] = []
+    line_z: List[float] = []
+    for a, b in edges:
+        pa = nodes[a]; pb = nodes[b]
+        line_x += [pa[0], pb[0], None]
+        line_y += [pa[1], pb[1], None]
+        line_z += [pa[2], pb[2], None]
+
+    fi: List[int] = []
+    fj: List[int] = []
+    fk: List[int] = []
+    for tri in faces:
+        if all(n in id_to_idx for n in tri):
+            fi.append(id_to_idx[tri[0]])
+            fj.append(id_to_idx[tri[1]])
+            fk.append(id_to_idx[tri[2]])
+
+    fig = go.Figure()
+    if line_x:
+        fig.add_trace(
+            go.Scatter3d(
+                x=line_x,
+                y=line_y,
+                z=line_z,
+                mode="lines",
+                line=dict(color="blue", width=2),
+                showlegend=False,
+            )
+        )
+    if fi:
+        fig.add_trace(
+            go.Mesh3d(
+                x=[p[0] for p in pts],
+                y=[p[1] for p in pts],
+                z=[p[2] for p in pts],
+                i=fi,
+                j=fj,
+                k=fk,
+                color="lightgray",
+                opacity=0.5,
+                flatshading=True,
+                showscale=False,
+            )
+        )
+
+    fig.update_layout(
+        scene_aspectmode="data",
+        margin=dict(l=0, r=0, t=0, b=0),
+        width=400,
+        height=400,
     )
+
+    return fig.to_html(include_plotlyjs="cdn")
 
 
 @st.cache_data(ttl=3600)
@@ -295,7 +274,15 @@ if file_path:
             st.write(f"- ID {mid}: {props}")
 
     with preview_tab:
-        html = viewer_html(nodes, elements)
+        st.write("Selecciona conjuntos de elementos para visualizar:")
+        selected_sets = st.multiselect(
+            "Conjuntos", list(elem_sets.keys()), default=list(elem_sets.keys())
+        )
+        sel_eids = set()
+        for name in selected_sets:
+            sel_eids.update(elem_sets.get(name, []))
+
+        html = viewer_html(nodes, elements, selected_eids=sel_eids if sel_eids else None)
         if len(elements) > MAX_EDGES:
             st.caption(
                 f"Mostrando un subconjunto de {MAX_EDGES} de {len(elements)} "

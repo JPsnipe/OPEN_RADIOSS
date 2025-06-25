@@ -3,7 +3,7 @@ from pathlib import Path
 import sys
 import json
 import math
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional, Set
 
 import streamlit as st
 
@@ -33,15 +33,19 @@ def viewer_html(
 
     nodes: Dict[int, List[float]],
     elements: List[Tuple[int, int, List[int]]],
+    selected_eids: Optional[Set[int]] = None,
     max_edges: int = MAX_EDGES,
     max_faces: int = MAX_FACES,
 ) -> str:
     """Return an HTML snippet with a lightweight Three.js mesh viewer.
 
-
-    A subset of ``max_edges`` edges and ``max_faces`` triangular faces is used
-    when the mesh is large to keep the browser responsive.
+    ``selected_eids`` may filter the elements to display. A subset of
+    ``max_edges`` edges and ``max_faces`` triangular faces is used when the
+    mesh is large to keep the browser responsive.
     """
+
+    if selected_eids:
+        elements = [e for e in elements if e[0] in selected_eids]
 
     if not nodes or not elements:
         return "<p>No data</p>"
@@ -140,7 +144,7 @@ def viewer_html(
     template = """
 <div id='c'></div>
 <script src='https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js'></script>
-<script src='https://cdn.jsdelivr.net/npm/three@0.154.0/examples/js/controls/OrbitControls.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/controls/OrbitControls.js'></script>
 <script>
 const segments = {segs};
 const triangles = {tris};
@@ -295,7 +299,15 @@ if file_path:
             st.write(f"- ID {mid}: {props}")
 
     with preview_tab:
-        html = viewer_html(nodes, elements)
+        st.write("Selecciona conjuntos de elementos para visualizar:")
+        selected_sets = st.multiselect(
+            "Conjuntos", list(elem_sets.keys()), default=list(elem_sets.keys())
+        )
+        sel_eids = set()
+        for name in selected_sets:
+            sel_eids.update(elem_sets.get(name, []))
+
+        html = viewer_html(nodes, elements, selected_eids=sel_eids if sel_eids else None)
         if len(elements) > MAX_EDGES:
             st.caption(
                 f"Mostrando un subconjunto de {MAX_EDGES} de {len(elements)} "

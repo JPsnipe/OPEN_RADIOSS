@@ -75,3 +75,13 @@ def test_write_rad(tmp_path):
     assert '0.002' in content
     assert '0.0001' in content
 
+
+def test_write_mesh_without_sets_materials(tmp_path):
+    nodes, elements, node_sets, elem_sets, materials = parse_cdb(DATA)
+    out = tmp_path / 'mesh_no_sets.inp'
+    write_mesh_inp(nodes, elements, str(out))
+    content = out.read_text()
+    assert '/GRNOD' not in content
+    assert '/SET/EL' not in content
+    assert '/MAT/LAW1' not in content
+

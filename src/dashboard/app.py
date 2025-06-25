@@ -28,6 +28,33 @@ from cdb2rad.writer_inc import write_mesh_inc
 MAX_EDGES = 10000
 MAX_FACES = 15000
 
+# Mappings for dropdown labels with short explanations
+LAW_DESCRIPTIONS = {
+    "LAW1": "Elástico lineal",
+    "LAW2": "Modelo Johnson-Cook",
+    "LAW27": "Modelo plástico isotrópico",
+    "LAW36": "Modelo material avanzado",
+    "LAW44": "Modelo Cowper-Symonds",
+}
+
+FAIL_DESCRIPTIONS = {
+    "Ninguno": "Sin criterio de fallo",
+    "FAIL/JOHNSON": "Johnson-Cook failure",
+    "FAIL/BIQUAD": "Criterio Biquadrático",
+    "FAIL/TAB1": "Fallo tabulado",
+}
+
+BC_DESCRIPTIONS = {
+    "BCS": "Condición fija",
+    "PRESCRIBED_MOTION": "Movimiento prescrito",
+}
+
+INT_DESCRIPTIONS = {
+    "TYPE2": "Nodo-superficie",
+    "TYPE7": "Superficie-superficie",
+}
+
+# Tooltip texts for dashboard widgets
 HELP_TEXT = {
     "work_dir": "Directorio base donde se guardarán los ficheros generados.",
     "use_sets": "Incluye en 'mesh.inc' los conjuntos de nodos y elementos detectados en el CDB.",
@@ -479,15 +506,11 @@ if file_path:
                     )
                     law = st.selectbox(
                         "Tipo",
-                        [
-                            "LAW1",
-                            "LAW2",
-                            "LAW27",
-                            "LAW36",
-                            "LAW44",
-                        ],
+                        list(LAW_DESCRIPTIONS.keys()),
+                        format_func=lambda k: f"{k} - {LAW_DESCRIPTIONS[k]}",
                         help=HELP_TEXT["law"],
                     )
+                    st.caption(LAW_DESCRIPTIONS[law])
                     dens_i = st.number_input(
                         "Densidad",
                         value=7800.0,
@@ -529,10 +552,13 @@ if file_path:
 
                     fail_type = st.selectbox(
                         "Modo de fallo",
-                        ["Ninguno", "FAIL/JOHNSON", "FAIL/BIQUAD", "FAIL/TAB1"],
+                        list(FAIL_DESCRIPTIONS.keys()),
+                        format_func=lambda k: f"{k} - {FAIL_DESCRIPTIONS[k]}",
                         help=HELP_TEXT["fail_type"],
                     )
                     fail_params: Dict[str, float] = {}
+                    if fail_type:
+                        st.caption(FAIL_DESCRIPTIONS[fail_type])
                     if fail_type != "Ninguno":
                         if fail_type == "FAIL/JOHNSON":
                             fail_params["D1"] = st.number_input("D1", value=0.0, help=HELP_TEXT["D1"])
@@ -597,6 +623,28 @@ if file_path:
                 max_value=1.0,
                 help=HELP_TEXT["dt_ratio"],
             )
+            st.markdown("### Opciones avanzadas")
+            print_n = st.number_input("PRINT cada n ciclos", value=-500, step=1)
+            print_line = st.number_input("Línea cabecera", value=55, step=1)
+            rfile_cycle = st.number_input("Ciclos entre RFILE", value=0, step=1)
+            rfile_n = st.number_input("Número de RFILE", value=0, step=1)
+            h3d_dt = st.number_input("Paso H3D", value=0.0, format="%.5f")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                stop_emax = st.number_input("Emax", value=0.0)
+            with col2:
+                stop_mmax = st.number_input("Mmax", value=0.0)
+            with col3:
+                stop_nmax = st.number_input("Nmax", value=0.0)
+            col4, col5, col6 = st.columns(3)
+            with col4:
+                stop_nth = st.number_input("NTH", value=1, step=1)
+            with col5:
+                stop_nanim = st.number_input("NANIM", value=1, step=1)
+            with col6:
+                stop_nerr = st.number_input("NERR_POSIT", value=0, step=1)
+            adyrel_start = st.number_input("ADYREL inicio", value=0.0)
+            adyrel_stop = st.number_input("ADYREL fin", value=0.0)
 
         with st.expander("Condiciones de contorno (BCS)"):
             bc_name = st.text_input(
@@ -606,9 +654,11 @@ if file_path:
             )
             bc_type = st.selectbox(
                 "Tipo BC",
-                ["BCS", "PRESCRIBED_MOTION"],
+                list(BC_DESCRIPTIONS.keys()),
+                format_func=lambda k: f"{k} - {BC_DESCRIPTIONS[k]}",
                 help=HELP_TEXT["bc_type"],
             )
+            st.caption(BC_DESCRIPTIONS[bc_type])
             bc_set = st.selectbox(
                 "Conjunto de nodos",
                 list(node_sets.keys()),
@@ -645,10 +695,12 @@ if file_path:
         with st.expander("Interacciones (INTER)"):
             int_type = st.selectbox(
                 "Tipo",
-                ["TYPE2", "TYPE7"],
+                list(INT_DESCRIPTIONS.keys()),
                 key="itf_type",
+                format_func=lambda k: f"{k} - {INT_DESCRIPTIONS[k]}",
                 help=HELP_TEXT["int_type"],
             )
+            st.caption(INT_DESCRIPTIONS[int_type])
             int_name = st.text_input(
                 "Nombre interfaz",
                 value=f"{int_type}_1",
@@ -668,7 +720,7 @@ if file_path:
                 disabled=not node_sets,
                 help=HELP_TEXT["master_set"],
             )
-            fric = st.number_input("Fricción", value=0.0, help=HELP_TEXT["fric"]) 
+            fric = st.number_input("Fricción", value=0.0, help=HELP_TEXT["fric"])
 
             gap = stiff = igap = None
             if int_type == "TYPE7":
@@ -787,6 +839,18 @@ if file_path:
                     anim_dt=anim_dt,
                     tfile_dt=tfile_dt,
                     dt_ratio=dt_ratio,
+                    print_n=int(print_n),
+                    print_line=int(print_line),
+                    rfile_cycle=int(rfile_cycle) if rfile_cycle else None,
+                    rfile_n=int(rfile_n) if rfile_n else None,
+                    h3d_dt=h3d_dt if h3d_dt > 0 else None,
+                    stop_emax=stop_emax,
+                    stop_mmax=stop_mmax,
+                    stop_nmax=stop_nmax,
+                    stop_nth=int(stop_nth),
+                    stop_nanim=int(stop_nanim),
+                    stop_nerr=int(stop_nerr),
+                    adyrel=(adyrel_start, adyrel_stop),
 
                     boundary_conditions=st.session_state.get("bcs"),
                     interfaces=st.session_state.get("interfaces"),

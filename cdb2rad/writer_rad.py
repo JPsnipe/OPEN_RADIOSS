@@ -41,6 +41,19 @@ def write_rad(
     anim_dt: float = DEFAULT_ANIM_DT,
     tfile_dt: float = DEFAULT_HISTORY_DT,
     dt_ratio: float = DEFAULT_DT_RATIO,
+    # Additional engine control options
+    print_n: int = -500,
+    print_line: int = 55,
+    rfile_cycle: int | None = None,
+    rfile_n: int | None = None,
+    h3d_dt: float | None = None,
+    stop_emax: float = 0.0,
+    stop_mmax: float = 0.0,
+    stop_nmax: float = 0.0,
+    stop_nth: int = 1,
+    stop_nanim: int = 1,
+    stop_nerr: int = 0,
+    adyrel: Tuple[float | None, float | None] | None = None,
     boundary_conditions: List[Dict[str, object]] | None = None,
     interfaces: List[Dict[str, object]] | None = None,
     init_velocity: Dict[str, object] | None = None,
@@ -79,10 +92,14 @@ def write_rad(
         f.write("                  kg                  mm                   s\n")
 
         f.write("/PART/1/1/1\n")
+        # General printout frequency
+        f.write(f"/PRINT/{print_n}/{print_line}\n")
         f.write(f"/RUN/{runname}/1/\n")
         f.write(f"                {t_end}\n")
         f.write("/STOP\n")
-        f.write("0 0 0 1 1 0\n")
+        f.write(
+            f"{stop_emax} {stop_mmax} {stop_nmax} {stop_nth} {stop_nanim} {stop_nerr}\n"
+        )
         f.write("/TFILE/0\n")
         f.write(f"{tfile_dt}\n")
         f.write("/VERS/2024\n")
@@ -90,6 +107,21 @@ def write_rad(
         f.write(f"{dt_ratio} 0 0\n")
         f.write("/ANIM/DT\n")
         f.write(f"0 {anim_dt}\n")
+        if h3d_dt is not None:
+            f.write("/H3D/DT\n")
+            f.write(f"0 {h3d_dt}\n")
+        if rfile_cycle is not None:
+            if rfile_n is not None:
+                f.write(f"/RFILE/{rfile_n}\n")
+            else:
+                f.write("/RFILE\n")
+            f.write(f"{rfile_cycle}\n")
+        if adyrel is not None:
+            f.write("/ADYREL\n")
+            if adyrel[0] is not None or adyrel[1] is not None:
+                tstart = 0.0 if adyrel[0] is None else adyrel[0]
+                tstop = t_end if adyrel[1] is None else adyrel[1]
+                f.write(f"{tstart} {tstop}\n")
 
         # 2. MATERIALS
         if not all_mats:

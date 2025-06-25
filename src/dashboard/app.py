@@ -38,6 +38,11 @@ from cdb2rad.writer_rad import (
     DEFAULT_STOP_NERR,
 )
 from cdb2rad.writer_inc import write_mesh_inc
+from cdb2rad.pdf_search import (
+    REFERENCE_GUIDE,
+    THEORY_MANUAL,
+    search_pdf,
+)
 
 
 MAX_EDGES = 10000
@@ -310,11 +315,12 @@ if file_path:
     )
     st.session_state["work_dir"] = work_dir
     nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
-    info_tab, preview_tab, inp_tab, rad_tab = st.tabs([
+    info_tab, preview_tab, inp_tab, rad_tab, help_tab = st.tabs([
         "Información",
         "Vista 3D",
         "Generar INC",
         "Generar RAD",
+        "Ayuda",
     ])
 
     with info_tab:
@@ -783,5 +789,20 @@ if file_path:
                 st.success("Archivo RAD limpio generado")
                 lines = rad_path.read_text().splitlines()[:20]
                 st.code("\n".join(lines))
+
+    with help_tab:
+        st.subheader("Buscar en documentación")
+        doc_choice = st.selectbox("Documento", ["Reference Guide", "Theory Manual"])
+        query = st.text_input("Término de búsqueda")
+        if st.button("Buscar", key="search_docs") and query:
+            url = REFERENCE_GUIDE if doc_choice == "Reference Guide" else THEORY_MANUAL
+            results = search_pdf(url, query)
+            if results:
+                for r in results:
+                    st.write(r)
+            else:
+                st.warning("Sin coincidencias")
+        link = REFERENCE_GUIDE if doc_choice == "Reference Guide" else THEORY_MANUAL
+        st.markdown(f"[Abrir {doc_choice}]({link})")
 else:
     st.info("Sube un archivo .cdb")

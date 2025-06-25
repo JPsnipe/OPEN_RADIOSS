@@ -168,3 +168,7 @@ Tras pulsar *Generar .inc* o *Generar .rad* se muestran las primeras líneas de
 los ficheros generados.
 Cada pestaña permite elegir el directorio de salida y el nombre (sin extensión)
 del archivo para guardar fácilmente los resultados.
+
+### Ayuda interactiva
+
+La pestaña **Ayuda** permite buscar texto en la [Reference Guide](https://2022.help.altair.com/2022/simulation/pdfs/radopen/AltairRadioss_2022_ReferenceGuide.pdf) y el [Theory Manual](https://2022.help.altair.com/2022/simulation/pdfs/radopen/AltairRadioss_2022_TheoryManual.pdf). Introduce una palabra clave y se muestran las primeras coincidencias encontradas. También se incluye un enlace directo para abrir el documento completo.

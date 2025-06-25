@@ -146,6 +146,7 @@ La pestaña *Generar RAD* también permite definir condiciones de contorno
 gravedad (``/GRAVITY``) seleccionando las *name selections* de nodos en un
 desplegable. Estos campos se pueden editar y añadir en el panel correspondiente
 antes de generar el archivo.
+El panel de gravedad está junto a **Velocidad inicial** y permite indicar la magnitud `g` y la dirección `(nx, ny, nz)`.
 
 Tras pulsar *Generar .inc* o *Generar .rad* se muestran las primeras líneas de
 los ficheros generados.

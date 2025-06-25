@@ -3,7 +3,11 @@ from functools import lru_cache
 from typing import List
 
 import requests
-from PyPDF2 import PdfReader
+
+try:  # PyPDF2 is optional
+    from PyPDF2 import PdfReader  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover - handled in search_pdf
+    PdfReader = None
 
 REFERENCE_GUIDE = (
     "https://2022.help.altair.com/2022/simulation/pdfs/radopen/"
@@ -18,8 +22,12 @@ THEORY_MANUAL = (
 @lru_cache(maxsize=2)
 def _fetch_pdf(url: str) -> str:
     """Download and extract text from the given PDF URL."""
+    if PdfReader is None:
+        raise ImportError("PyPDF2 is required for PDF search")
+
     resp = requests.get(url)
     resp.raise_for_status()
+
     reader = PdfReader(io.BytesIO(resp.content))
     text_parts = []
     for page in reader.pages:

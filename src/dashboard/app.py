@@ -796,11 +796,18 @@ if file_path:
         query = st.text_input("Término de búsqueda")
         if st.button("Buscar", key="search_docs") and query:
             url = REFERENCE_GUIDE if doc_choice == "Reference Guide" else THEORY_MANUAL
-            results = search_pdf(url, query)
+            try:
+                results = search_pdf(url, query)
+            except ImportError:
+                st.error("PyPDF2 no está instalado. Instala la dependencia para habilitar la búsqueda.")
+                results = []
+            except Exception as e:  # pragma: no cover - network errors
+                st.error(f"No se pudo buscar en el PDF: {e}")
+                results = []
             if results:
                 for r in results:
                     st.write(r)
-            else:
+            elif results == []:
                 st.warning("Sin coincidencias")
         link = REFERENCE_GUIDE if doc_choice == "Reference Guide" else THEORY_MANUAL
         st.markdown(f"[Abrir {doc_choice}]({link})")

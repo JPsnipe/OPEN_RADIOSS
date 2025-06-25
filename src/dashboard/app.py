@@ -14,7 +14,10 @@ SDEA_LOGO_URL = (
 OPENRADIOSS_LOGO_URL = (
     "https://openradioss.org/wp-content/uploads/2023/07/openradioss-logo.png"
 )
-ANSYS_LOGO_URL = "https://www.ansys.com/content/dam/company/brand/logos/ansys-logos/ansys-logo.svg"
+ANSYS_LOGO_URL = (
+    "https://www.ansys.com/content/dam/company/brand/logos/"
+    "ansys-logos/ansys-logo.svg"
+)
 
 root_path = str(Path(__file__).resolve().parents[2])
 if root_path not in sys.path:

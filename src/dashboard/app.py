@@ -299,6 +299,17 @@ if file_path:
         poisson = st.number_input("Coeficiente de Poisson", value=0.3)
         density = st.number_input("Densidad", value=7800.0)
 
+
+        st.markdown("### Control del cálculo")
+        runname = st.text_input("Nombre de la simulación", value="model")
+        t_end = st.number_input("Tiempo final", value=0.01, format="%.5f")
+        anim_dt = st.number_input("Paso animación", value=0.001, format="%.5f")
+        tfile_dt = st.number_input("Intervalo historial", value=0.00001, format="%.5f")
+        dt_ratio = st.number_input(
+            "Factor seguridad DT", value=0.9, min_value=0.0, max_value=1.0
+        )
+
+
         if st.button("Generar .rad"):
             with tempfile.TemporaryDirectory() as tmpdir:
                 rad_path = Path(tmpdir) / "model_0000.rad"
@@ -315,6 +326,13 @@ if file_path:
                     young=young,
                     poisson=poisson,
                     density=density,
+
+                    runname=runname,
+                    t_end=t_end,
+                    anim_dt=anim_dt,
+                    tfile_dt=tfile_dt,
+                    dt_ratio=dt_ratio,
+
                 )
                 st.success("Ficheros generados en directorio temporal")
                 lines = rad_path.read_text().splitlines()[:20]

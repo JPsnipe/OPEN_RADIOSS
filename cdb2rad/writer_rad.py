@@ -8,6 +8,11 @@ DEFAULT_THICKNESS = 1.0
 DEFAULT_E = 210000.0
 DEFAULT_NU = 0.3
 DEFAULT_RHO = 7800.0
+DEFAULT_FINAL_TIME = 0.01
+DEFAULT_ANIM_DT = 0.001
+DEFAULT_HISTORY_DT = 1e-5
+DEFAULT_DT_RATIO = 0.9
+DEFAULT_RUNNAME = "model"
 
 
 def write_rad(
@@ -23,8 +28,20 @@ def write_rad(
     young: float = DEFAULT_E,
     poisson: float = DEFAULT_NU,
     density: float = DEFAULT_RHO,
+
+    runname: str = DEFAULT_RUNNAME,
+    t_end: float = DEFAULT_FINAL_TIME,
+    anim_dt: float = DEFAULT_ANIM_DT,
+    tfile_dt: float = DEFAULT_HISTORY_DT,
+    dt_ratio: float = DEFAULT_DT_RATIO,
+
 ) -> None:
-    """Generate a minimal ``model_0000.rad`` file and the referenced mesh."""
+    """Generate ``model_0000.rad`` with optional solver controls.
+
+    Parameters allow customizing material properties and basic engine
+    settings such as final time, animation frequency and time-step
+    controls.
+    """
 
     write_mesh_inp(
         nodes,
@@ -67,5 +84,15 @@ def write_rad(
 
         f.write("/SENSOR/SPRING/1\n")
         f.write("0.0\n")
+
+        # Basic engine control cards
+        f.write(f"/RUN/{runname}/1/\n")
+        f.write(f"                {t_end}\n")
+        f.write("/DT/NODA/CST/0\n")
+        f.write(f"{dt_ratio} 0 0\n")
+        f.write("/ANIM/DT\n")
+        f.write(f"0 {anim_dt}\n")
+        f.write("/TFILE/0\n")
+        f.write(f"{tfile_dt}\n")
 
         f.write("/END\n")

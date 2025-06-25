@@ -93,10 +93,12 @@ SDEA_DARK = "#1B1825"
 style = f"""
 <style>
 .stApp {{
-    background-color: #f5f5f5;
+    background-color: {SDEA_DARK};
+    color: #FFFFFF;
 }}
 .sdea-header {{
-    background-color: {SDEA_DARK};
+    background-color: {SDEA_BLUE};
+    color: #FFFFFF;
     padding: 10px;
     border-radius: 4px;
     display: flex;
@@ -107,8 +109,8 @@ style = f"""
     height: 60px;
 }}
 div.stButton>button {{
-    background-color: {SDEA_BLUE};
-    color: white;
+    background-color: {SDEA_ORANGE};
+    color: #000000;
 }}
 </style>
 """

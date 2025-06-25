@@ -49,3 +49,30 @@ def element_summary(
         keyword_counts[key] = keyword_counts.get(key, 0) + 1
 
     return etype_counts, keyword_counts
+
+
+def check_rad_inputs(
+    use_cdb_mats: bool,
+    materials: Dict[int, Dict[str, float]] | None,
+    use_impact: bool,
+    impact_materials: List[Dict[str, float]] | None,
+    bcs: List[Dict[str, object]] | None,
+    interfaces: List[Dict[str, object]] | None,
+) -> List[str]:
+    """Return a list of missing configuration items for RAD generation."""
+    errors: List[str] = []
+    if use_cdb_mats and not materials:
+        errors.append("Faltan materiales importados del CDB")
+    if use_impact and not impact_materials:
+        errors.append("No se han definido materiales de impacto")
+    if bcs:
+        for idx, bc in enumerate(bcs, start=1):
+            if not bc.get("nodes"):
+                errors.append(f"BC {idx} sin nodos")
+                break
+    if interfaces:
+        for idx, itf in enumerate(interfaces, start=1):
+            if not itf.get("slave") or not itf.get("master"):
+                errors.append(f"Interfaz {idx} incompleta")
+                break
+    return errors

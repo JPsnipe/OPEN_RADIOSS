@@ -38,12 +38,13 @@ from cdb2rad.writer_rad import (
     DEFAULT_STOP_NERR,
 )
 from cdb2rad.writer_inc import write_mesh_inc
+from cdb2rad.rad_validator import validate_rad_format
+from cdb2rad.utils import check_rad_inputs
 from cdb2rad.pdf_search import (
     REFERENCE_GUIDE,
     THEORY_MANUAL,
     search_pdf,
 )
-
 
 MAX_EDGES = 10000
 MAX_FACES = 15000
@@ -703,58 +704,86 @@ if file_path:
         )
         overwrite_rad = st.checkbox("Sobrescribir si existe", value=False, key="overwrite_rad")
 
+        if st.button("Chequear configuracion"):
+            errs = check_rad_inputs(
+                use_cdb_mats,
+                materials,
+                use_impact,
+                st.session_state.get("impact_materials"),
+                st.session_state.get("bcs"),
+                st.session_state.get("interfaces"),
+            )
+            if errs:
+                for e in errs:
+                    st.error(e)
+            else:
+                st.success("Configuracion OK")
+
+
         if st.button("Generar .rad"):
             out_dir = Path(rad_dir).expanduser()
             out_dir.mkdir(parents=True, exist_ok=True)
             rad_path = out_dir / f"{rad_name}.rad"
             mesh_path = out_dir / "mesh.inc"
+            no_opts = (
+                not use_cdb_mats and not use_impact
+                and not st.session_state.get("bcs")
+                and not st.session_state.get("interfaces")
+                and not st.session_state.get("init_vel")
+                and not st.session_state.get("gravity")
+            )
             if (rad_path.exists() or mesh_path.exists()) and not overwrite_rad:
                 st.error("El archivo ya existe. Elija otro nombre o directorio")
             else:
-                extra = None
-                if use_impact and st.session_state["impact_materials"]:
-                    extra = {
-                        m["id"]: {
-                            k: v
-                            for k, v in m.items()
-                            if k != "id"
+                if no_opts:
+                    write_mesh_inc(nodes, elements, str(mesh_path))
+                    from cdb2rad.writer_rad import write_minimal_rad
+                    write_minimal_rad(str(rad_path), mesh_inc=mesh_path.name, runname=runname)
+                else:
+                    extra = None
+                    if use_impact and st.session_state["impact_materials"]:
+                        extra = {
+                            m["id"]: {k: v for k, v in m.items() if k != "id"}
+                            for m in st.session_state["impact_materials"]
                         }
-                        for m in st.session_state["impact_materials"]
-                    }
-                write_rad(
-                    nodes,
-                    elements,
-                    str(rad_path),
-                    mesh_inc=str(mesh_path),
-                    node_sets=node_sets,
-                    elem_sets=elem_sets,
-                    materials=materials if use_cdb_mats else None,
-                    extra_materials=extra,
+                    write_rad(
+                        nodes,
+                        elements,
+                        str(rad_path),
+                        mesh_inc=str(mesh_path),
+                        node_sets=node_sets,
+                        elem_sets=elem_sets,
+                        materials=materials if use_cdb_mats else None,
+                        extra_materials=extra,
 
-                    runname=runname,
-                    t_end=t_end,
-                    anim_dt=anim_dt,
-                    tfile_dt=tfile_dt,
-                    dt_ratio=dt_ratio,
-                    print_n=int(print_n),
-                    print_line=int(print_line),
-                    rfile_cycle=int(rfile_cycle) if rfile_cycle else None,
-                    rfile_n=int(rfile_n) if rfile_n else None,
-                    h3d_dt=h3d_dt if h3d_dt > 0 else None,
-                    stop_emax=stop_emax,
-                    stop_mmax=stop_mmax,
-                    stop_nmax=stop_nmax,
-                    stop_nth=int(stop_nth),
-                    stop_nanim=int(stop_nanim),
-                    stop_nerr=int(stop_nerr),
-                    adyrel=(adyrel_start, adyrel_stop),
+                        runname=runname,
+                        t_end=t_end,
+                        anim_dt=anim_dt,
+                        tfile_dt=tfile_dt,
+                        dt_ratio=dt_ratio,
+                        print_n=int(print_n),
+                        print_line=int(print_line),
+                        rfile_cycle=int(rfile_cycle) if rfile_cycle else None,
+                        rfile_n=int(rfile_n) if rfile_n else None,
+                        h3d_dt=h3d_dt if h3d_dt > 0 else None,
+                        stop_emax=stop_emax,
+                        stop_mmax=stop_mmax,
+                        stop_nmax=stop_nmax,
+                        stop_nth=int(stop_nth),
+                        stop_nanim=int(stop_nanim),
+                        stop_nerr=int(stop_nerr),
+                        adyrel=(adyrel_start, adyrel_stop),
 
-                    boundary_conditions=st.session_state.get("bcs"),
-                    interfaces=st.session_state.get("interfaces"),
-                    init_velocity=st.session_state.get("init_vel"),
-                    gravity=st.session_state.get("gravity"),
-
-                )
+                        boundary_conditions=st.session_state.get("bcs"),
+                        interfaces=st.session_state.get("interfaces"),
+                        init_velocity=st.session_state.get("init_vel"),
+                        gravity=st.session_state.get("gravity"),
+                    )
+                try:
+                    validate_rad_format(str(rad_path))
+                    st.info("Formato RAD OK")
+                except ValueError as e:
+                    st.error(f"Error formato: {e}")
                 st.success(f"Ficheros generados en: {rad_path}")
                 lines = rad_path.read_text().splitlines()[:20]
                 st.code("\n".join(lines))

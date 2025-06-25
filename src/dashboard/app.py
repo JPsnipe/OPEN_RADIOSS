@@ -464,7 +464,9 @@ if file_path:
                     init_velocity=st.session_state.get("init_vel"),
 
                 )
-                st.success("Ficheros generados en directorio temporal")
+                st.success(
+                    f"Ficheros generados en directorio temporal: {rad_path}"
+                )
                 lines = rad_path.read_text().splitlines()[:20]
                 st.code("\n".join(lines))
 

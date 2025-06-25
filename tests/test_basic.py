@@ -77,6 +77,35 @@ def test_write_rad(tmp_path):
     assert '0.0001' in content
 
 
+def test_write_rad_extra_materials(tmp_path):
+    nodes, elements, node_sets, elem_sets, materials = parse_cdb(DATA)
+    extra = {
+        99: {
+            'LAW': 'LAW2',
+            'EX': 1e5,
+            'NUXY': 0.3,
+            'DENS': 7800.0,
+            'A': 200.0,
+            'B': 400.0,
+            'N': 0.5,
+            'C': 0.01,
+            'EPS0': 1.0,
+        }
+    }
+    rad = tmp_path / 'model_extra.rad'
+    write_rad(
+        nodes,
+        elements,
+        str(rad),
+        node_sets=node_sets,
+        elem_sets=elem_sets,
+        materials=materials,
+        extra_materials=extra,
+    )
+    txt = rad.read_text()
+    assert '/MAT/LAW2/99' in txt
+
+
 def test_write_mesh_without_sets_materials(tmp_path):
     nodes, elements, node_sets, elem_sets, materials = parse_cdb(DATA)
     out = tmp_path / 'mesh_no_sets.inc'

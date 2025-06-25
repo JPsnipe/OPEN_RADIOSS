@@ -21,6 +21,18 @@ DEFAULT_HISTORY_DT = 1e-5
 DEFAULT_DT_RATIO = 0.9
 DEFAULT_RUNNAME = "model"
 
+# Default engine control values derived from typical Radioss examples.
+# See “/STOP” and “/PRINT” cards in the Altair Radioss 2022
+# Reference Guide for recommended ranges.
+DEFAULT_PRINT_N = -500
+DEFAULT_PRINT_LINE = 55
+DEFAULT_STOP_EMAX = 0.0
+DEFAULT_STOP_MMAX = 0.0
+DEFAULT_STOP_NMAX = 0.0
+DEFAULT_STOP_NTH = 1
+DEFAULT_STOP_NANIM = 1
+DEFAULT_STOP_NERR = 0
+
 
 def write_rad(
     nodes: Dict[int, List[float]],
@@ -43,17 +55,17 @@ def write_rad(
     tfile_dt: float = DEFAULT_HISTORY_DT,
     dt_ratio: float = DEFAULT_DT_RATIO,
     # Additional engine control options
-    print_n: int = -500,
-    print_line: int = 55,
+    print_n: int = DEFAULT_PRINT_N,
+    print_line: int = DEFAULT_PRINT_LINE,
     rfile_cycle: int | None = None,
     rfile_n: int | None = None,
     h3d_dt: float | None = None,
-    stop_emax: float = 0.0,
-    stop_mmax: float = 0.0,
-    stop_nmax: float = 0.0,
-    stop_nth: int = 1,
-    stop_nanim: int = 1,
-    stop_nerr: int = 0,
+    stop_emax: float = DEFAULT_STOP_EMAX,
+    stop_mmax: float = DEFAULT_STOP_MMAX,
+    stop_nmax: float = DEFAULT_STOP_NMAX,
+    stop_nth: int = DEFAULT_STOP_NTH,
+    stop_nanim: int = DEFAULT_STOP_NANIM,
+    stop_nerr: int = DEFAULT_STOP_NERR,
     adyrel: Tuple[float | None, float | None] | None = None,
     boundary_conditions: List[Dict[str, object]] | None = None,
     interfaces: List[Dict[str, object]] | None = None,

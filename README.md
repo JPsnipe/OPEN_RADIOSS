@@ -45,7 +45,21 @@ Después se puede ejecutar OpenRadioss sobre el fichero generado:
 
 ```bash
 python scripts/run_all.py data_files/model.cdb --rad model.rad \
-    --exec openradioss_bin/exec/starter_linux64_gf
+    --exec openradioss_bin/OpenRadioss/exec/starter_linux64_gf
+```
+
+Antes de ejecutar es necesario definir dos variables de entorno para que los
+binarios de OpenRadioss encuentren las bibliotecas y ficheros de configuración:
+
+```bash
+export LD_LIBRARY_PATH=$PWD/openradioss_bin/OpenRadioss/extlib/hm_reader/linux64
+export RAD_CFG_PATH=$PWD/openradioss_bin/OpenRadioss/hm_cfg_files
+```
+
+Con estas variables se puede lanzar el *starter* directamente:
+
+```bash
+openradioss_bin/OpenRadioss/exec/starter_linux64_gf -i model.rad
 ```
 
 Para lanzar las pruebas:

@@ -65,6 +65,7 @@ def test_write_rad(tmp_path):
 
     )
     content = rad.read_text()
+    assert content.startswith('#RADIOSS STARTER')
     assert '/BEGIN' in content
     assert '/END' in content
     assert '2.0' in content

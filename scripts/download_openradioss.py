@@ -29,7 +29,8 @@ def download(url: str, path: Path) -> None:
 
 
 def main() -> None:
-    if (DEST / 'exec').exists():
+    exec_dir = DEST / 'OpenRadioss' / 'exec'
+    if exec_dir.exists():
         print('OpenRadioss already installed')
         return
     asset_url = latest_linux_asset()
@@ -43,6 +44,17 @@ def main() -> None:
         download(asset_url, zip_path)
         with zipfile.ZipFile(zip_path) as zf:
             zf.extractall(DEST)
+
+    for exe in (
+        'starter_linux64_gf',
+        'starter_linux64_gf_sp',
+        'engine_linux64_gf',
+        'engine_linux64_gf_sp',
+    ):
+        path = exec_dir / exe
+        if path.exists():
+            os.chmod(path, os.stat(path).st_mode | 0o111)
+
     print(f'OpenRadioss extracted to {DEST}')
 
 

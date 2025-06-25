@@ -414,23 +414,35 @@ if file_path:
 
         with st.expander("Condiciones de contorno (BCS)"):
             bc_name = st.text_input("Nombre BC", value="Fixed")
-            bc_tra = st.text_input("Traslación (111/000)", value="111")
-            bc_rot = st.text_input("Rotación (111/000)", value="111")
+            bc_type = st.selectbox(
+                "Tipo BC",
+                ["BCS", "PRESCRIBED_MOTION"],
+            )
             bc_set = st.selectbox(
                 "Conjunto de nodos",
                 list(node_sets.keys()),
                 disabled=not node_sets,
             )
+            bc_data = {}
+            if bc_type == "BCS":
+                bc_tra = st.text_input("Traslación (111/000)", value="111")
+                bc_rot = st.text_input("Rotación (111/000)", value="111")
+                bc_data.update({"tra": bc_tra, "rot": bc_rot})
+            else:
+                bc_dir = st.number_input("Dirección", value=1, step=1)
+                bc_val = st.number_input("Valor", value=0.0)
+                bc_data.update({"dir": int(bc_dir), "value": float(bc_val)})
+
             if st.button("Añadir BC") and bc_set:
                 node_list = node_sets.get(bc_set, [])
-                st.session_state["bcs"].append(
-                    {
-                        "name": bc_name,
-                        "tra": bc_tra,
-                        "rot": bc_rot,
-                        "nodes": node_list,
-                    }
-                )
+                entry = {
+                    "name": bc_name,
+                    "type": bc_type,
+                    "nodes": node_list,
+                }
+                entry.update(bc_data)
+                st.session_state["bcs"].append(entry)
+
             for bc in st.session_state["bcs"]:
                 st.json(bc)
 

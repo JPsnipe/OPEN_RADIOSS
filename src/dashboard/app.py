@@ -423,7 +423,8 @@ if file_path:
                 st.json(bc)
 
         with st.expander("Interacciones (INTER)"):
-            int_name = st.text_input("Nombre interfaz", value="Tie")
+            int_type = st.selectbox("Tipo", ["TYPE2", "TYPE7"], key="itf_type")
+            int_name = st.text_input("Nombre interfaz", value=f"{int_type}_1")
             slave_set = st.selectbox(
                 "Conjunto esclavo",
                 list(node_sets.keys()),
@@ -437,17 +438,30 @@ if file_path:
                 disabled=not node_sets,
             )
             fric = st.number_input("Fricción", value=0.0)
+
+            gap = stiff = igap = None
+            if int_type == "TYPE7":
+                gap = st.number_input("Gap", value=0.0)
+                stiff = st.number_input("Stiffness", value=0.0)
+                igap = st.number_input("Igap", value=0, step=1)
+
             if st.button("Añadir interfaz") and slave_set and master_set:
                 s_list = node_sets.get(slave_set, [])
                 m_list = node_sets.get(master_set, [])
-                st.session_state["interfaces"].append(
-                    {
-                        "name": int_name,
-                        "slave": s_list,
-                        "master": m_list,
-                        "fric": fric,
-                    }
-                )
+                itf = {
+                    "type": int_type,
+                    "name": int_name,
+                    "slave": s_list,
+                    "master": m_list,
+                    "fric": fric,
+                }
+                if int_type == "TYPE7":
+                    itf.update({
+                        "gap": gap,
+                        "stiff": stiff,
+                        "igap": int(igap),
+                    })
+                st.session_state["interfaces"].append(itf)
             for itf in st.session_state["interfaces"]:
                 st.json(itf)
 

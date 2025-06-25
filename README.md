@@ -146,11 +146,14 @@ Se incluyen casillas opcionales para **sobrescribir** los archivos
 - **RAD limpio (.rad)** genera ``minimal.rad`` para probar rápidamente ``mesh.inc``.
 
 La pestaña *Generar RAD* también permite definir condiciones de contorno
-(tarjetas ``/BCS``), contactos simples (``/INTER/TYPE2``) o generales
-(``/INTER/TYPE7``), velocidades iniciales (``/IMPVEL``) y cargas de
-gravedad (``/GRAVITY``) seleccionando las *name selections* de nodos en un
-desplegable. Estos campos se pueden editar y añadir en el panel correspondiente
-antes de generar el archivo.
+(tarjetas ``/BCS``) y diferentes tipos de contactos mediante ``/INTER``.
+Se soportan tanto contactos simples ``TYPE2`` como contactos generales
+``TYPE7``. Al seleccionar el tipo de interacción en el panel se muestran los
+parámetros relevantes (por ejemplo ``gap``, ``stiff`` e ``igap`` para
+``TYPE7``). También se pueden asignar velocidades iniciales (``/IMPVEL``) y
+cargas de gravedad (``/GRAVITY``) seleccionando las *name selections* de nodos
+en un desplegable. Estos campos se pueden editar y añadir antes de generar el
+archivo.
 
 Tras pulsar *Generar .inc* o *Generar .rad* se muestran las primeras líneas de
 los ficheros generados.

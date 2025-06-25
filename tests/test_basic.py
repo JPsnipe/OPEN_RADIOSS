@@ -188,3 +188,19 @@ def test_write_rad_with_type7_contact(tmp_path):
     assert '/INTER/TYPE7/1' in txt
     assert '/FRICTION' in txt
 
+
+def test_write_rad_with_type2_contact(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'contact2.rad'
+    inter = [{
+        'type': 'TYPE2',
+        'name': 'cnt2',
+        'slave': [1, 2],
+        'master': [3, 4],
+        'fric': 0.1,
+    }]
+    write_rad(nodes, elements, str(rad), interfaces=inter)
+    txt = rad.read_text()
+    assert '/INTER/TYPE2/1' in txt
+    assert '/FRICTION' in txt
+

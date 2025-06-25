@@ -87,6 +87,7 @@ Codex must be able to:
 - OpenRadioss GitHub: <https://github.com/OpenRadioss/OpenRadioss>
 - Radioss Examples (Starter/Engine): <https://github.com/OpenRadioss/OpenRadioss-examples>
 - OpenRadioss User Documentation: <https://openradioss.atlassian.net/wiki/spaces/OPENRADIOSS/pages/4816906/OpenRadioss+User+Documentation>
+- Overview of the Input Reference Guide: <https://help.altair.com/hwsolvers/rad/topics/solvers/rad/overview_ref_guide_rad_c.htm>
 
 ## ✅ Development style guide
 All modules should use pure Python 3.10+, no external dependencies.
@@ -106,6 +107,7 @@ If Codex is asked to:
 - Extend writer modules: ensure all new syntax is compliant with Radioss Block.
 - Add material/BC/contact support: use valid Radioss keywords from official docs.
 - Refactor parser: maintain robustness and backward compatibility with .cdb structure.
+- When debugging ``.rad`` files, consult the [Input Reference Guide](https://help.altair.com/hwsolvers/rad/topics/solvers/rad/overview_ref_guide_rad_c.htm) for the exact block syntax and available keywords.
 
 This project serves as a bridge between the Ansys modeling world and open-source Radioss simulation. Codex should support the user in maintaining this pipeline and expanding it into a full Radioss preprocessor.
 

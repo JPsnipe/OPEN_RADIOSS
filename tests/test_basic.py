@@ -157,3 +157,19 @@ def test_write_rad_with_gravity(tmp_path):
     txt = rad.read_text()
     assert '/GRAVITY' in txt
 
+
+def test_write_rad_with_type7_contact(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'contact7.rad'
+    inter = [{
+        'type': 'TYPE7',
+        'name': 'cnt7',
+        'slave': [1, 2],
+        'master': [3, 4],
+        'fric': 0.2,
+    }]
+    write_rad(nodes, elements, str(rad), interfaces=inter)
+    txt = rad.read_text()
+    assert '/INTER/TYPE7/1' in txt
+    assert '/FRICTION' in txt
+

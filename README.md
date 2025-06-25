@@ -73,6 +73,13 @@ del ``starter`` y los ficheros ``engine``.
 python scripts/run_all.py data_files/model.cdb --inc mesh.inc --rad model_0000.rad
 ```
 
+Por defecto, ``model_0000.rad`` incluye la línea ``#include mesh.inc``. Con la
+opción ``--skip-include`` se genera el ``.rad`` sin esa referencia:
+
+```bash
+python scripts/run_all.py data_files/model.cdb --rad model.rad --skip-include
+```
+
 ### Entorno virtual y OpenRadioss
 
 Para crear un entorno virtual con `pytest` y descargar la última

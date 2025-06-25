@@ -39,6 +39,7 @@ def write_rad(
     elements: List[Tuple[int, int, List[int]]],
     outfile: str,
     mesh_inc: str = "mesh.inc",
+    include_inc: bool = True,
     node_sets: Dict[str, List[int]] | None = None,
     elem_sets: Dict[str, List[int]] | None = None,
     materials: Dict[int, Dict[str, float]] | None = None,
@@ -78,7 +79,8 @@ def write_rad(
     Parameters allow customizing material properties and basic engine
     settings such as final time, animation frequency and time-step
     controls. Gravity loading can be specified via the ``gravity``
-    parameter.
+    parameter. Set ``include_inc`` to ``False`` to omit the
+    ``#include`` line referencing the mesh.
     """
 
     all_mats: Dict[int, Dict[str, float]] = {}
@@ -89,14 +91,15 @@ def write_rad(
     if all_mats:
         all_mats = apply_default_materials(all_mats)
 
-    write_mesh_inc(
-        nodes,
-        elements,
-        mesh_inc,
-        node_sets=node_sets,
-        elem_sets=elem_sets,
-        materials=all_mats if all_mats else None,
-    )
+    if include_inc:
+        write_mesh_inc(
+            nodes,
+            elements,
+            mesh_inc,
+            node_sets=node_sets,
+            elem_sets=elem_sets,
+            materials=all_mats if all_mats else None,
+        )
 
     with open(outfile, "w") as f:
         f.write("#RADIOSS STARTER\n")
@@ -276,7 +279,8 @@ def write_rad(
                             f.write(" ".join(vals) + "\n")
 
         # 3. NODES (from include file)
-        f.write(f"#include {mesh_inc}\n")
+        if include_inc:
+            f.write(f"#include {mesh_inc}\n")
 
 
         # Basic engine control cards
@@ -395,8 +399,13 @@ def write_minimal_rad(
     outfile: str,
     mesh_inc: str = "mesh.inc",
     runname: str = DEFAULT_RUNNAME,
+    *,
+    include_inc: bool = True,
 ) -> None:
-    """Generate a minimal starter file referencing only the mesh."""
+    """Generate a minimal starter file referencing only the mesh.
+
+    Set ``include_inc`` to ``False`` to omit the ``#include`` line.
+    """
 
     with open(outfile, "w") as f:
         f.write("#RADIOSS STARTER\n")
@@ -405,5 +414,6 @@ def write_minimal_rad(
         f.write("     2024         0\n")
         f.write("                  kg                  mm                   s\n")
         f.write("                  kg                  mm                   s\n")
-        f.write(f"#include {mesh_inc}\n")
+        if include_inc:
+            f.write(f"#include {mesh_inc}\n")
         f.write("/END\n")

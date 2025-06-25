@@ -236,3 +236,11 @@ def test_write_rad_advanced_options(tmp_path):
     assert '/ADYREL' in text
 
 
+def test_write_rad_without_include(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'noinc.rad'
+    write_rad(nodes, elements, str(rad), include_inc=False)
+    content = rad.read_text()
+    assert '#include' not in content
+
+

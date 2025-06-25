@@ -139,63 +139,137 @@ def write_rad(
                 f.write(f"{tstart} {tstop}\n")
 
         # 2. MATERIALS
-        if not all_mats:
-            f.write("/MAT/LAW1/1\n")
-            f.write("Default_Mat\n")
+        def write_law1(mid: int, name: str, rho: float, e: float, nu: float) -> None:
+            f.write(f"/MAT/LAW1/{mid}\n")
+            f.write(f"{name}\n")
             f.write("#              RHO\n")
-            f.write(f"{density}\n")
+            f.write(f"{rho}\n")
             f.write("#                  E                  Nu\n")
-            f.write(f"{young} {poisson}\n")
+            f.write(f"{e} {nu}\n")
+
+        def write_law2(mid: int, name: str, rho: float, e: float, nu: float, a: float, b: float, n_val: float, c_val: float, eps0: float) -> None:
+            f.write(f"/MAT/LAW2/{mid}\n")
+            f.write(f"{name}\n")
+            f.write("#              RHO\n")
+            f.write(f"{rho}\n")
+            f.write("#                  E                  Nu\n")
+            f.write(f"{e} {nu}\n")
+            f.write("#      A          B           n           C       EPS0\n")
+            f.write(f"{a} {b} {n_val} {c_val} {eps0}\n")
+
+        def write_law27(mid: int, name: str, rho: float, e: float, nu: float, sig0: float, su: float, epsu: float) -> None:
+            f.write(f"/MAT/LAW27/{mid}\n")
+            f.write(f"{name}\n")
+            f.write("#              RHO\n")
+            f.write(f"{rho}\n")
+            f.write("#                  E                  Nu\n")
+            f.write(f"{e} {nu}\n")
+            f.write("#    SIG0        SU       EPSU\n")
+            f.write(f"{sig0} {su} {epsu}\n")
+
+        def write_law36(mid: int, name: str, rho: float, e: float, nu: float, fs: float, fc: float, ch: float, curve: list[tuple[float, float]] | None) -> None:
+            f.write(f"/MAT/LAW36/{mid}\n")
+            f.write(f"{name}\n")
+            f.write("#              RHO\n")
+            f.write(f"{rho}\n")
+            f.write("#                  E                  Nu\n")
+            f.write(f"{e} {nu}\n")
+            f.write("# fct_IDp  Fscale ...\n")
+            fct_id = 100 + mid
+            f.write(f"{fct_id} 1\n")
+            f.write("#     Fs        Fc        Ch\n")
+            f.write(f"{fs} {fc} {ch}\n")
+            if curve:
+                f.write(f"/FUNCT/{fct_id}\n")
+                f.write(f"{name} curve\n")
+                f.write("#     eps      \u03c3\n")
+                for eps, sig in curve:
+                    f.write(f"{eps} {sig}\n")
+
+        def write_law44(mid: int, name: str, rho: float, e: float, nu: float, a: float, b: float, n_val: float, c_val: float) -> None:
+            f.write(f"/MAT/LAW44/{mid}\n")
+            f.write(f"{name}\n")
+            f.write("#              RHO\n")
+            f.write(f"{rho}\n")
+            f.write("#                  E                  Nu\n")
+            f.write(f"{e} {nu}\n")
+            f.write("#      A          B           n           C\n")
+            f.write(f"{a} {b} {n_val} {c_val}\n")
+
+        if not all_mats:
+            write_law1(1, "Default_Mat", density, young, poisson)
         else:
             for mid, props in all_mats.items():
                 law = props.get("LAW", "LAW1").upper()
+                name = props.get("NAME", f"MAT_{mid}")
                 e = props.get("EX", young)
                 nu = props.get("NUXY", poisson)
                 rho = props.get("DENS", density)
+
                 if law in ("LAW2", "JOHNSON_COOK", "PLAS_JOHNS"):
-                    a = props.get("A", 0.0)
-                    b = props.get("B", 0.0)
-                    n = props.get("N", 0.0)
-                    c = props.get("C", 0.0)
-                    eps0 = props.get("EPS0", 1.0)
-                    f.write(f"/MAT/LAW2/{mid}\n")
-                    f.write(f"{rho} {e} {nu}\n")
-                    f.write(f"{a} {b} {n} {c} {eps0}\n")
+                    write_law2(
+                        mid,
+                        name,
+                        rho,
+                        e,
+                        nu,
+                        props.get("A", 0.0),
+                        props.get("B", 0.0),
+                        props.get("N", 0.0),
+                        props.get("C", 0.0),
+                        props.get("EPS0", 1.0),
+                    )
                 elif law in ("LAW27", "PLAS_BRIT"):
-                    sig0 = props.get("SIG0", 0.0)
-                    su = props.get("SU", 0.0)
-                    epsu = props.get("EPSU", 0.0)
-                    f.write(f"/MAT/LAW27/{mid}\n")
-                    f.write(f"{rho} {e} {nu}\n")
-                    f.write(f"{sig0} {su} {epsu}\n")
+                    write_law27(
+                        mid,
+                        name,
+                        rho,
+                        e,
+                        nu,
+                        props.get("SIG0", 0.0),
+                        props.get("SU", 0.0),
+                        props.get("EPSU", 0.0),
+                    )
                 elif law in ("LAW36", "PLAS_TAB"):
-                    fs = props.get("Fsmooth", 0.0)
-                    fc = props.get("Fcut", 0.0)
-                    ch = props.get("Chard", 0.0)
-                    f.write(f"/MAT/LAW36/{mid}\n")
-                    f.write(f"{rho} {e} {nu}\n")
-                    f.write(f"{fs} {fc} {ch}\n")
+                    curve = props.get("CURVE")
+                    write_law36(
+                        mid,
+                        name,
+                        rho,
+                        e,
+                        nu,
+                        props.get("Fsmooth", 0.0),
+                        props.get("Fcut", 0.0),
+                        props.get("Chard", 0.0),
+                        curve if isinstance(curve, list) else None,
+                    )
                 elif law in ("LAW44", "COWPER"):
-                    a = props.get("A", 0.0)
-                    b = props.get("B", 0.0)
-                    n = props.get("N", 1.0)
-                    c = props.get("C", 0.0)
-                    f.write(f"/MAT/LAW44/{mid}\n")
-                    f.write(f"{rho} {e} {nu}\n")
-                    f.write(f"{a} {b} {n} {c}\n")
+                    write_law44(
+                        mid,
+                        name,
+                        rho,
+                        e,
+                        nu,
+                        props.get("A", 0.0),
+                        props.get("B", 0.0),
+                        props.get("N", 1.0),
+                        props.get("C", 0.0),
+                    )
                 else:
-                    name = props.get("NAME", f"MAT_{mid}")
-                    f.write(f"/MAT/LAW1/{mid}\n")
-                    f.write(f"{name}\n")
-                    f.write("#              RHO\n")
-                    f.write(f"{rho}\n")
-                    f.write("#                  E                  Nu\n")
-                    f.write(f"{e} {nu}\n")
+                    write_law1(mid, name, rho, e, nu)
 
                 if "FAIL" in props:
                     fail = props["FAIL"]
-                    ftype = fail.get("TYPE", "").upper()
-                    if ftype:
+                    ftype = str(fail.get("TYPE", "")).upper()
+                    if ftype == "BIQUAD":
+                        alpha = fail.get("ALPHA", 0.0)
+                        beta = fail.get("BETA", 0.0)
+                        m = fail.get("M", 0.0)
+                        n_fail = fail.get("N", 0.0)
+                        f.write(f"/FAIL/BIQUAD/{mid}\n")
+                        f.write("#    \u03b1      \u03b2      m      n\n")
+                        f.write(f"  {alpha}   {beta}   {m}   {n_fail}\n")
+                    elif ftype:
                         f.write(f"/{ftype}/{mid}\n")
                         vals = [str(v) for v in fail.values() if v != ftype]
                         if vals:

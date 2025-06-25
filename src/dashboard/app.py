@@ -454,6 +454,28 @@ if file_path:
             dt_ratio = st.number_input(
                 "Factor seguridad DT", value=0.9, min_value=0.0, max_value=1.0
             )
+            st.markdown("### Opciones avanzadas")
+            print_n = st.number_input("PRINT cada n ciclos", value=-500, step=1)
+            print_line = st.number_input("Línea cabecera", value=55, step=1)
+            rfile_cycle = st.number_input("Ciclos entre RFILE", value=0, step=1)
+            rfile_n = st.number_input("Número de RFILE", value=0, step=1)
+            h3d_dt = st.number_input("Paso H3D", value=0.0, format="%.5f")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                stop_emax = st.number_input("Emax", value=0.0)
+            with col2:
+                stop_mmax = st.number_input("Mmax", value=0.0)
+            with col3:
+                stop_nmax = st.number_input("Nmax", value=0.0)
+            col4, col5, col6 = st.columns(3)
+            with col4:
+                stop_nth = st.number_input("NTH", value=1, step=1)
+            with col5:
+                stop_nanim = st.number_input("NANIM", value=1, step=1)
+            with col6:
+                stop_nerr = st.number_input("NERR_POSIT", value=0, step=1)
+            adyrel_start = st.number_input("ADYREL inicio", value=0.0)
+            adyrel_stop = st.number_input("ADYREL fin", value=0.0)
 
         with st.expander("Condiciones de contorno (BCS)"):
             bc_name = st.text_input("Nombre BC", value="Fixed")
@@ -613,6 +635,18 @@ if file_path:
                     anim_dt=anim_dt,
                     tfile_dt=tfile_dt,
                     dt_ratio=dt_ratio,
+                    print_n=int(print_n),
+                    print_line=int(print_line),
+                    rfile_cycle=int(rfile_cycle) if rfile_cycle else None,
+                    rfile_n=int(rfile_n) if rfile_n else None,
+                    h3d_dt=h3d_dt if h3d_dt > 0 else None,
+                    stop_emax=stop_emax,
+                    stop_mmax=stop_mmax,
+                    stop_nmax=stop_nmax,
+                    stop_nth=int(stop_nth),
+                    stop_nanim=int(stop_nanim),
+                    stop_nerr=int(stop_nerr),
+                    adyrel=(adyrel_start, adyrel_stop),
 
                     boundary_conditions=st.session_state.get("bcs"),
                     interfaces=st.session_state.get("interfaces"),

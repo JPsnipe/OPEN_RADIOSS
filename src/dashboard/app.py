@@ -14,10 +14,12 @@ SDEA_LOGO_URL = (
 OPENRADIOSS_LOGO_URL = (
     "https://openradioss.org/wp-content/uploads/2023/07/openradioss-logo.png"
 )
+
 ANSYS_LOGO_URL = (
     "https://www.ansys.com/content/dam/company/brand/logos/"
     "ansys-logos/ansys-logo.svg"
 )
+
 
 root_path = str(Path(__file__).resolve().parents[2])
 if root_path not in sys.path:
@@ -89,20 +91,24 @@ def load_cdb(path: str):
     return parse_cdb(path)
 
 
+
 # Color scheme using SDEA's darker palette for better contrast
 SDEA_BLUE = "#0A2B5D"  # dark engineering blue
 SDEA_ORANGE = "#FF9A56"
 SDEA_DARK = "#0D1117"  # near black background
 
+
 style = f"""
 <style>
 .stApp {{
+
     background-color: {SDEA_DARK};
     color: #F0F0F0;
 }}
 .sdea-header {{
     background-color: {SDEA_BLUE};
     color: #FFFFFF;
+
     padding: 10px;
     border-radius: 4px;
     display: flex;
@@ -113,9 +119,10 @@ style = f"""
     height: 60px;
 }}
 div.stButton>button {{
+
     background-color: {SDEA_ORANGE};
     color: #1B1825;
-}}
+
 </style>
 """
 st.markdown(style, unsafe_allow_html=True)

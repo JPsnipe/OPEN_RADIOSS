@@ -241,9 +241,6 @@ with header:
     st.markdown("</div>", unsafe_allow_html=True)
 
 uploaded = st.file_uploader("Subir archivo .cdb", type="cdb")
-example_dir = Path("data_files")
-examples = [p.name for p in example_dir.glob("*.cdb")]
-selected = st.selectbox("o escoger ejemplo", [""] + examples)
 
 file_path = None
 if uploaded is not None:
@@ -251,8 +248,6 @@ if uploaded is not None:
     tmp.write(uploaded.getvalue())
     tmp.close()
     file_path = tmp.name
-elif selected:
-    file_path = str(example_dir / selected)
 
 if file_path:
     work_dir = st.text_input(

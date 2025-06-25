@@ -368,6 +368,57 @@ if file_path:
             "Factor seguridad DT", value=0.9, min_value=0.0, max_value=1.0
         )
 
+        if "bcs" not in st.session_state:
+            st.session_state["bcs"] = []
+        if "interfaces" not in st.session_state:
+            st.session_state["interfaces"] = []
+        if "init_vel" not in st.session_state:
+            st.session_state["init_vel"] = None
+
+        with st.expander("Condiciones de contorno (BCS)"):
+            bc_name = st.text_input("Nombre BC", value="Fixed")
+            bc_tra = st.text_input("Traslación (111/000)", value="111")
+            bc_rot = st.text_input("Rotación (111/000)", value="111")
+            bc_nodes = st.text_input("Nodos comma-sep", value="1,2")
+            if st.button("Añadir BC"):
+                node_list = [int(n) for n in bc_nodes.split(',') if n.strip()]
+                st.session_state["bcs"].append({
+                    "name": bc_name,
+                    "tra": bc_tra,
+                    "rot": bc_rot,
+                    "nodes": node_list,
+                })
+            for bc in st.session_state["bcs"]:
+                st.json(bc)
+
+        with st.expander("Interacciones (INTER)"):
+            int_name = st.text_input("Nombre interfaz", value="Tie")
+            slave_nodes = st.text_input("Nodos esclavos", value="3,4")
+            master_nodes = st.text_input("Nodos maestros", value="5,6")
+            fric = st.number_input("Fricción", value=0.0)
+            if st.button("Añadir interfaz"):
+                s_list = [int(n) for n in slave_nodes.split(',') if n.strip()]
+                m_list = [int(n) for n in master_nodes.split(',') if n.strip()]
+                st.session_state["interfaces"].append({
+                    "name": int_name,
+                    "slave": s_list,
+                    "master": m_list,
+                    "fric": fric,
+                })
+            for itf in st.session_state["interfaces"]:
+                st.json(itf)
+
+        with st.expander("Velocidad inicial (IMPVEL)"):
+            vel_nodes = st.text_input("Nodos velocidad", value="1")
+            vx = st.number_input("Vx", value=0.0)
+            vy = st.number_input("Vy", value=0.0)
+            vz = st.number_input("Vz", value=0.0)
+            if st.button("Asignar velocidad"):
+                n_list = [int(n) for n in vel_nodes.split(',') if n.strip()]
+                st.session_state["init_vel"] = {"nodes": n_list, "vx": vx, "vy": vy, "vz": vz}
+            if st.session_state["init_vel"]:
+                st.json(st.session_state["init_vel"])
+
         use_cdb_mats = st.checkbox("Incluir materiales del CDB", value=True)
         use_impact = st.checkbox(
             "Incluir materiales de impacto", value=True
@@ -407,6 +458,10 @@ if file_path:
                     anim_dt=anim_dt,
                     tfile_dt=tfile_dt,
                     dt_ratio=dt_ratio,
+
+                    boundary_conditions=st.session_state.get("bcs"),
+                    interfaces=st.session_state.get("interfaces"),
+                    init_velocity=st.session_state.get("init_vel"),
 
                 )
                 st.success("Ficheros generados en directorio temporal")

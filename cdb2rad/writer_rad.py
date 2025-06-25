@@ -1,4 +1,10 @@
-"""Create a basic Radioss starter file."""
+"""Create a basic Radioss starter file.
+
+The block syntax follows the Radioss Input Reference Guide. Sections such
+as ``/BCS`` for boundary conditions, ``/INTER`` for contact definitions and
+``/IMPVEL`` for initial velocities are optional and can be enabled via
+function parameters.
+"""
 
 from typing import Dict, List, Tuple
 
@@ -35,6 +41,9 @@ def write_rad(
     anim_dt: float = DEFAULT_ANIM_DT,
     tfile_dt: float = DEFAULT_HISTORY_DT,
     dt_ratio: float = DEFAULT_DT_RATIO,
+    boundary_conditions: List[Dict[str, object]] | None = None,
+    interfaces: List[Dict[str, object]] | None = None,
+    init_velocity: Dict[str, object] | None = None,
 
 ) -> None:
     """Generate ``model_0000.rad`` with optional solver controls.
@@ -105,6 +114,58 @@ def write_rad(
         f.write(f"{dt_ratio} 0 0\n")
         f.write("/ANIM/DT\n")
         f.write(f"0 {anim_dt}\n")
+
+        if boundary_conditions:
+            for idx, bc in enumerate(boundary_conditions, start=1):
+                name = bc.get("name", f"BC_{idx}")
+                tra = str(bc.get("tra", "000")).rjust(3, "0")
+                rot = str(bc.get("rot", "000")).rjust(3, "0")
+                nodes_bc = bc.get("nodes", [])
+                gid = 100 + idx
+                f.write(f"/BCS/{idx}\n")
+                f.write(f"{name}\n")
+                f.write("#  Tra rot   skew_ID  grnod_ID\n")
+                f.write(f"   {tra} {rot}         0        {gid}\n")
+                f.write(f"/GRNOD/NODE/{gid}\n")
+                f.write(f"{name}_nodes\n")
+                for nid in nodes_bc:
+                    f.write(f"{nid:10d}\n")
+
+        if interfaces:
+            for idx, inter in enumerate(interfaces, start=1):
+                s_nodes = inter.get("slave", [])
+                m_nodes = inter.get("master", [])
+                name = inter.get("name", f"INTER_{idx}")
+                fric = inter.get("fric", 0.0)
+                slave_id = 200 + idx
+                master_id = 300 + idx
+                f.write(f"/INTER/TYPE2/{idx}\n")
+                f.write(f"{name}\n")
+                f.write(f"{slave_id} {master_id}\n")
+                f.write("/FRICTION\n")
+                f.write(f"{fric}\n")
+                f.write(f"/GRNOD/NODE/{slave_id}\n")
+                f.write(f"{name}_slave\n")
+                for nid in s_nodes:
+                    f.write(f"{nid:10d}\n")
+                f.write(f"/GRNOD/NODE/{master_id}\n")
+                f.write(f"{name}_master\n")
+                for nid in m_nodes:
+                    f.write(f"{nid:10d}\n")
+
+        if init_velocity:
+            nodes_v = init_velocity.get("nodes", [])
+            vx = init_velocity.get("vx", 0.0)
+            vy = init_velocity.get("vy", 0.0)
+            vz = init_velocity.get("vz", 0.0)
+            gid = 400
+            f.write("/IMPVEL/1\n")
+            f.write("0         X         0         0        400         0         0\n")
+            f.write(f"{vx} {vy} {vz} 0\n")
+            f.write(f"/GRNOD/NODE/{gid}\n")
+            f.write("Init_Vel_Nodes\n")
+            for nid in nodes_v:
+                f.write(f"{nid:10d}\n")
 
         f.write("/END\n")
 

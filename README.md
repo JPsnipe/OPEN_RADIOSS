@@ -126,5 +126,11 @@ ejemplo. La interfaz cuenta con cuatro pestañas principales:
   ``model_0000.rad``.
 - **RAD limpio (.rar)** crea un archivo ``minimal.rad`` comprimido en ``clean.rar``.
 
+La pestaña *Generar RAD* también permite definir condiciones de contorno
+(tarjetas ``/BCS``), contactos simples (``/INTER/TYPE2``) y velocidades
+iniciales (``/IMPVEL``) indicando los nodos afectados. Estos campos se
+pueden editar y añadir en el panel correspondiente antes de generar el
+archivo.
+
 Tras pulsar *Generar .inc* o *Generar .rad* se muestran las primeras líneas de
 los ficheros generados.

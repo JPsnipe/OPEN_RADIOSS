@@ -207,6 +207,14 @@ def test_write_rad_with_type2_contact(tmp_path):
 
 
 
+
+def test_apply_default_materials_fail():
+    mats = {1: {"LAW": "LAW2", "FAIL": {"TYPE": "FAIL/JOHNSON"}}}
+    out = apply_default_materials(mats)
+    fail = out[1]["FAIL"]
+    assert fail["TYPE"] == "FAIL/JOHNSON"
+    assert fail["D1"] == 0.54
+
 def test_write_rad_advanced_options(tmp_path):
     nodes, elements, node_sets, elem_sets, mats = parse_cdb(DATA)
     rad = tmp_path / 'advanced.rad'

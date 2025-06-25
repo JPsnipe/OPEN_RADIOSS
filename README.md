@@ -58,7 +58,9 @@ parámetros típicos de aceros de automoción para todas las leyes de material
 soportadas (LAW1, LAW2, LAW27, LAW36 y LAW44). Estos valores incluyen
 ``E=210000`` MPa, ``nu=0.3`` y ``rho=7800`` kg/m\ :sup:`3`, además de
 constantes habituales para cada ley (por ejemplo, ``A=220`` y ``B=450`` en
-Johnson--Cook).
+Johnson--Cook). Si se definen modelos de fallo (``FAIL/JOHNSON``, ``FAIL/BIQUAD``
+o ``FAIL/TAB1``) se rellenan también parámetros típicos: ``D1=0.54`` y ``D2=3.03``
+para Johnson, ``C1=0.9`` en Biquad, etc.
 
 Cada bloque está descrito en detalle en la guía oficial de comandos de
 Radioss. Para depurar y ampliar estos ficheros se recomienda consultar el

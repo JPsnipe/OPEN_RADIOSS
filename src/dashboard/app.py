@@ -21,7 +21,22 @@ if root_path not in sys.path:
     sys.path.insert(0, root_path)
 
 from cdb2rad.parser import parse_cdb
-from cdb2rad.writer_rad import write_rad
+from cdb2rad.writer_rad import (
+    write_rad,
+    DEFAULT_RUNNAME,
+    DEFAULT_FINAL_TIME,
+    DEFAULT_ANIM_DT,
+    DEFAULT_HISTORY_DT,
+    DEFAULT_DT_RATIO,
+    DEFAULT_PRINT_N,
+    DEFAULT_PRINT_LINE,
+    DEFAULT_STOP_EMAX,
+    DEFAULT_STOP_MMAX,
+    DEFAULT_STOP_NMAX,
+    DEFAULT_STOP_NTH,
+    DEFAULT_STOP_NANIM,
+    DEFAULT_STOP_NERR,
+)
 from cdb2rad.writer_inc import write_mesh_inc
 
 
@@ -447,35 +462,82 @@ if file_path:
 
 
         with st.expander("Control del cálculo"):
-            runname = st.text_input("Nombre de la simulación", value="model")
-            t_end = st.number_input("Tiempo final", value=0.01, format="%.5f")
-            anim_dt = st.number_input("Paso animación", value=0.001, format="%.5f")
-            tfile_dt = st.number_input("Intervalo historial", value=0.00001, format="%.5f")
-            dt_ratio = st.number_input(
-                "Factor seguridad DT", value=0.9, min_value=0.0, max_value=1.0
+            runname = st.text_input(
+                "Nombre de la simulación", value=DEFAULT_RUNNAME
             )
-            st.markdown("### Opciones avanzadas")
-            print_n = st.number_input("PRINT cada n ciclos", value=-500, step=1)
-            print_line = st.number_input("Línea cabecera", value=55, step=1)
-            rfile_cycle = st.number_input("Ciclos entre RFILE", value=0, step=1)
-            rfile_n = st.number_input("Número de RFILE", value=0, step=1)
-            h3d_dt = st.number_input("Paso H3D", value=0.0, format="%.5f")
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                stop_emax = st.number_input("Emax", value=0.0)
-            with col2:
-                stop_mmax = st.number_input("Mmax", value=0.0)
-            with col3:
-                stop_nmax = st.number_input("Nmax", value=0.0)
-            col4, col5, col6 = st.columns(3)
-            with col4:
-                stop_nth = st.number_input("NTH", value=1, step=1)
-            with col5:
-                stop_nanim = st.number_input("NANIM", value=1, step=1)
-            with col6:
-                stop_nerr = st.number_input("NERR_POSIT", value=0, step=1)
-            adyrel_start = st.number_input("ADYREL inicio", value=0.0)
-            adyrel_stop = st.number_input("ADYREL fin", value=0.0)
+            t_end = st.number_input(
+                "Tiempo final", value=DEFAULT_FINAL_TIME, format="%.5f"
+            )
+            anim_dt = st.number_input(
+                "Paso animación", value=DEFAULT_ANIM_DT, format="%.5f"
+            )
+            tfile_dt = st.number_input(
+                "Intervalo historial", value=DEFAULT_HISTORY_DT, format="%.5f"
+            )
+            dt_ratio = st.number_input(
+                "Factor seguridad DT",
+                value=DEFAULT_DT_RATIO,
+                min_value=0.0,
+                max_value=1.0,
+            )
+            adv_enabled = st.checkbox("Activar opciones avanzadas")
+            if adv_enabled:
+                st.markdown("### Opciones avanzadas")
+                print_n = st.number_input(
+                    "PRINT cada n ciclos", value=DEFAULT_PRINT_N, step=1
+                )
+                print_line = st.number_input(
+                    "Línea cabecera", value=DEFAULT_PRINT_LINE, step=1
+                )
+                rfile_cycle = st.number_input(
+                    "Ciclos entre RFILE", value=0, step=1
+                )
+                rfile_n = st.number_input("Número de RFILE", value=0, step=1)
+                h3d_dt = st.number_input(
+                    "Paso H3D", value=0.0, format="%.5f"
+                )
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    stop_emax = st.number_input(
+                        "Emax", value=DEFAULT_STOP_EMAX
+                    )
+                with col2:
+                    stop_mmax = st.number_input(
+                        "Mmax", value=DEFAULT_STOP_MMAX
+                    )
+                with col3:
+                    stop_nmax = st.number_input(
+                        "Nmax", value=DEFAULT_STOP_NMAX
+                    )
+                col4, col5, col6 = st.columns(3)
+                with col4:
+                    stop_nth = st.number_input(
+                        "NTH", value=DEFAULT_STOP_NTH, step=1
+                    )
+                with col5:
+                    stop_nanim = st.number_input(
+                        "NANIM", value=DEFAULT_STOP_NANIM, step=1
+                    )
+                with col6:
+                    stop_nerr = st.number_input(
+                        "NERR_POSIT", value=DEFAULT_STOP_NERR, step=1
+                    )
+                adyrel_start = st.number_input("ADYREL inicio", value=0.0)
+                adyrel_stop = st.number_input("ADYREL fin", value=0.0)
+            else:
+                print_n = DEFAULT_PRINT_N
+                print_line = DEFAULT_PRINT_LINE
+                rfile_cycle = 0
+                rfile_n = 0
+                h3d_dt = 0.0
+                stop_emax = DEFAULT_STOP_EMAX
+                stop_mmax = DEFAULT_STOP_MMAX
+                stop_nmax = DEFAULT_STOP_NMAX
+                stop_nth = DEFAULT_STOP_NTH
+                stop_nanim = DEFAULT_STOP_NANIM
+                stop_nerr = DEFAULT_STOP_NERR
+                adyrel_start = None
+                adyrel_stop = None
 
         with st.expander("Condiciones de contorno (BCS)"):
             bc_name = st.text_input("Nombre BC", value="Fixed")

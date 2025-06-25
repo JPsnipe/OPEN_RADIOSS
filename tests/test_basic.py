@@ -204,3 +204,32 @@ def test_write_rad_with_type2_contact(tmp_path):
     assert '/INTER/TYPE2/1' in txt
     assert '/FRICTION' in txt
 
+
+def test_write_rad_advanced_options(tmp_path):
+    nodes, elements, node_sets, elem_sets, mats = parse_cdb(DATA)
+    rad = tmp_path / 'advanced.rad'
+    write_rad(
+        nodes,
+        elements,
+        str(rad),
+        node_sets=node_sets,
+        elem_sets=elem_sets,
+        materials=mats,
+        print_n=-250,
+        print_line=55,
+        rfile_cycle=10,
+        rfile_n=2,
+        h3d_dt=0.005,
+        stop_emax=1.0,
+        stop_mmax=0.0,
+        stop_nmax=0.0,
+        stop_nth=1,
+        stop_nanim=1,
+        stop_nerr=0,
+        adyrel=(0.0, 0.02),
+    )
+    text = rad.read_text()
+    assert '/RFILE/2' in text
+    assert '/H3D/DT' in text
+    assert '/ADYREL' in text
+

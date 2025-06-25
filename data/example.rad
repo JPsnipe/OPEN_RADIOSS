@@ -1,5 +1,5 @@
 /BEGIN
-#include mesh.inp
+#include mesh.inc
 /PART/1
 /PROP/1
 /MAT/1

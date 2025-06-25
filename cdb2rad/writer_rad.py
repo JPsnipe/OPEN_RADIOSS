@@ -2,7 +2,7 @@
 
 from typing import Dict, List, Tuple
 
-from .writer_inc import write_mesh_inp
+from .writer_inc import write_mesh_inc
 
 DEFAULT_THICKNESS = 1.0
 DEFAULT_E = 210000.0
@@ -19,7 +19,7 @@ def write_rad(
     nodes: Dict[int, List[float]],
     elements: List[Tuple[int, int, List[int]]],
     outfile: str,
-    mesh_inc: str = "mesh.inp",
+    mesh_inc: str = "mesh.inc",
     node_sets: Dict[str, List[int]] | None = None,
     elem_sets: Dict[str, List[int]] | None = None,
     materials: Dict[int, Dict[str, float]] | None = None,
@@ -43,7 +43,7 @@ def write_rad(
     controls.
     """
 
-    write_mesh_inp(
+    write_mesh_inc(
         nodes,
         elements,
         mesh_inc,

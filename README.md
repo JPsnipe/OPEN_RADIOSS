@@ -8,10 +8,10 @@ Ansys a un *input deck* compatible con OpenRadioss.
 1. Lee bloques ``NBLOCK`` y ``EBLOCK`` de un ``.cdb``.
 2. Detecta selecciones nombradas (``CMBLOCK``) y datos de material
    (``MPDATA``).
-3. Genera un fichero ``mesh.inp`` con ``/NODE`` y bloques de elementos
+3. Genera un fichero ``mesh.inc`` con ``/NODE`` y bloques de elementos
    derivados de ``mapping.json`` (``/SHELL``, ``/BRICK``, ``/TETRA``...). Las
    selecciones y los materiales se exportan en formato Radioss.
-4. Crea ``model_0000.rad`` que referencia ``mesh.inp`` mediante ``#include`` y define propiedades,
+4. Crea ``model_0000.rad`` que referencia ``mesh.inc`` mediante ``#include`` y define propiedades,
    materiales, condiciones de contorno y ejemplos de contacto y carga.
 
 ## Entrada requerida
@@ -22,13 +22,13 @@ ejemplos de la documentación.
 
 ## Salida generada
 
- - ``mesh.inp``: definición de nodos y elementos.
+ - ``mesh.inc``: definición de nodos y elementos.
  - ``model_0000.rad``: fichero de inicio con propiedades, material y BCs.
 
 ## Ejemplo de uso
 
 ```bash
-python scripts/run_all.py data_files/model.cdb --inc mesh.inp --rad model_0000.rad
+python scripts/run_all.py data_files/model.cdb --inc mesh.inc --rad model_0000.rad
 ```
 
 ### Entorno virtual y OpenRadioss
@@ -85,7 +85,7 @@ Al terminar, se muestran las variables de entorno necesarias para ejecutar el
 ## Interfaz web
 
 Se incluye una pequeña interfaz en Streamlit para cargar un `.cdb`, visualizar
-el número y tipo de elementos y generar los ficheros ``mesh.inp`` y
+el número y tipo de elementos y generar los ficheros ``mesh.inc`` y
 ``model_0000.rad`` de forma interactiva. Para ejecutarla:
 
 ```bash
@@ -98,12 +98,12 @@ ejemplo. La interfaz cuenta con cuatro pestañas principales:
 - **Información** resumen de nodos y elementos.
 - **Vista 3D** previsualización ligera de la malla.
 
-- **Generar INP** permite crear ``mesh.inp`` y muestra sus primeras líneas. \
+-- **Generar INC** permite crear ``mesh.inc`` y muestra sus primeras líneas. \
   Incluye casillas para decidir si exportar las selecciones nombradas y los
   materiales.
 
 - **Generar RAD** para introducir parámetros de cálculo y obtener
   ``model_0000.rad``.
 
-Tras pulsar *Generar .inp* o *Generar .rad* se muestran las primeras líneas de
+Tras pulsar *Generar .inc* o *Generar .rad* se muestran las primeras líneas de
 los ficheros generados.

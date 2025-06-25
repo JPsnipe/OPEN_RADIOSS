@@ -1,7 +1,7 @@
 import os
 from cdb2rad.parser import parse_cdb
 from cdb2rad.writer_inc import write_mesh_inc
-from cdb2rad.writer_rad import write_rad
+from cdb2rad.writer_rad import write_rad, write_minimal_rad
 from cdb2rad.utils import element_summary
 
 DATA = os.path.join(os.path.dirname(__file__), '..', 'data', 'model.cdb')
@@ -114,4 +114,15 @@ def test_write_mesh_without_sets_materials(tmp_path):
     assert '/GRNOD' not in content
     assert '/SET/EL' not in content
     assert '/MAT/LAW1' not in content
+
+
+def test_write_minimal_rad(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'min.rad'
+    write_minimal_rad(str(rad), mesh_inc='mesh.inc', runname='min')
+    text = rad.read_text()
+    assert text.startswith('#RADIOSS STARTER')
+    assert '/BEGIN' in text
+    assert '#include mesh.inc' in text
+    assert '/END' in text
 

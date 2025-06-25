@@ -28,6 +28,109 @@ from cdb2rad.writer_inc import write_mesh_inc
 MAX_EDGES = 10000
 MAX_FACES = 15000
 
+# Mappings for dropdown labels with short explanations
+LAW_DESCRIPTIONS = {
+    "LAW1": "Elástico lineal",
+    "LAW2": "Modelo Johnson-Cook",
+    "LAW27": "Modelo plástico isotrópico",
+    "LAW36": "Modelo material avanzado",
+    "LAW44": "Modelo Cowper-Symonds",
+}
+
+FAIL_DESCRIPTIONS = {
+    "Ninguno": "Sin criterio de fallo",
+    "FAIL/JOHNSON": "Johnson-Cook failure",
+    "FAIL/BIQUAD": "Criterio Biquadrático",
+    "FAIL/TAB1": "Fallo tabulado",
+}
+
+BC_DESCRIPTIONS = {
+    "BCS": "Condición fija",
+    "PRESCRIBED_MOTION": "Movimiento prescrito",
+}
+
+INT_DESCRIPTIONS = {
+    "TYPE2": "Nodo-superficie",
+    "TYPE7": "Superficie-superficie",
+}
+
+# Tooltip texts for dashboard widgets
+HELP_TEXT = {
+    "work_dir": "Directorio base donde se guardarán los ficheros generados.",
+    "use_sets": "Incluye en 'mesh.inc' los conjuntos de nodos y elementos detectados en el CDB.",
+    "use_mats": "Copia al 'mesh.inc' los materiales definidos en el CDB.",
+    "inc_dir": "Carpeta de destino para el fichero mesh.inc.",
+    "inc_name": "Nombre del fichero .inc sin extensión.",
+    "overwrite_inc": "Permite sobrescribir un fichero .inc existente.",
+    "use_cdb_mats": "Agrega al .rad los materiales leídos del CDB.",
+    "use_impact": "Habilita la definición de materiales de impacto adicionales (LAW1, LAW2, etc.).",
+    "mat_id": "Identificador numérico del material en el fichero RAD.",
+    "law": "Ley constitutiva según Radioss. Consulta la sección /MAT del Reference Guide.",
+    "dens_i": "Densidad del material (RHO).",
+    "e_i": "Módulo elástico de Young.",
+    "nu_i": "Coeficiente de Poisson.",
+    "A": "Parámetro A de la ley de material seleccionada.",
+    "B": "Parámetro B de la ley de material seleccionada.",
+    "N": "Exponente N de la ley de material.",
+    "C": "Coeficiente C de la ley de material.",
+    "EPS0": "Deformación de referencia para LAW2.",
+    "SIG0": "Límite elástico inicial para LAW27.",
+    "SU": "Resistencia última para LAW27.",
+    "EPSU": "Deformación última para LAW27.",
+    "Fsmooth": "Parámetro Fsmooth de LAW36.",
+    "Fcut": "Parámetro Fcut de LAW36.",
+    "Chard": "Coeficiente Chard de LAW36.",
+    "cow_a": "Parámetro A de LAW44.",
+    "cow_b": "Parémetro B de LAW44.",
+    "cow_n": "Exponente N de LAW44.",
+    "cow_c": "Parámetro C de LAW44.",
+    "fail_type": "Modelo de fallo asociado al material.",
+    "D1": "Coeficiente D1 del modelo de fallo JOHNSON.",
+    "D2": "Coeficiente D2 del modelo de fallo JOHNSON.",
+    "D3": "Coeficiente D3 del modelo de fallo JOHNSON.",
+    "D4": "Coeficiente D4 del modelo de fallo JOHNSON.",
+    "D5": "Coeficiente D5 del modelo de fallo JOHNSON.",
+    "C1": "Coeficiente C1 de FAIL/BIQUAD.",
+    "C2": "Coeficiente C2 de FAIL/BIQUAD.",
+    "C3": "Coeficiente C3 de FAIL/BIQUAD.",
+    "Dcrit": "Umbral Dcrit de FAIL/TAB1.",
+    "runname": "Nombre utilizado en la tarjeta /RUN.",
+    "t_end": "Tiempo total de simulación en segundos.",
+    "anim_dt": "Intervalo de salida de animaciones.",
+    "tfile_dt": "Intervalo de escritura de ficheros de historia.",
+    "dt_ratio": "Factor de seguridad aplicado al paso crítico automático.",
+    "bc_name": "Etiqueta de la condición de contorno.",
+    "bc_type": "Tipo de BC: fijación (BCS) o movimiento prescrito.",
+    "bc_set": "Conjunto de nodos sobre el que se aplica la BC.",
+    "bc_tra": "Grados de libertad de traslación (1=fijo,0=libre).",
+    "bc_rot": "Grados de libertad de rotación.",
+    "bc_dir": "Dirección para PRESCRIBED_MOTION.",
+    "bc_val": "Valor de desplazamiento o velocidad prescrito.",
+    "int_type": "Tipo de interfaz de contacto en Radioss.",
+    "int_name": "Nombre identificativo de la interfaz.",
+    "slave_set": "Conjunto esclavo del contacto.",
+    "master_set": "Conjunto maestro del contacto.",
+    "fric": "Coeficiente de fricción.",
+    "gap": "Separación inicial (solo TYPE7).",
+    "stiff": "Rigidez normal para TYPE7.",
+    "igap": "Opcion IGAP de TYPE7.",
+    "vel_set": "Conjunto de nodos para la velocidad inicial.",
+    "vx": "Componente X de la velocidad inicial.",
+    "vy": "Componente Y de la velocidad inicial.",
+    "vz": "Componente Z de la velocidad inicial.",
+    "g": "Magnitud de la gravedad.",
+    "nx": "Componente X de la dirección de la gravedad.",
+    "ny": "Componente Y de la dirección de la gravedad.",
+    "nz": "Componente Z de la dirección de la gravedad.",
+    "comp": "Componente aplicada de la carga de gravedad.",
+    "rad_dir": "Carpeta de salida del fichero RAD.",
+    "rad_name": "Nombre del fichero RAD sin extensión.",
+    "overwrite_rad": "Sobrescribe los archivos si ya existen.",
+    "clean_dir": "Carpeta para el RAD limpio (starter mínimo).",
+    "clean_name": "Nombre del RAD limpio.",
+    "overwrite_clean": "Reemplaza el RAD limpio existente.",
+}
+
 
 def viewer_html(
 
@@ -266,6 +369,7 @@ if file_path:
     work_dir = st.text_input(
         "Directorio de trabajo",
         value=st.session_state.get("work_dir", str(Path.cwd())),
+        help=HELP_TEXT["work_dir"],
     )
     st.session_state["work_dir"] = work_dir
     nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
@@ -318,17 +422,34 @@ if file_path:
     with inp_tab:
         st.subheader("Generar mesh.inc")
 
-        use_sets = st.checkbox("Incluir name selections", value=True)
-        use_mats = st.checkbox("Incluir materiales", value=True)
+        use_sets = st.checkbox(
+            "Incluir name selections",
+            value=True,
+            help=HELP_TEXT["use_sets"],
+        )
+        use_mats = st.checkbox(
+            "Incluir materiales",
+            value=True,
+            help=HELP_TEXT["use_mats"],
+        )
         inc_dir = st.text_input(
             "Directorio de salida",
             value=st.session_state.get("work_dir", str(Path.cwd())),
             key="inc_dir",
+            help=HELP_TEXT["inc_dir"],
         )
         inc_name = st.text_input(
-            "Nombre de archivo", value="mesh", key="inc_name"
+            "Nombre de archivo",
+            value="mesh",
+            key="inc_name",
+            help=HELP_TEXT["inc_name"],
         )
-        overwrite_inc = st.checkbox("Sobrescribir si existe", value=False, key="overwrite_inc")
+        overwrite_inc = st.checkbox(
+            "Sobrescribir si existe",
+            value=False,
+            key="overwrite_inc",
+            help=HELP_TEXT["overwrite_inc"],
+        )
 
         if st.button("Generar .inc"):
             out_dir = Path(inc_dir).expanduser()
@@ -364,8 +485,16 @@ if file_path:
             st.session_state["gravity"] = None
 
         with st.expander("Definición de materiales"):
-            use_cdb_mats = st.checkbox("Incluir materiales del CDB", value=False)
-            use_impact = st.checkbox("Incluir materiales de impacto", value=True)
+            use_cdb_mats = st.checkbox(
+                "Incluir materiales del CDB",
+                value=False,
+                help=HELP_TEXT["use_cdb_mats"],
+            )
+            use_impact = st.checkbox(
+                "Incluir materiales de impacto",
+                value=True,
+                help=HELP_TEXT["use_impact"],
+            )
 
             if use_impact:
                 with st.expander("Materiales de impacto"):
@@ -373,59 +502,76 @@ if file_path:
                         "ID material",
                         value=len(st.session_state["impact_materials"]) + 1,
                         step=1,
+                        help=HELP_TEXT["mat_id"],
                     )
                     law = st.selectbox(
                         "Tipo",
-                        [
-                            "LAW1",
-                            "LAW2",
-                            "LAW27",
-                            "LAW36",
-                            "LAW44",
-                        ],
+                        list(LAW_DESCRIPTIONS.keys()),
+                        format_func=lambda k: f"{k} - {LAW_DESCRIPTIONS[k]}",
+                        help=HELP_TEXT["law"],
                     )
-                    dens_i = st.number_input("Densidad", value=7800.0, key="dens_i")
-                    e_i = st.number_input("E", value=210000.0, key="e_i")
-                    nu_i = st.number_input("Poisson", value=0.3, key="nu_i")
+                    st.caption(LAW_DESCRIPTIONS[law])
+                    dens_i = st.number_input(
+                        "Densidad",
+                        value=7800.0,
+                        key="dens_i",
+                        help=HELP_TEXT["dens_i"],
+                    )
+                    e_i = st.number_input(
+                        "E",
+                        value=210000.0,
+                        key="e_i",
+                        help=HELP_TEXT["e_i"],
+                    )
+                    nu_i = st.number_input(
+                        "Poisson",
+                        value=0.3,
+                        key="nu_i",
+                        help=HELP_TEXT["nu_i"],
+                    )
                     extra: Dict[str, float] = {}
                     if law == "LAW2":
-                        extra["A"] = st.number_input("A", value=200.0, key="a_i")
-                        extra["B"] = st.number_input("B", value=400.0, key="b_i")
-                        extra["N"] = st.number_input("n", value=0.5, key="n_i")
-                        extra["C"] = st.number_input("C", value=0.01, key="c_i")
-                        extra["EPS0"] = st.number_input("EPS0", value=1.0, key="eps0_i")
+                        extra["A"] = st.number_input("A", value=200.0, key="a_i", help=HELP_TEXT["A"])
+                        extra["B"] = st.number_input("B", value=400.0, key="b_i", help=HELP_TEXT["B"])
+                        extra["N"] = st.number_input("n", value=0.5, key="n_i", help=HELP_TEXT["N"])
+                        extra["C"] = st.number_input("C", value=0.01, key="c_i", help=HELP_TEXT["C"])
+                        extra["EPS0"] = st.number_input("EPS0", value=1.0, key="eps0_i", help=HELP_TEXT["EPS0"])
                     elif law == "LAW27":
-                        extra["SIG0"] = st.number_input("SIG0", value=200.0, key="sig0")
-                        extra["SU"] = st.number_input("SU", value=0.0, key="su")
-                        extra["EPSU"] = st.number_input("EPSU", value=0.0, key="epsu")
+                        extra["SIG0"] = st.number_input("SIG0", value=200.0, key="sig0", help=HELP_TEXT["SIG0"])
+                        extra["SU"] = st.number_input("SU", value=0.0, key="su", help=HELP_TEXT["SU"])
+                        extra["EPSU"] = st.number_input("EPSU", value=0.0, key="epsu", help=HELP_TEXT["EPSU"])
                     elif law == "LAW36":
-                        extra["Fsmooth"] = st.number_input("Fsmooth", value=0.0, key="fs")
-                        extra["Fcut"] = st.number_input("Fcut", value=0.0, key="fc")
-                        extra["Chard"] = st.number_input("Chard", value=0.0, key="ch")
+                        extra["Fsmooth"] = st.number_input("Fsmooth", value=0.0, key="fs", help=HELP_TEXT["Fsmooth"])
+                        extra["Fcut"] = st.number_input("Fcut", value=0.0, key="fc", help=HELP_TEXT["Fcut"])
+                        extra["Chard"] = st.number_input("Chard", value=0.0, key="ch", help=HELP_TEXT["Chard"])
                     elif law == "LAW44":
-                        extra["A"] = st.number_input("A", value=0.0, key="cow_a")
-                        extra["B"] = st.number_input("B", value=0.0, key="cow_b")
-                        extra["N"] = st.number_input("N", value=1.0, key="cow_n")
-                        extra["C"] = st.number_input("C", value=0.0, key="cow_c")
+                        extra["A"] = st.number_input("A", value=0.0, key="cow_a", help=HELP_TEXT["cow_a"])
+                        extra["B"] = st.number_input("B", value=0.0, key="cow_b", help=HELP_TEXT["cow_b"])
+                        extra["N"] = st.number_input("N", value=1.0, key="cow_n", help=HELP_TEXT["cow_n"])
+                        extra["C"] = st.number_input("C", value=0.0, key="cow_c", help=HELP_TEXT["cow_c"])
 
                     fail_type = st.selectbox(
                         "Modo de fallo",
-                        ["Ninguno", "FAIL/JOHNSON", "FAIL/BIQUAD", "FAIL/TAB1"],
+                        list(FAIL_DESCRIPTIONS.keys()),
+                        format_func=lambda k: f"{k} - {FAIL_DESCRIPTIONS[k]}",
+                        help=HELP_TEXT["fail_type"],
                     )
                     fail_params: Dict[str, float] = {}
+                    if fail_type:
+                        st.caption(FAIL_DESCRIPTIONS[fail_type])
                     if fail_type != "Ninguno":
                         if fail_type == "FAIL/JOHNSON":
-                            fail_params["D1"] = st.number_input("D1", value=0.0)
-                            fail_params["D2"] = st.number_input("D2", value=0.0)
-                            fail_params["D3"] = st.number_input("D3", value=0.0)
-                            fail_params["D4"] = st.number_input("D4", value=0.0)
-                            fail_params["D5"] = st.number_input("D5", value=0.0)
+                            fail_params["D1"] = st.number_input("D1", value=0.0, help=HELP_TEXT["D1"])
+                            fail_params["D2"] = st.number_input("D2", value=0.0, help=HELP_TEXT["D2"])
+                            fail_params["D3"] = st.number_input("D3", value=0.0, help=HELP_TEXT["D3"])
+                            fail_params["D4"] = st.number_input("D4", value=0.0, help=HELP_TEXT["D4"])
+                            fail_params["D5"] = st.number_input("D5", value=0.0, help=HELP_TEXT["D5"])
                         elif fail_type == "FAIL/BIQUAD":
-                            fail_params["C1"] = st.number_input("C1", value=0.0)
-                            fail_params["C2"] = st.number_input("C2", value=0.0)
-                            fail_params["C3"] = st.number_input("C3", value=0.0)
+                            fail_params["C1"] = st.number_input("C1", value=0.0, help=HELP_TEXT["C1"])
+                            fail_params["C2"] = st.number_input("C2", value=0.0, help=HELP_TEXT["C2"])
+                            fail_params["C3"] = st.number_input("C3", value=0.0, help=HELP_TEXT["C3"])
                         elif fail_type == "FAIL/TAB1":
-                            fail_params["Dcrit"] = st.number_input("Dcrit", value=1.0)
+                            fail_params["Dcrit"] = st.number_input("Dcrit", value=1.0, help=HELP_TEXT["Dcrit"])
 
                     if st.button("Añadir material"):
                         data = {
@@ -447,33 +593,90 @@ if file_path:
 
 
         with st.expander("Control del cálculo"):
-            runname = st.text_input("Nombre de la simulación", value="model")
-            t_end = st.number_input("Tiempo final", value=0.01, format="%.5f")
-            anim_dt = st.number_input("Paso animación", value=0.001, format="%.5f")
-            tfile_dt = st.number_input("Intervalo historial", value=0.00001, format="%.5f")
-            dt_ratio = st.number_input(
-                "Factor seguridad DT", value=0.9, min_value=0.0, max_value=1.0
+            runname = st.text_input(
+                "Nombre de la simulación",
+                value="model",
+                help=HELP_TEXT["runname"],
             )
+            t_end = st.number_input(
+                "Tiempo final",
+                value=0.01,
+                format="%.5f",
+                help=HELP_TEXT["t_end"],
+            )
+            anim_dt = st.number_input(
+                "Paso animación",
+                value=0.001,
+                format="%.5f",
+                help=HELP_TEXT["anim_dt"],
+            )
+            tfile_dt = st.number_input(
+                "Intervalo historial",
+                value=0.00001,
+                format="%.5f",
+                help=HELP_TEXT["tfile_dt"],
+            )
+            dt_ratio = st.number_input(
+                "Factor seguridad DT",
+                value=0.9,
+                min_value=0.0,
+                max_value=1.0,
+                help=HELP_TEXT["dt_ratio"],
+            )
+            st.markdown("### Opciones avanzadas")
+            print_n = st.number_input("PRINT cada n ciclos", value=-500, step=1)
+            print_line = st.number_input("Línea cabecera", value=55, step=1)
+            rfile_cycle = st.number_input("Ciclos entre RFILE", value=0, step=1)
+            rfile_n = st.number_input("Número de RFILE", value=0, step=1)
+            h3d_dt = st.number_input("Paso H3D", value=0.0, format="%.5f")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                stop_emax = st.number_input("Emax", value=0.0)
+            with col2:
+                stop_mmax = st.number_input("Mmax", value=0.0)
+            with col3:
+                stop_nmax = st.number_input("Nmax", value=0.0)
+            col4, col5, col6 = st.columns(3)
+            with col4:
+                stop_nth = st.number_input("NTH", value=1, step=1)
+            with col5:
+                stop_nanim = st.number_input("NANIM", value=1, step=1)
+            with col6:
+                stop_nerr = st.number_input("NERR_POSIT", value=0, step=1)
+            adyrel_start = st.number_input("ADYREL inicio", value=0.0)
+            adyrel_stop = st.number_input("ADYREL fin", value=0.0)
 
         with st.expander("Condiciones de contorno (BCS)"):
-            bc_name = st.text_input("Nombre BC", value="Fixed")
+            bc_name = st.text_input(
+                "Nombre BC",
+                value="Fixed",
+                help=HELP_TEXT["bc_name"],
+            )
             bc_type = st.selectbox(
                 "Tipo BC",
-                ["BCS", "PRESCRIBED_MOTION"],
+                list(BC_DESCRIPTIONS.keys()),
+                format_func=lambda k: f"{k} - {BC_DESCRIPTIONS[k]}",
+                help=HELP_TEXT["bc_type"],
             )
+            st.caption(BC_DESCRIPTIONS[bc_type])
             bc_set = st.selectbox(
                 "Conjunto de nodos",
                 list(node_sets.keys()),
                 disabled=not node_sets,
+                help=HELP_TEXT["bc_set"],
             )
             bc_data = {}
             if bc_type == "BCS":
-                bc_tra = st.text_input("Traslación (111/000)", value="111")
-                bc_rot = st.text_input("Rotación (111/000)", value="111")
+                bc_tra = st.text_input(
+                    "Traslación (111/000)", value="111", help=HELP_TEXT["bc_tra"]
+                )
+                bc_rot = st.text_input(
+                    "Rotación (111/000)", value="111", help=HELP_TEXT["bc_rot"]
+                )
                 bc_data.update({"tra": bc_tra, "rot": bc_rot})
             else:
-                bc_dir = st.number_input("Dirección", value=1, step=1)
-                bc_val = st.number_input("Valor", value=0.0)
+                bc_dir = st.number_input("Dirección", value=1, step=1, help=HELP_TEXT["bc_dir"])
+                bc_val = st.number_input("Valor", value=0.0, help=HELP_TEXT["bc_val"])
                 bc_data.update({"dir": int(bc_dir), "value": float(bc_val)})
 
             if st.button("Añadir BC") and bc_set:
@@ -490,27 +693,40 @@ if file_path:
                 st.json(bc)
 
         with st.expander("Interacciones (INTER)"):
-            int_type = st.selectbox("Tipo", ["TYPE2", "TYPE7"], key="itf_type")
-            int_name = st.text_input("Nombre interfaz", value=f"{int_type}_1")
+            int_type = st.selectbox(
+                "Tipo",
+                list(INT_DESCRIPTIONS.keys()),
+                key="itf_type",
+                format_func=lambda k: f"{k} - {INT_DESCRIPTIONS[k]}",
+                help=HELP_TEXT["int_type"],
+            )
+            st.caption(INT_DESCRIPTIONS[int_type])
+            int_name = st.text_input(
+                "Nombre interfaz",
+                value=f"{int_type}_1",
+                help=HELP_TEXT["int_name"],
+            )
             slave_set = st.selectbox(
                 "Conjunto esclavo",
                 list(node_sets.keys()),
                 key="slave_set",
                 disabled=not node_sets,
+                help=HELP_TEXT["slave_set"],
             )
             master_set = st.selectbox(
                 "Conjunto maestro",
                 list(node_sets.keys()),
                 key="master_set",
                 disabled=not node_sets,
+                help=HELP_TEXT["master_set"],
             )
-            fric = st.number_input("Fricción", value=0.0)
+            fric = st.number_input("Fricción", value=0.0, help=HELP_TEXT["fric"])
 
             gap = stiff = igap = None
             if int_type == "TYPE7":
-                gap = st.number_input("Gap", value=0.0)
-                stiff = st.number_input("Stiffness", value=0.0)
-                igap = st.number_input("Igap", value=0, step=1)
+                gap = st.number_input("Gap", value=0.0, help=HELP_TEXT["gap"])
+                stiff = st.number_input("Stiffness", value=0.0, help=HELP_TEXT["stiff"])
+                igap = st.number_input("Igap", value=0, step=1, help=HELP_TEXT["igap"])
 
             if st.button("Añadir interfaz") and slave_set and master_set:
                 s_list = node_sets.get(slave_set, [])
@@ -538,10 +754,11 @@ if file_path:
                 list(node_sets.keys()),
                 key="vel_set",
                 disabled=not node_sets,
+                help=HELP_TEXT["vel_set"],
             )
-            vx = st.number_input("Vx", value=0.0)
-            vy = st.number_input("Vy", value=0.0)
-            vz = st.number_input("Vz", value=0.0)
+            vx = st.number_input("Vx", value=0.0, help=HELP_TEXT["vx"])
+            vy = st.number_input("Vy", value=0.0, help=HELP_TEXT["vy"])
+            vz = st.number_input("Vz", value=0.0, help=HELP_TEXT["vz"])
             if st.button("Asignar velocidad") and vel_set:
                 n_list = node_sets.get(vel_set, [])
                 st.session_state["init_vel"] = {
@@ -554,11 +771,11 @@ if file_path:
                 st.json(st.session_state["init_vel"])
 
         with st.expander("Carga de gravedad (GRAVITY)"):
-            g = st.number_input("g", value=9.81)
-            nx = st.number_input("nx", value=0.0)
-            ny = st.number_input("ny", value=0.0)
-            nz = st.number_input("nz", value=-1.0)
-            comp = st.number_input("Componente", value=3, step=1)
+            g = st.number_input("g", value=9.81, help=HELP_TEXT["g"])
+            nx = st.number_input("nx", value=0.0, help=HELP_TEXT["nx"])
+            ny = st.number_input("ny", value=0.0, help=HELP_TEXT["ny"])
+            nz = st.number_input("nz", value=-1.0, help=HELP_TEXT["nz"])
+            comp = st.number_input("Componente", value=3, step=1, help=HELP_TEXT["comp"])
             if st.button("Asignar gravedad"):
                 st.session_state["gravity"] = {
                     "g": g,
@@ -574,11 +791,20 @@ if file_path:
             "Directorio de salida",
             value=st.session_state.get("work_dir", str(Path.cwd())),
             key="rad_dir",
+            help=HELP_TEXT["rad_dir"],
         )
         rad_name = st.text_input(
-            "Nombre de archivo RAD", value="model_0000", key="rad_name"
+            "Nombre de archivo RAD",
+            value="model_0000",
+            key="rad_name",
+            help=HELP_TEXT["rad_name"],
         )
-        overwrite_rad = st.checkbox("Sobrescribir si existe", value=False, key="overwrite_rad")
+        overwrite_rad = st.checkbox(
+            "Sobrescribir si existe",
+            value=False,
+            key="overwrite_rad",
+            help=HELP_TEXT["overwrite_rad"],
+        )
 
         if st.button("Generar .rad"):
             out_dir = Path(rad_dir).expanduser()
@@ -613,6 +839,18 @@ if file_path:
                     anim_dt=anim_dt,
                     tfile_dt=tfile_dt,
                     dt_ratio=dt_ratio,
+                    print_n=int(print_n),
+                    print_line=int(print_line),
+                    rfile_cycle=int(rfile_cycle) if rfile_cycle else None,
+                    rfile_n=int(rfile_n) if rfile_n else None,
+                    h3d_dt=h3d_dt if h3d_dt > 0 else None,
+                    stop_emax=stop_emax,
+                    stop_mmax=stop_mmax,
+                    stop_nmax=stop_nmax,
+                    stop_nth=int(stop_nth),
+                    stop_nanim=int(stop_nanim),
+                    stop_nerr=int(stop_nerr),
+                    adyrel=(adyrel_start, adyrel_stop),
 
                     boundary_conditions=st.session_state.get("bcs"),
                     interfaces=st.session_state.get("interfaces"),
@@ -628,12 +866,19 @@ if file_path:
             "Directorio RAD limpio",
             value=st.session_state.get("work_dir", str(Path.cwd())),
             key="clean_dir",
+            help=HELP_TEXT["clean_dir"],
         )
         clean_name = st.text_input(
-            "Nombre archivo RAD limpio", value="minimal", key="clean_name"
+            "Nombre archivo RAD limpio",
+            value="minimal",
+            key="clean_name",
+            help=HELP_TEXT["clean_name"],
         )
         overwrite_clean = st.checkbox(
-            "Sobrescribir si existe", value=False, key="overwrite_clean"
+            "Sobrescribir si existe",
+            value=False,
+            key="overwrite_clean",
+            help=HELP_TEXT["overwrite_clean"],
         )
 
         if st.button("Generar .rad limpio"):

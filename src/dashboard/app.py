@@ -83,9 +83,6 @@ if logo_path.exists():
     st.image(str(logo_path), width=150)
 
 uploaded = st.file_uploader("Subir archivo .cdb", type="cdb")
-example_dir = Path("data_files")
-examples = [p.name for p in example_dir.glob("*.cdb")]
-selected = st.selectbox("o escoger ejemplo", [""] + examples)
 
 file_path = None
 if uploaded is not None:
@@ -93,8 +90,6 @@ if uploaded is not None:
     tmp.write(uploaded.getvalue())
     tmp.close()
     file_path = tmp.name
-elif selected:
-    file_path = str(example_dir / selected)
 
 if file_path:
     nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
@@ -103,6 +98,14 @@ if file_path:
     with info_tab:
         st.write("Nodos:", len(nodes))
         st.write("Elementos:", len(elements))
+        from cdb2rad.utils import element_summary
+        etype_counts, kw_counts = element_summary(elements)
+        st.write("Tipos de elemento (CDB):")
+        for et, cnt in sorted(etype_counts.items()):
+            st.write(f"- Tipo {et}: {cnt} elementos")
+        st.write("Tipos en Radioss:")
+        for kw, cnt in kw_counts.items():
+            st.write(f"- {kw}: {cnt}")
         st.write("Conjuntos de nodos:", len(node_sets))
         for name, nids in node_sets.items():
             st.write(f"- {name}: {len(nids)} nodos")
@@ -127,6 +130,9 @@ if file_path:
                     materials=materials,
                 )
                 st.success("Ficheros generados en directorio temporal")
+                st.write("Resumen de elementos traducidos:")
+                for kw, cnt in kw_counts.items():
+                    st.write(f"- {kw}: {cnt}")
                 lines = mesh_path.read_text().splitlines()[:20]
                 st.code("\n".join(lines))
 
@@ -139,4 +145,4 @@ if file_path:
             )
         st.components.v1.html(html, height=420)
 else:
-    st.info("Sube o selecciona un archivo .cdb")
+    st.info("Sube un archivo .cdb")

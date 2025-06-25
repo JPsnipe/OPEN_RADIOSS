@@ -2,6 +2,7 @@ import os
 from cdb2rad.parser import parse_cdb
 from cdb2rad.writer_inc import write_mesh_inp
 from cdb2rad.writer_rad import write_rad
+from cdb2rad.utils import element_summary
 
 DATA = os.path.join(os.path.dirname(__file__), '..', 'data', 'model.cdb')
 
@@ -16,6 +17,13 @@ def test_parse_cdb():
     assert elem_sets["BALL"][-1] == 715
     assert elem_sets["TARGET"][0] == 918
     assert elem_sets["TARGET"][-1] == 2681
+
+
+def test_element_summary():
+    _, elements, _, _, _ = parse_cdb(DATA)
+    etype_counts, kw_counts = element_summary(elements)
+    assert sum(kw_counts.values()) == len(elements)
+    assert kw_counts["BRICK"] > 0
 
 
 def test_write_mesh(tmp_path):

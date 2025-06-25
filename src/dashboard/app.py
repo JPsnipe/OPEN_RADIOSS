@@ -299,17 +299,13 @@ if file_path:
 
         use_sets = st.checkbox("Incluir name selections", value=True)
         use_mats = st.checkbox("Incluir materiales", value=True)
-        inc_dir = st.text_input(
-            "Directorio de salida", value=str(Path.cwd()), key="inc_dir"
-        )
-        inc_name = st.text_input(
-            "Nombre de archivo", value="mesh", key="inc_name"
+        inc_path_text = st.text_input(
+            "Archivo INC (sin .inc)", value=str(Path.cwd() / "mesh"), key="inc_path"
         )
 
         if st.button("Generar .inc"):
-            out_dir = Path(inc_dir).expanduser()
-            out_dir.mkdir(parents=True, exist_ok=True)
-            inp_path = out_dir / f"{inc_name}.inc"
+            inp_path = Path(inc_path_text).expanduser().with_suffix(".inc")
+            inp_path.parent.mkdir(parents=True, exist_ok=True)
             if inp_path.exists():
                 st.error("El archivo ya existe. Elija otro nombre o directorio")
             else:
@@ -432,18 +428,14 @@ if file_path:
         use_impact = st.checkbox(
             "Incluir materiales de impacto", value=True
         )
-        rad_dir = st.text_input(
-            "Directorio de salida", value=str(Path.cwd()), key="rad_dir"
-        )
-        rad_name = st.text_input(
-            "Nombre de archivo RAD", value="model_0000", key="rad_name"
+        rad_path_text = st.text_input(
+            "Archivo RAD (sin .rad)", value=str(Path.cwd() / "model_0000"), key="rad_path"
         )
 
         if st.button("Generar .rad"):
-            out_dir = Path(rad_dir).expanduser()
-            out_dir.mkdir(parents=True, exist_ok=True)
-            rad_path = out_dir / f"{rad_name}.rad"
-            mesh_path = out_dir / "mesh.inc"
+            rad_path = Path(rad_path_text).expanduser().with_suffix(".rad")
+            mesh_path = rad_path.parent / "mesh.inc"
+            rad_path.parent.mkdir(parents=True, exist_ok=True)
             if rad_path.exists() or mesh_path.exists():
                 st.error("El archivo ya existe. Elija otro nombre o directorio")
             else:
@@ -486,19 +478,15 @@ if file_path:
                 lines = rad_path.read_text().splitlines()[:20]
                 st.code("\n".join(lines))
 
-        zip_dir = st.text_input(
-            "Directorio ZIP", value=str(Path.cwd()), key="zip_dir"
-        )
-        zip_name = st.text_input(
-            "Nombre archivo ZIP", value="clean", key="zip_name"
+        zip_path_text = st.text_input(
+            "Archivo ZIP (sin .zip)", value=str(Path.cwd() / "clean"), key="zip_path"
         )
 
         if st.button("Generar .zip limpio"):
-            out_dir = Path(zip_dir).expanduser()
-            out_dir.mkdir(parents=True, exist_ok=True)
-            mesh_path = out_dir / "mesh.inc"
-            rad_path = out_dir / "minimal.rad"
-            zip_path = out_dir / f"{zip_name}.zip"
+            zip_path = Path(zip_path_text).expanduser().with_suffix(".zip")
+            mesh_path = zip_path.parent / "mesh.inc"
+            rad_path = zip_path.parent / "minimal.rad"
+            zip_path.parent.mkdir(parents=True, exist_ok=True)
             if zip_path.exists():
                 st.error("El archivo ZIP ya existe. Cambie el nombre o directorio")
             else:

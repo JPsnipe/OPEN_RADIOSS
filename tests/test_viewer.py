@@ -10,3 +10,4 @@ def test_viewer_html_basic():
     html = viewer_html(nodes, elements)
     assert 'OrbitControls' in html
     assert 'LineSegments' in html
+    assert 'MeshPhongMaterial' in html

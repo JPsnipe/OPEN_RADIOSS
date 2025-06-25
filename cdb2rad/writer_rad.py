@@ -84,7 +84,12 @@ def write_rad(
         f.write(f"/PROP/SHELL/1 {thickness} 0\n")
 
         if not all_mats:
-            f.write(f"/MAT/LAW1/1 {young} {poisson} {density}\n")
+            f.write("/MAT/LAW1/1\n")
+            f.write("Default_Mat\n")
+            f.write("#              RHO\n")
+            f.write(f"{density}\n")
+            f.write("#                  E                  Nu\n")
+            f.write(f"{young} {poisson}\n")
         else:
             for mid, props in all_mats.items():
                 law = props.get("LAW", "LAW1").upper()
@@ -101,13 +106,18 @@ def write_rad(
                     f.write(f"{rho} {e} {nu}\n")
                     f.write(f"{a} {b} {n} {c} {eps0}\n")
                 else:
-                    f.write(f"/MAT/LAW1/{mid} {e} {nu} {rho}\n")
+                    name = props.get("NAME", f"MAT_{mid}")
+                    f.write(f"/MAT/LAW1/{mid}\n")
+                    f.write(f"{name}\n")
+                    f.write("#              RHO\n")
+                    f.write(f"{rho}\n")
+                    f.write("#                  E                  Nu\n")
+                    f.write(f"{e} {nu}\n")
 
 
         # Basic engine control cards
-        f.write(f"/RUN/{runname}/1/\n")
-        f.write(f"                {t_end}\n")
         f.write("/STOP\n")
+        f.write(f"{t_end}\n")
         f.write("0 0 0 1 1 0\n")
         f.write("/TFILE/0\n")
         f.write(f"{tfile_dt}\n")

@@ -69,9 +69,11 @@ ejemplo. La interfaz cuenta con cuatro pestañas principales:
 
 - **Información** resumen de nodos y elementos.
 - **Vista 3D** previsualización ligera de la malla.
+
 - **Generar INP** permite crear ``mesh.inp`` y muestra sus primeras líneas. \
   Incluye casillas para decidir si exportar las selecciones nombradas y los
   materiales.
+
 - **Generar RAD** para introducir parámetros de cálculo y obtener
   ``model_0000.rad``.
 

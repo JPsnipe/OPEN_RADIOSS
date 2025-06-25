@@ -23,7 +23,8 @@ ejemplos de la documentación.
 ## Salida generada
 
  - ``mesh.inc``: definición de nodos y elementos.
- - ``model_0000.rad``: fichero de inicio con propiedades, material y BCs.
+- ``model_0000.rad``: fichero de inicio con propiedades, material y BCs.
+ - ``minimal.rad``: starter simplificado solo con ``#include mesh.inc``.
 
 ## Configuración del ``.rad``
 
@@ -123,6 +124,7 @@ ejemplo. La interfaz cuenta con cuatro pestañas principales:
 
 - **Generar RAD** para introducir parámetros de cálculo y obtener
   ``model_0000.rad``.
+- **RAD limpio (.rar)** crea un archivo ``minimal.rad`` comprimido en ``clean.rar``.
 
 Tras pulsar *Generar .inc* o *Generar .rad* se muestran las primeras líneas de
 los ficheros generados.

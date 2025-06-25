@@ -361,5 +361,21 @@ if file_path:
                 st.success("Ficheros generados en directorio temporal")
                 lines = rad_path.read_text().splitlines()[:20]
                 st.code("\n".join(lines))
+
+        if st.button("Generar .rar limpio"):
+            with tempfile.TemporaryDirectory() as tmpdir:
+                mesh_path = Path(tmpdir) / "mesh.inc"
+                rad_path = Path(tmpdir) / "minimal.rad"
+                write_mesh_inc(nodes, elements, str(mesh_path))
+                from cdb2rad.writer_rad import write_minimal_rad
+
+                write_minimal_rad(str(rad_path), mesh_inc=mesh_path.name)
+
+                rar_path = Path(tmpdir) / "clean.rar"
+                import subprocess
+
+                subprocess.run(["rar", "a", str(rar_path), str(rad_path), str(mesh_path)], check=False)
+                st.success("Archivo clean.rar generado")
+                st.write(rar_path)
 else:
     st.info("Sube un archivo .cdb")

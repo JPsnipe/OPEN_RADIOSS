@@ -89,3 +89,21 @@ def write_rad(
         f.write(f"0 {anim_dt}\n")
 
         f.write("/END\n")
+
+
+def write_minimal_rad(
+    outfile: str,
+    mesh_inc: str = "mesh.inc",
+    runname: str = DEFAULT_RUNNAME,
+) -> None:
+    """Generate a minimal starter file referencing only the mesh."""
+
+    with open(outfile, "w") as f:
+        f.write("#RADIOSS STARTER\n")
+        f.write("/BEGIN\n")
+        f.write(f"{runname}\n")
+        f.write("     2024         0\n")
+        f.write("                  kg                  mm                   s\n")
+        f.write("                  kg                  mm                   s\n")
+        f.write(f"#include {mesh_inc}\n")
+        f.write("/END\n")

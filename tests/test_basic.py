@@ -77,6 +77,16 @@ def test_write_rad(tmp_path):
     assert '0.0001' in content
 
 
+def test_write_rad_no_defaults(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'nodef.rad'
+    write_rad(nodes, elements, str(rad), thickness=None, young=None,
+              poisson=None, density=None)
+    txt = rad.read_text()
+    assert '/PROP/SHELL' not in txt
+    assert '/MAT/LAW1/1' not in txt
+
+
 def test_write_rad_extra_materials(tmp_path):
     nodes, elements, node_sets, elem_sets, materials = parse_cdb(DATA)
     extra = {

@@ -330,10 +330,6 @@ if file_path:
 
     with rad_tab:
         st.subheader("Opciones de cálculo")
-        thickness = st.number_input("Grosor", value=1.0, min_value=0.0)
-        young = st.number_input("Módulo E", value=210000.0)
-        poisson = st.number_input("Coeficiente de Poisson", value=0.3)
-        density = st.number_input("Densidad", value=7800.0)
 
         if "impact_materials" not in st.session_state:
             st.session_state["impact_materials"] = []
@@ -500,10 +496,10 @@ if file_path:
                     elem_sets=elem_sets,
                     materials=materials if use_cdb_mats else None,
                     extra_materials=extra,
-                    thickness=thickness,
-                    young=young,
-                    poisson=poisson,
-                    density=density,
+                    thickness=None,
+                    young=None,
+                    poisson=None,
+                    density=None,
 
                     runname=runname,
                     t_end=t_end,

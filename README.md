@@ -128,6 +128,9 @@ Se incluyen casillas opcionales para **sobrescribir** los archivos
 ``.inc`` o ``.rad`` si ya existen en el directorio de salida.
 - La opción **Incluir materiales del CDB** está desactivada por defecto;
   actívala si deseas copiar al starter los materiales extraídos del `.cdb`.
+- El archivo generado desde la interfaz no añade por defecto las
+  líneas de grosor y material inicial (``/PROP`` y ``/MAT``). Puedes
+  definirlas manualmente si es necesario.
 
 - **RAD limpio (.rad)** genera ``minimal.rad`` para probar rápidamente ``mesh.inc``.
 

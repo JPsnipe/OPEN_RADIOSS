@@ -31,10 +31,10 @@ def write_rad(
     materials: Dict[int, Dict[str, float]] | None = None,
     extra_materials: Dict[int, Dict[str, float]] | None = None,
     *,
-    thickness: float = DEFAULT_THICKNESS,
-    young: float = DEFAULT_E,
-    poisson: float = DEFAULT_NU,
-    density: float = DEFAULT_RHO,
+    thickness: float | None = DEFAULT_THICKNESS,
+    young: float | None = DEFAULT_E,
+    poisson: float | None = DEFAULT_NU,
+    density: float | None = DEFAULT_RHO,
 
     runname: str = DEFAULT_RUNNAME,
     t_end: float = DEFAULT_FINAL_TIME,
@@ -81,11 +81,10 @@ def write_rad(
         f.write(f"#include {mesh_inc}\n")
 
         f.write(f"/PART/1/1/1\n")
-        f.write(f"/PROP/SHELL/1 {thickness} 0\n")
+        if thickness is not None:
+            f.write(f"/PROP/SHELL/1 {thickness} 0\n")
 
-        if not all_mats:
-            f.write(f"/MAT/LAW1/1 {young} {poisson} {density}\n")
-        else:
+        if all_mats:
             for mid, props in all_mats.items():
                 law = props.get("LAW", "LAW1").upper()
                 e = props.get("EX", young)
@@ -102,6 +101,8 @@ def write_rad(
                     f.write(f"{a} {b} {n} {c} {eps0}\n")
                 else:
                     f.write(f"/MAT/LAW1/{mid} {e} {nu} {rho}\n")
+        elif None not in (young, poisson, density):
+            f.write(f"/MAT/LAW1/1 {young} {poisson} {density}\n")
 
 
         # Basic engine control cards

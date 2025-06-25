@@ -40,7 +40,9 @@ from cdb2rad.writer_rad import (
 from cdb2rad.writer_inc import write_mesh_inc
 from cdb2rad.pdf_search import (
     REFERENCE_GUIDE,
+    REFERENCE_GUIDE_URL,
     THEORY_MANUAL,
+    THEORY_MANUAL_URL,
     search_pdf,
 )
 

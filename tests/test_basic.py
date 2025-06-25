@@ -142,6 +142,21 @@ def test_write_rad_with_bc(tmp_path):
     assert 'fixed' in txt
 
 
+def test_write_rad_with_prescribed(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'prescribed.rad'
+    bc = [{
+        'name': 'move',
+        'type': 'PRESCRIBED_MOTION',
+        'dir': 1,
+        'value': 5.0,
+        'nodes': [1, 2]
+    }]
+    write_rad(nodes, elements, str(rad), boundary_conditions=bc)
+    txt = rad.read_text()
+    assert '/BOUNDARY/PRESCRIBED_MOTION/1' in txt
+
+
 def test_write_rad_with_impvel(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
     rad = tmp_path / 'vel.rad'
@@ -171,5 +186,21 @@ def test_write_rad_with_type7_contact(tmp_path):
     write_rad(nodes, elements, str(rad), interfaces=inter)
     txt = rad.read_text()
     assert '/INTER/TYPE7/1' in txt
+    assert '/FRICTION' in txt
+
+
+def test_write_rad_with_type2_contact(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'contact2.rad'
+    inter = [{
+        'type': 'TYPE2',
+        'name': 'cnt2',
+        'slave': [1, 2],
+        'master': [3, 4],
+        'fric': 0.1,
+    }]
+    write_rad(nodes, elements, str(rad), interfaces=inter)
+    txt = rad.read_text()
+    assert '/INTER/TYPE2/1' in txt
     assert '/FRICTION' in txt
 

@@ -416,28 +416,41 @@ if file_path:
 
         with st.expander("Condiciones de contorno (BCS)"):
             bc_name = st.text_input("Nombre BC", value="Fixed")
-            bc_tra = st.text_input("Traslación (111/000)", value="111")
-            bc_rot = st.text_input("Rotación (111/000)", value="111")
+            bc_type = st.selectbox(
+                "Tipo BC",
+                ["BCS", "PRESCRIBED_MOTION"],
+            )
             bc_set = st.selectbox(
                 "Conjunto de nodos",
                 list(node_sets.keys()),
                 disabled=not node_sets,
             )
+            bc_data = {}
+            if bc_type == "BCS":
+                bc_tra = st.text_input("Traslación (111/000)", value="111")
+                bc_rot = st.text_input("Rotación (111/000)", value="111")
+                bc_data.update({"tra": bc_tra, "rot": bc_rot})
+            else:
+                bc_dir = st.number_input("Dirección", value=1, step=1)
+                bc_val = st.number_input("Valor", value=0.0)
+                bc_data.update({"dir": int(bc_dir), "value": float(bc_val)})
+
             if st.button("Añadir BC") and bc_set:
                 node_list = node_sets.get(bc_set, [])
-                st.session_state["bcs"].append(
-                    {
-                        "name": bc_name,
-                        "tra": bc_tra,
-                        "rot": bc_rot,
-                        "nodes": node_list,
-                    }
-                )
+                entry = {
+                    "name": bc_name,
+                    "type": bc_type,
+                    "nodes": node_list,
+                }
+                entry.update(bc_data)
+                st.session_state["bcs"].append(entry)
+
             for bc in st.session_state["bcs"]:
                 st.json(bc)
 
         with st.expander("Interacciones (INTER)"):
-            int_name = st.text_input("Nombre interfaz", value="Tie")
+            int_type = st.selectbox("Tipo", ["TYPE2", "TYPE7"], key="itf_type")
+            int_name = st.text_input("Nombre interfaz", value=f"{int_type}_1")
             slave_set = st.selectbox(
                 "Conjunto esclavo",
                 list(node_sets.keys()),
@@ -451,17 +464,30 @@ if file_path:
                 disabled=not node_sets,
             )
             fric = st.number_input("Fricción", value=0.0)
+
+            gap = stiff = igap = None
+            if int_type == "TYPE7":
+                gap = st.number_input("Gap", value=0.0)
+                stiff = st.number_input("Stiffness", value=0.0)
+                igap = st.number_input("Igap", value=0, step=1)
+
             if st.button("Añadir interfaz") and slave_set and master_set:
                 s_list = node_sets.get(slave_set, [])
                 m_list = node_sets.get(master_set, [])
-                st.session_state["interfaces"].append(
-                    {
-                        "name": int_name,
-                        "slave": s_list,
-                        "master": m_list,
-                        "fric": fric,
-                    }
-                )
+                itf = {
+                    "type": int_type,
+                    "name": int_name,
+                    "slave": s_list,
+                    "master": m_list,
+                    "fric": fric,
+                }
+                if int_type == "TYPE7":
+                    itf.update({
+                        "gap": gap,
+                        "stiff": stiff,
+                        "igap": int(igap),
+                    })
+                st.session_state["interfaces"].append(itf)
             for itf in st.session_state["interfaces"]:
                 st.json(itf)
 

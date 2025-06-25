@@ -46,6 +46,11 @@ incluyen los nodos mediante ``#include`` y se definen las condiciones de
 contorno. Finalmente se añaden partes y propiedades antes de otras
 tarjetas opcionales como contactos o cargas iniciales.
 
+Las condiciones de contorno incluyen ahora la opción de **movimiento
+prescrito** (`/BOUNDARY/PRESCRIBED_MOTION`) además de las fijaciones
+tradicionales (`/BCS`). Estas se pueden seleccionar desde el dashboard y se
+exportan con la sintaxis correspondiente del Reference Guide.
+
 Cada bloque está descrito en detalle en la guía oficial de comandos de
 Radioss. Para depurar y ampliar estos ficheros se recomienda consultar el
 [Altair Radioss 2022 Reference Guide](https://2022.help.altair.com/2022/simulation/pdfs/radopen/AltairRadioss_2022_ReferenceGuide.pdf) es la referencia principal para la sintaxis y
@@ -141,12 +146,14 @@ Se incluyen casillas opcionales para **sobrescribir** los archivos
 - **RAD limpio (.rad)** genera ``minimal.rad`` para probar rápidamente ``mesh.inc``.
 
 La pestaña *Generar RAD* también permite definir condiciones de contorno
+
 (tarjetas ``/BCS``), contactos simples (``/INTER/TYPE2``) o generales
 (``/INTER/TYPE7``), velocidades iniciales (``/IMPVEL``) y cargas de
 gravedad (``/GRAVITY``) seleccionando las *name selections* de nodos en un
 desplegable. Estos campos se pueden editar y añadir en el panel correspondiente
 antes de generar el archivo.
 El panel de gravedad está junto a **Velocidad inicial** y permite indicar la magnitud `g` y la dirección `(nx, ny, nz)`.
+
 
 Tras pulsar *Generar .inc* o *Generar .rad* se muestran las primeras líneas de
 los ficheros generados.

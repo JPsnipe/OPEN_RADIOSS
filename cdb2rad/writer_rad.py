@@ -78,7 +78,7 @@ def write_rad(
         f.write("                  kg                  mm                   s\n")
         f.write("                  kg                  mm                   s\n")
 
-        # 1. CONTROL CARDS
+        f.write("/PART/1/1/1\n")
         f.write(f"/RUN/{runname}/1/\n")
         f.write(f"                {t_end}\n")
         f.write("/STOP\n")

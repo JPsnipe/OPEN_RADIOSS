@@ -71,6 +71,7 @@ def write_rad(
     interfaces: List[Dict[str, object]] | None = None,
     init_velocity: Dict[str, object] | None = None,
     gravity: Dict[str, float] | None = None,
+    functions: Dict[int, Dict[str, object]] | None = None,
 
 ) -> None:
     """Generate ``model_0000.rad`` with optional solver controls.
@@ -78,7 +79,8 @@ def write_rad(
     Parameters allow customizing material properties and basic engine
     settings such as final time, animation frequency and time-step
     controls. Gravity loading can be specified via the ``gravity``
-    parameter.
+    parameter. Custom ``/FUNCT`` blocks can be defined via ``functions``
+    and referenced from prescribed motions.
     """
 
     all_mats: Dict[int, Dict[str, float]] = {}
@@ -275,6 +277,16 @@ def write_rad(
                         if vals:
                             f.write(" ".join(vals) + "\n")
 
+        if functions:
+            for fid, info in functions.items():
+                name = info.get("name", f"FUNCT_{fid}")
+                pts = info.get("points", [])
+                f.write(f"/FUNCT/{fid}\n")
+                f.write(f"{name}\n")
+                f.write("#     X      Y\n")
+                for x_val, y_val in pts:
+                    f.write(f"{x_val} {y_val}\n")
+
         # 3. NODES (from include file)
         f.write(f"#include {mesh_inc}\n")
 
@@ -311,10 +323,14 @@ def write_rad(
                 elif bc_type == "PRESCRIBED_MOTION":
                     direction = int(bc.get("dir", 1))
                     value = float(bc.get("value", 0.0))
+                    fct = bc.get("function")
                     f.write(f"/BOUNDARY/PRESCRIBED_MOTION/{idx}\n")
                     f.write(f"{name}\n")
-                    f.write("#   Dir    skew_ID   grnod_ID\n")
-                    f.write(f"    {direction}        0        {gid}\n")
+                    f.write("#   Dir    skew_ID   grnod_ID   Fct_ID\n")
+                    if fct is not None:
+                        f.write(f"    {direction}        0        {gid}   {int(fct)}\n")
+                    else:
+                        f.write(f"    {direction}        0        {gid}   0\n")
                     f.write(f"{value}\n")
                 else:
                     f.write(f"# Unsupported BC type: {bc_type}\n")

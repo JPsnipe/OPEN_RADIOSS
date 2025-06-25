@@ -38,6 +38,22 @@ def test_generated_rad_format(tmp_path):
     validate_rad_format(str(rad))
 
 
+def test_validate_with_function(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'func.rad'
+    bc = [{
+        'name': 'move',
+        'type': 'PRESCRIBED_MOTION',
+        'dir': 1,
+        'value': 5.0,
+        'function': 2,
+        'nodes': [1]
+    }]
+    funcs = {2: {'name': 'ramp', 'points': [(0.0, 0.0), (0.02, 5.0)]}}
+    write_rad(nodes, elements, str(rad), boundary_conditions=bc, functions=funcs)
+    validate_rad_format(str(rad))
+
+
 def test_invalid_keyword(tmp_path):
     bad = tmp_path / "bad.rad"
     bad.write_text("/UNKNOWN\n1 2 3\n")

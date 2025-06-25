@@ -158,6 +158,24 @@ def test_write_rad_with_prescribed(tmp_path):
     assert '/BOUNDARY/PRESCRIBED_MOTION/1' in txt
 
 
+def test_write_rad_with_function(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'func.rad'
+    bc = [{
+        'name': 'move_fun',
+        'type': 'PRESCRIBED_MOTION',
+        'dir': 1,
+        'value': 5.0,
+        'function': 10,
+        'nodes': [1, 2]
+    }]
+    funcs = {10: {'name': 'ramp', 'points': [(0.0, 0.0), (0.01, 5.0)]}}
+    write_rad(nodes, elements, str(rad), boundary_conditions=bc, functions=funcs)
+    txt = rad.read_text()
+    assert '/FUNCT/10' in txt
+    assert '/BOUNDARY/PRESCRIBED_MOTION/1' in txt
+
+
 def test_write_rad_with_impvel(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
     rad = tmp_path / 'vel.rad'

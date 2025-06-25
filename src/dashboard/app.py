@@ -118,6 +118,19 @@ def input_with_help(label: str, value: float, key: str):
     return val
 
 
+def number_or_function(label: str, value: float, key: str):
+    """Return a numeric value and optional function ID from session."""
+    funcs = st.session_state.get("functions", {})
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        num = st.number_input(label, value=value, key=key)
+    with col2:
+        options = [""] + [f"{fid}: {f['name']}" for fid, f in funcs.items()]
+        choice = st.selectbox("Func", options, key=f"{key}_func")
+        fid = int(choice.split(":")[0]) if choice else None
+    return num, fid
+
+
 def viewer_html(
 
     nodes: Dict[int, List[float]],
@@ -452,6 +465,8 @@ if file_path:
             st.session_state["init_vel"] = None
         if "gravity" not in st.session_state:
             st.session_state["gravity"] = None
+        if "functions" not in st.session_state:
+            st.session_state["functions"] = {}
 
         with st.expander("Definición de materiales"):
             use_cdb_mats = st.checkbox("Incluir materiales del CDB", value=False)
@@ -534,6 +549,23 @@ if file_path:
                         for mat in st.session_state["impact_materials"]:
                             st.json(mat)
 
+        with st.expander("Funciones (FUNCT)"):
+            fid = st.number_input("ID función", value=1, step=1, key="func_id")
+            fname = st.text_input("Nombre", key="func_name")
+            pts_txt = st.text_area("Pares X Y", key="func_pts")
+            if st.button("Añadir función"):
+                pts = []
+                for ln in pts_txt.strip().splitlines():
+                    try:
+                        x_v, y_v = map(float, ln.split())
+                    except Exception:
+                        continue
+                    pts.append((x_v, y_v))
+                st.session_state["functions"][int(fid)] = {"name": fname, "points": pts}
+            if st.session_state["functions"]:
+                for fid_show, info in st.session_state["functions"].items():
+                    st.write(f"ID {fid_show} - {info['name']}")
+
 
         with st.expander("Control del cálculo"):
             runname = st.text_input(
@@ -606,8 +638,10 @@ if file_path:
                 bc_data.update({"tra": bc_tra, "rot": bc_rot})
             else:
                 bc_dir = input_with_help("Dirección", 1, "bc_dir")
-                bc_val = input_with_help("Valor", 0.0, "bc_val")
+                bc_val, f_id = number_or_function("Valor", 0.0, "bc_val")
                 bc_data.update({"dir": int(bc_dir), "value": float(bc_val)})
+                if f_id is not None:
+                    bc_data["function"] = f_id
 
             if st.button("Añadir BC") and bc_set:
                 node_list = node_sets.get(bc_set, [])
@@ -769,6 +803,7 @@ if file_path:
                     interfaces=st.session_state.get("interfaces"),
                     init_velocity=st.session_state.get("init_vel"),
                     gravity=st.session_state.get("gravity"),
+                    functions=st.session_state.get("functions"),
 
                 )
                 st.success(f"Ficheros generados en: {rad_path}")

@@ -154,6 +154,10 @@ Se incluyen casillas opcionales para **sobrescribir** los archivos
 
 - **RAD limpio (.rad)** genera ``minimal.rad`` para probar rápidamente ``mesh.inc``.
 
+La sección *Funciones (FUNCT)* permite definir tablas ``X,Y`` y asignarlas a
+movimientos prescritos. En el desplegable de valor se puede escoger un ID de
+función además de introducir un número.
+
 La pestaña *Generar RAD* también permite definir condiciones de contorno
 
 (tarjetas ``/BCS``), contactos simples (``/INTER/TYPE2``) o generales

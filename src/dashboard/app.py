@@ -299,10 +299,20 @@ if file_path:
 
         use_sets = st.checkbox("Incluir name selections", value=True)
         use_mats = st.checkbox("Incluir materiales", value=True)
+        inc_dir = st.text_input(
+            "Directorio de salida", value=str(Path.cwd()), key="inc_dir"
+        )
+        inc_name = st.text_input(
+            "Nombre de archivo", value="mesh", key="inc_name"
+        )
 
         if st.button("Generar .inc"):
-            with tempfile.TemporaryDirectory() as tmpdir:
-                inp_path = Path(tmpdir) / "mesh.inc"
+            out_dir = Path(inc_dir).expanduser()
+            out_dir.mkdir(parents=True, exist_ok=True)
+            inp_path = out_dir / f"{inc_name}.inc"
+            if inp_path.exists():
+                st.error("El archivo ya existe. Elija otro nombre o directorio")
+            else:
                 write_mesh_inc(
                     nodes,
                     elements,
@@ -310,9 +320,8 @@ if file_path:
                     node_sets=node_sets if use_sets else None,
                     elem_sets=elem_sets if use_sets else None,
                     materials=materials if use_mats else None,
-
                 )
-                st.success("Fichero generado en directorio temporal")
+                st.success(f"Fichero generado en: {inp_path}")
                 lines = inp_path.read_text().splitlines()[:20]
                 st.code("\n".join(lines))
 
@@ -423,12 +432,21 @@ if file_path:
         use_impact = st.checkbox(
             "Incluir materiales de impacto", value=True
         )
-
+        rad_dir = st.text_input(
+            "Directorio de salida", value=str(Path.cwd()), key="rad_dir"
+        )
+        rad_name = st.text_input(
+            "Nombre de archivo RAD", value="model_0000", key="rad_name"
+        )
 
         if st.button("Generar .rad"):
-            with tempfile.TemporaryDirectory() as tmpdir:
-                rad_path = Path(tmpdir) / "model_0000.rad"
-                mesh_path = Path(tmpdir) / "mesh.inc"
+            out_dir = Path(rad_dir).expanduser()
+            out_dir.mkdir(parents=True, exist_ok=True)
+            rad_path = out_dir / f"{rad_name}.rad"
+            mesh_path = out_dir / "mesh.inc"
+            if rad_path.exists() or mesh_path.exists():
+                st.error("El archivo ya existe. Elija otro nombre o directorio")
+            else:
                 extra = None
                 if use_impact and st.session_state["impact_materials"]:
                     extra = {
@@ -464,22 +482,31 @@ if file_path:
                     init_velocity=st.session_state.get("init_vel"),
 
                 )
-                st.success(
-                    f"Ficheros generados en directorio temporal: {rad_path}"
-                )
+                st.success(f"Ficheros generados en: {rad_path}")
                 lines = rad_path.read_text().splitlines()[:20]
                 st.code("\n".join(lines))
 
+        zip_dir = st.text_input(
+            "Directorio ZIP", value=str(Path.cwd()), key="zip_dir"
+        )
+        zip_name = st.text_input(
+            "Nombre archivo ZIP", value="clean", key="zip_name"
+        )
+
         if st.button("Generar .zip limpio"):
-            with tempfile.TemporaryDirectory() as tmpdir:
-                mesh_path = Path(tmpdir) / "mesh.inc"
-                rad_path = Path(tmpdir) / "minimal.rad"
+            out_dir = Path(zip_dir).expanduser()
+            out_dir.mkdir(parents=True, exist_ok=True)
+            mesh_path = out_dir / "mesh.inc"
+            rad_path = out_dir / "minimal.rad"
+            zip_path = out_dir / f"{zip_name}.zip"
+            if zip_path.exists():
+                st.error("El archivo ZIP ya existe. Cambie el nombre o directorio")
+            else:
                 write_mesh_inc(nodes, elements, str(mesh_path))
                 from cdb2rad.writer_rad import write_minimal_rad
 
                 write_minimal_rad(str(rad_path), mesh_inc=mesh_path.name)
 
-                zip_path = Path(tmpdir) / "clean.zip"
                 import zipfile
 
                 with zipfile.ZipFile(zip_path, "w") as zf:

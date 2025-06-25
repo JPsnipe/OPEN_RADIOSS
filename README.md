@@ -134,3 +134,5 @@ archivo.
 
 Tras pulsar *Generar .inc* o *Generar .rad* se muestran las primeras líneas de
 los ficheros generados.
+Cada pestaña permite elegir el directorio de salida y el nombre (sin extensión)
+del archivo para guardar fácilmente los resultados.

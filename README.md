@@ -128,9 +128,9 @@ ejemplo. La interfaz cuenta con cuatro pestañas principales:
 
 La pestaña *Generar RAD* también permite definir condiciones de contorno
 (tarjetas ``/BCS``), contactos simples (``/INTER/TYPE2``) y velocidades
-iniciales (``/IMPVEL``) indicando los nodos afectados. Estos campos se
-pueden editar y añadir en el panel correspondiente antes de generar el
-archivo.
+iniciales (``/IMPVEL``) seleccionando las *name selections* de nodos en un
+desplegable. Estos campos se pueden editar y añadir en el panel
+correspondiente antes de generar el archivo.
 
 Tras pulsar *Generar .inc* o *Generar .rad* se muestran las primeras líneas de
 los ficheros generados.

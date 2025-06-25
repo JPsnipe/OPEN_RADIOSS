@@ -2,7 +2,7 @@ import os
 from cdb2rad.parser import parse_cdb
 from cdb2rad.writer_inc import write_mesh_inc
 from cdb2rad.writer_rad import write_rad
-from cdb2rad.utils import element_summary
+from cdb2rad.utils import element_summary, extract_material_block
 
 DATA = os.path.join(os.path.dirname(__file__), '..', 'data', 'model.cdb')
 
@@ -85,4 +85,25 @@ def test_write_mesh_without_sets_materials(tmp_path):
     assert '/GRNOD' not in content
     assert '/SET/EL' not in content
     assert '/MAT/LAW1' not in content
+
+
+def test_write_rad_with_custom_material(tmp_path):
+    nodes, elements, node_sets, elem_sets, _ = parse_cdb(DATA)
+    example = os.path.join(os.path.dirname(__file__), '..', 'data_files', 'gmsh_tensile_LAW36_BIQUAD_0000.rad')
+    block = extract_material_block(example)
+    rad = tmp_path / 'law36.rad'
+    write_rad(
+        nodes,
+        elements,
+        str(rad),
+        mesh_inc='mesh.inc',
+        node_sets=node_sets,
+        elem_sets=elem_sets,
+        material_lines=block,
+        mat_id=2,
+    )
+    txt = rad.read_text()
+    assert '/MAT/PLAS_TAB/2' in txt
+    assert '/FAIL/BIQUAD/2' in txt
+    assert '/PART/1/1/2' in txt
 

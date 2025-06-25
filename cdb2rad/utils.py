@@ -49,3 +49,25 @@ def element_summary(
         keyword_counts[key] = keyword_counts.get(key, 0) + 1
 
     return etype_counts, keyword_counts
+
+
+def extract_material_block(rad_file: str) -> List[str]:
+    """Extract material definition lines from a ``.rad`` file.
+
+    The function looks for the first line starting with ``/MAT/`` and
+    collects subsequent lines until a new block starts (``/FAIL`` or
+    ``/END``).
+    """
+
+    block: List[str] = []
+    recording = False
+    with open(rad_file, "r", encoding="utf-8") as f:
+        for line in f:
+            stripped = line.lstrip()
+            if stripped.startswith("/MAT/"):
+                recording = True
+            if recording:
+                block.append(line.rstrip("\n"))
+                if stripped.startswith("/FAIL") or stripped.startswith("/END"):
+                    break
+    return block

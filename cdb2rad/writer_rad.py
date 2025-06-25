@@ -23,6 +23,8 @@ def write_rad(
     node_sets: Dict[str, List[int]] | None = None,
     elem_sets: Dict[str, List[int]] | None = None,
     materials: Dict[int, Dict[str, float]] | None = None,
+    material_lines: List[str] | None = None,
+    mat_id: int = 1,
     *,
     thickness: float = DEFAULT_THICKNESS,
     young: float = DEFAULT_E,
@@ -62,10 +64,13 @@ def write_rad(
         # radioss 2024 uses `#include` for file references
         f.write(f"#include {mesh_inc}\n")
 
-        f.write(f"/PART/1/1/1\n")
+        f.write(f"/PART/1/1/{mat_id}\n")
         f.write(f"/PROP/SHELL/1 {thickness} 0\n")
 
-        if not materials:
+        if material_lines:
+            for line in material_lines:
+                f.write(line + "\n")
+        elif not materials:
             f.write(f"/MAT/LAW1/1 {young} {poisson} {density}\n")
         else:
             for mid, props in materials.items():

@@ -12,6 +12,7 @@ if str(ROOT) not in sys.path:
 from cdb2rad.parser import parse_cdb
 from cdb2rad.writer_inc import write_mesh_inc
 from cdb2rad.writer_rad import write_rad
+from cdb2rad.utils import extract_material_block
 
 
 def main() -> None:
@@ -20,6 +21,7 @@ def main() -> None:
     parser.add_argument("--rad", dest="rad", help="Output .rad file")
     parser.add_argument("--inc", dest="inc", help="Output mesh.inc file")
     parser.add_argument("--exec", dest="exec_path", help="Run OpenRadioss starter after generation")
+    parser.add_argument("--mat-file", dest="mat_file", help="Optional material block from .rad file")
 
     args = parser.parse_args()
 
@@ -47,7 +49,9 @@ def main() -> None:
             mesh_inc=args.inc or "mesh.inc",
             node_sets=node_sets,
             elem_sets=elem_sets,
-            materials=materials,
+            materials=materials if not args.mat_file else None,
+            material_lines=(extract_material_block(args.mat_file) if args.mat_file else None),
+            mat_id=2 if args.mat_file else 1,
         )
         if args.exec_path:
             subprocess.run([args.exec_path, '-i', args.rad], check=False)

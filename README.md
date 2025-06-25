@@ -68,6 +68,20 @@ Para lanzar las pruebas:
 pytest -q
 ```
 
+### Entorno automático
+
+Para recrear el entorno de pruebas siguiendo las instrucciones de
+[HOWTO](https://github.com/OpenRadioss/OpenRadioss/blob/main/HOWTO.md) se ha
+añadido el script ``scripts/setup_test_env.py``. Ejecuta la creación del
+``virtualenv`` y descarga la última versión de OpenRadioss:
+
+```bash
+python scripts/setup_test_env.py
+```
+
+Al terminar, se muestran las variables de entorno necesarias para ejecutar el
+``starter`` y se pueden lanzar las pruebas con ``pytest -q``.
+
 ## Interfaz web
 
 Se incluye una pequeña interfaz en Streamlit para cargar un `.cdb`, visualizar

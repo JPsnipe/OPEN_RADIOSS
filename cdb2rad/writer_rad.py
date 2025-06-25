@@ -15,11 +15,19 @@ def write_rad(
     elements: List[Tuple[int, int, List[int]]],
     outfile: str,
     mesh_inc: str = "mesh.inp",
+    thickness: float | None = None,
     node_sets: Dict[str, List[int]] | None = None,
     elem_sets: Dict[str, List[int]] | None = None,
     materials: Dict[int, Dict[str, float]] | None = None,
 ) -> None:
-    """Generate a minimal ``model_0000.rad`` file and the referenced mesh."""
+    """Generate a minimal ``model_0000.rad`` file and the referenced mesh.
+
+    Parameters
+    ----------
+    thickness : float, optional
+        Shell thickness used for ``/PROP/SHELL``. When ``None`` a default
+        value of ``1.0`` is used.
+    """
 
     write_mesh_inp(
         nodes,
@@ -38,7 +46,8 @@ def write_rad(
         f.write("/PART/1/1/1\n")
 
         f.write("/PROP/SHELL/1\n")
-        f.write(f"{DEFAULT_THICKNESS}\n")
+        th = DEFAULT_THICKNESS if thickness is None else thickness
+        f.write(f"{th}\n")
 
         if not materials:
             f.write("/MAT/LAW1/1\n")

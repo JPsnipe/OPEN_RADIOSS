@@ -92,7 +92,14 @@ if uploaded is not None:
     file_path = tmp.name
 
 if file_path:
-    nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
+    (
+        nodes,
+        elements,
+        node_sets,
+        elem_sets,
+        materials,
+        thickness,
+    ) = load_cdb(file_path)
     info_tab, preview_tab = st.tabs(["Información", "Vista 3D"])
 
     with info_tab:
@@ -115,6 +122,8 @@ if file_path:
         st.write("Materiales:")
         for mid, props in materials.items():
             st.write(f"- ID {mid}: {props}")
+        if thickness is not None:
+            st.write("Espesor shell:", thickness)
 
         if st.button("Generar input deck"):
             with tempfile.TemporaryDirectory() as tmpdir:
@@ -125,6 +134,7 @@ if file_path:
                     elements,
                     str(rad_path),
                     mesh_inc=str(mesh_path),
+                    thickness=thickness,
                     node_sets=node_sets,
                     elem_sets=elem_sets,
                     materials=materials,

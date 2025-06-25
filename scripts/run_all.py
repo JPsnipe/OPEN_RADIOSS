@@ -28,7 +28,14 @@ def main() -> None:
         args.inc = "mesh.inp"
         args.rad = "model_0000.rad"
 
-    nodes, elements, node_sets, elem_sets, materials = parse_cdb(args.cdb_file)
+    (
+        nodes,
+        elements,
+        node_sets,
+        elem_sets,
+        materials,
+        thickness,
+    ) = parse_cdb(args.cdb_file)
 
     if args.inc:
         write_mesh_inp(
@@ -44,6 +51,7 @@ def main() -> None:
             nodes,
             elements,
             args.rad,
+            thickness=thickness,
             node_sets=node_sets,
             elem_sets=elem_sets,
             materials=materials,

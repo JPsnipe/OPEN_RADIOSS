@@ -9,6 +9,7 @@ def parse_cdb(filepath: str) -> Tuple[
     Dict[str, List[int]],
     Dict[str, List[int]],
     Dict[int, Dict[str, float]],
+    float | None,
 ]:
     """Parse an Ansys ``.cdb`` file containing ``NBLOCK`` and ``EBLOCK``.
 
@@ -25,6 +26,7 @@ def parse_cdb(filepath: str) -> Tuple[
     node_sets: Dict[str, List[int]] = {}
     elem_sets: Dict[str, List[int]] = {}
     materials: Dict[int, Dict[str, float]] = {}
+    thickness: float | None = None
 
     with open(filepath, "r") as f:
         lines = f.readlines()
@@ -143,13 +145,24 @@ def parse_cdb(filepath: str) -> Tuple[
                 try:
                     mid = int(parts[2])
                     prop = parts[3]
-                    vals = [float(v) for v in parts[6:] if v]
-                    if vals:
-                        materials.setdefault(mid, {})[prop] = vals[0]
+                    vals_f = [float(v) for v in parts[6:] if v]
+                    if vals_f:
+                        materials.setdefault(mid, {})[prop] = vals_f[0]
                 except ValueError:
                     pass
             i += 1
+        elif line.startswith("SECBLOCK"):
+            i += 1
+            if i < len(lines):
+                val_line = lines[i].split(",")[0].strip()
+                try:
+                    thickness = float(val_line)
+                except ValueError:
+                    pass
+                i += 1
+            else:
+                continue
         else:
             i += 1
 
-    return nodes, elements, node_sets, elem_sets, materials
+    return nodes, elements, node_sets, elem_sets, materials, thickness

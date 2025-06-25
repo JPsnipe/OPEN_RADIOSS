@@ -8,7 +8,7 @@ DATA = os.path.join(os.path.dirname(__file__), '..', 'data', 'model.cdb')
 
 
 def test_parse_cdb():
-    nodes, elements, node_sets, elem_sets, materials = parse_cdb(DATA)
+    nodes, elements, node_sets, elem_sets, materials, thickness = parse_cdb(DATA)
     assert len(nodes) == 2032
     assert len(elements) == 2479
     assert "BALL" in elem_sets
@@ -20,14 +20,20 @@ def test_parse_cdb():
 
 
 def test_element_summary():
-    _, elements, _, _, _ = parse_cdb(DATA)
+    _, elements, _, _, _, _ = parse_cdb(DATA)
     etype_counts, kw_counts = element_summary(elements)
     assert sum(kw_counts.values()) == len(elements)
     assert kw_counts["BRICK"] > 0
 
 
+def test_shell_thickness():
+    _, _, _, _, _, thickness = parse_cdb(DATA)
+    assert thickness is not None
+    assert thickness > 0
+
+
 def test_write_mesh(tmp_path):
-    nodes, elements, node_sets, elem_sets, materials = parse_cdb(DATA)
+    nodes, elements, node_sets, elem_sets, materials, thickness = parse_cdb(DATA)
     out = tmp_path / 'mesh.inp'
     write_mesh_inp(
         nodes,
@@ -36,19 +42,20 @@ def test_write_mesh(tmp_path):
         node_sets=node_sets,
         elem_sets=elem_sets,
         materials=materials,
-    )
+        )
     text = out.read_text()
     assert '/NODE' in text
     assert '/BRICK' in text
 
 
 def test_write_rad(tmp_path):
-    nodes, elements, node_sets, elem_sets, materials = parse_cdb(DATA)
+    nodes, elements, node_sets, elem_sets, materials, thickness = parse_cdb(DATA)
     rad = tmp_path / 'model.rad'
     write_rad(
         nodes,
         elements,
         str(rad),
+        thickness=thickness,
         node_sets=node_sets,
         elem_sets=elem_sets,
         materials=materials,
@@ -56,3 +63,4 @@ def test_write_rad(tmp_path):
     content = rad.read_text()
     assert '/BEGIN' in content
     assert '/END' in content
+    assert f"{thickness}" in content

@@ -10,9 +10,11 @@ Ansys a un *input deck* compatible con OpenRadioss.
    (``MPDATA``).
 3. Genera un fichero ``mesh.inp`` con ``/NODE`` y bloques de elementos
    derivados de ``mapping.json`` (``/SHELL``, ``/BRICK``, ``/TETRA``...). Las
-   selecciones y los materiales se exportan en formato Radioss.
-4. Crea ``model_0000.rad`` que incluye ``mesh.inp`` y define propiedades,
-   materiales, condiciones de contorno y ejemplos de contacto y carga.
+   selecciones, los materiales y el espesor de ``/PROP/SHELL`` se exportan en
+   formato Radioss.
+4. Crea ``model_0000.rad`` que incluye ``mesh.inp`` y define propiedades
+   (usando el espesor hallado en ``SECBLOCK``), materiales, condiciones de
+   contorno y ejemplos de contacto y carga.
 
 ## Entrada requerida
 
@@ -57,12 +59,14 @@ pytest -q
 ## Interfaz web
 
 Se incluye una pequeña interfaz en Streamlit para cargar un `.cdb`, visualizar
-el número y tipo de elementos y generar los ficheros ``mesh.inp`` y
-``model_0000.rad`` de forma interactiva. Para ejecutarla:
+el número y tipo de elementos, los materiales y el espesor detectado para las
+"shell" y generar los ficheros ``mesh.inp`` y ``model_0000.rad`` de forma
+interactiva. Para ejecutarla:
 
 ```bash
 streamlit run src/dashboard/app.py
 ```
 
 Sube un archivo ``.cdb`` y pulsa *Generar input deck* para ver las primeras
-líneas de ``mesh.inp`` junto con un resumen de tipos de elemento.
+líneas de ``mesh.inp`` junto con un resumen de tipos de elemento y los
+materiales trasladados.

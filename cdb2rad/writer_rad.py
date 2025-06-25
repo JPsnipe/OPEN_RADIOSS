@@ -59,7 +59,8 @@ def write_rad(
         f.write("     2024         0\n")
         f.write("                  kg                  mm                   s\n")
         f.write("                  kg                  mm                   s\n")
-        f.write(f"/INCLUDE \"{mesh_inc}\"\n")
+        # radioss 2024 uses `#include` for file references
+        f.write(f"#include {mesh_inc}\n")
 
         f.write("/PART/1\n")
         f.write("Part1\n")
@@ -79,17 +80,9 @@ def write_rad(
                 f.write(f"/MAT/LAW1/{mid}\n")
                 f.write(f"{e} {nu} {rho}\n")
 
-        f.write("/BOUNDARY/BCS/1\n")
+        f.write("/BCS/1\n")
         f.write("1 1 1 1 1 1\n")
 
-        f.write("/LOAD/PBLAST/1\n")
-        f.write("0.0 0.0 0.0\n")
-
-        f.write("/INTER/TYPE7/1\n")
-        f.write("0 0 0.0 0.0 0.0\n")
-
-        f.write("/SENSOR/SPRING/1\n")
-        f.write("0.0\n")
 
         # Basic engine control cards
         f.write(f"/RUN/{runname}/1/\n")

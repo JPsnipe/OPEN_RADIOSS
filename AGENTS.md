@@ -83,8 +83,11 @@ Codex must be able to:
   - /BOUNDARY, /LOAD, /SENSOR, /ENGINE
   - Additional material laws: /MAT/LAW36, /MAT/PLAS_JOHNS, etc.
 
-## 📍 Documentation links
+-## 📍 Documentation links
+-These manuals are the **first place to check** when dealing with Radioss related questions.
 - [Altair Radioss 2022 Reference Guide](https://2022.help.altair.com/2022/simulation/pdfs/radopen/AltairRadioss_2022_ReferenceGuide.pdf) — **primary reference** for block syntax.
+- [Altair Radioss 2022 User Guide](https://2022.help.altair.com/2022/simulation/pdfs/radopen/AltairRadioss_2022_UserGuide.pdf)
+- [Altair Radioss 2022 Theory Manual](https://2022.help.altair.com/2022/simulation/pdfs/radopen/AltairRadioss_2022_TheoryManual.pdf)
 - Radioss Block Syntax Overview: <https://help.altair.com/hwsolvers/rad/topics/solvers/rad/block_format_overview_r.htm>
 - Radioss Input Syntax Reference: <https://help.altair.com/hwsolvers/rad/index.htm>
 - OpenRadioss GitHub: <https://github.com/OpenRadioss/OpenRadioss>

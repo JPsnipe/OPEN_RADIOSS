@@ -18,6 +18,10 @@ THEORY_MANUAL_URL = (
     "https://2022.help.altair.com/2022/simulation/pdfs/radopen/"
     "AltairRadioss_2022_TheoryManual.pdf"
 )
+USER_GUIDE = (
+    "https://2022.help.altair.com/2022/simulation/pdfs/radopen/"
+    "AltairRadioss_2022_UserGuide.pdf"
+)
 
 DOCS_DIR = Path(__file__).resolve().parents[1] / "docs"
 REFERENCE_GUIDE = DOCS_DIR / "AltairRadioss_2022_ReferenceGuide.pdf"

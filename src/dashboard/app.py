@@ -42,7 +42,10 @@ from cdb2rad.pdf_search import (
     REFERENCE_GUIDE,
     REFERENCE_GUIDE_URL,
     THEORY_MANUAL,
-    THEORY_MANUAL_URL,
+
+    USER_GUIDE,
+
+
     search_pdf,
 )
 
@@ -75,6 +78,44 @@ INT_DESCRIPTIONS = {
     "TYPE2": "Nodo-superficie",
     "TYPE7": "Superficie-superficie",
 }
+
+# Basic help strings for material parameters
+PARAM_INFO = {
+    "A": "Par\u00e1metro A del modelo Johnson-Cook. Representa la resistencia a la deformaci\u00f3n inicial.",
+    "B": "Par\u00e1metro B del modelo Johnson-Cook. Controla el endurecimiento por deformaci\u00f3n.",
+    "N": "Exponente n del modelo Johnson-Cook. Define la curva de endurecimiento.",
+    "C": "Coeficiente de sensibilidad a la velocidad en Johnson-Cook.",
+    "EPS0": "Referencia de velocidad de deformaci\u00f3n en Johnson-Cook.",
+}
+
+def johnson_cook_curve(A: float, B: float, N: float):
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    eps = np.linspace(0, 0.3, 100)
+    stress = A + B * eps ** N
+    fig, ax = plt.subplots(figsize=(4, 3))
+    ax.plot(eps, stress)
+    ax.set_xlabel("Deformaci\u00f3n pl\u00e1stica")
+    ax.set_ylabel("Tensi\u00f3n equivalente")
+    ax.grid(True)
+    return fig
+
+def input_with_help(label: str, value: float, key: str):
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        val = st.number_input(label, value=value, key=key)
+    with col2:
+        info = PARAM_INFO.get(label)
+        if info:
+            with st.expander(f"Info {label}"):
+                st.write(info)
+                A = st.session_state.get("a_i", 200.0)
+                B = st.session_state.get("b_i", 400.0)
+                N = st.session_state.get("n_i", 0.5)
+                fig = johnson_cook_curve(A, B, N)
+                st.pyplot(fig)
+    return val
 
 
 def viewer_html(
@@ -418,10 +459,10 @@ if file_path:
 
             if use_impact:
                 with st.expander("Materiales de impacto"):
-                    mat_id = st.number_input(
+                    mat_id = input_with_help(
                         "ID material",
-                        value=len(st.session_state["impact_materials"]) + 1,
-                        step=1,
+                        len(st.session_state["impact_materials"]) + 1,
+                        "mat_id",
                     )
                     law = st.selectbox(
                         "Tipo",
@@ -429,29 +470,29 @@ if file_path:
                         format_func=lambda k: f"{k} - {LAW_DESCRIPTIONS[k]}",
                     )
                     st.caption(LAW_DESCRIPTIONS[law])
-                    dens_i = st.number_input("Densidad", value=7800.0, key="dens_i")
-                    e_i = st.number_input("E", value=210000.0, key="e_i")
-                    nu_i = st.number_input("Poisson", value=0.3, key="nu_i")
+                    dens_i = input_with_help("Densidad", 7800.0, "dens_i")
+                    e_i = input_with_help("E", 210000.0, "e_i")
+                    nu_i = input_with_help("Poisson", 0.3, "nu_i")
                     extra: Dict[str, float] = {}
                     if law == "LAW2":
-                        extra["A"] = st.number_input("A", value=200.0, key="a_i")
-                        extra["B"] = st.number_input("B", value=400.0, key="b_i")
-                        extra["N"] = st.number_input("n", value=0.5, key="n_i")
-                        extra["C"] = st.number_input("C", value=0.01, key="c_i")
-                        extra["EPS0"] = st.number_input("EPS0", value=1.0, key="eps0_i")
+                        extra["A"] = input_with_help("A", 200.0, "a_i")
+                        extra["B"] = input_with_help("B", 400.0, "b_i")
+                        extra["N"] = input_with_help("N", 0.5, "n_i")
+                        extra["C"] = input_with_help("C", 0.01, "c_i")
+                        extra["EPS0"] = input_with_help("EPS0", 1.0, "eps0_i")
                     elif law == "LAW27":
-                        extra["SIG0"] = st.number_input("SIG0", value=200.0, key="sig0")
-                        extra["SU"] = st.number_input("SU", value=0.0, key="su")
-                        extra["EPSU"] = st.number_input("EPSU", value=0.0, key="epsu")
+                        extra["SIG0"] = input_with_help("SIG0", 200.0, "sig0")
+                        extra["SU"] = input_with_help("SU", 0.0, "su")
+                        extra["EPSU"] = input_with_help("EPSU", 0.0, "epsu")
                     elif law == "LAW36":
-                        extra["Fsmooth"] = st.number_input("Fsmooth", value=0.0, key="fs")
-                        extra["Fcut"] = st.number_input("Fcut", value=0.0, key="fc")
-                        extra["Chard"] = st.number_input("Chard", value=0.0, key="ch")
+                        extra["Fsmooth"] = input_with_help("Fsmooth", 0.0, "fs")
+                        extra["Fcut"] = input_with_help("Fcut", 0.0, "fc")
+                        extra["Chard"] = input_with_help("Chard", 0.0, "ch")
                     elif law == "LAW44":
-                        extra["A"] = st.number_input("A", value=0.0, key="cow_a")
-                        extra["B"] = st.number_input("B", value=0.0, key="cow_b")
-                        extra["N"] = st.number_input("N", value=1.0, key="cow_n")
-                        extra["C"] = st.number_input("C", value=0.0, key="cow_c")
+                        extra["A"] = input_with_help("A", 0.0, "cow_a")
+                        extra["B"] = input_with_help("B", 0.0, "cow_b")
+                        extra["N"] = input_with_help("N", 1.0, "cow_n")
+                        extra["C"] = input_with_help("C", 0.0, "cow_c")
 
                     fail_type = st.selectbox(
                         "Modo de fallo",
@@ -463,17 +504,17 @@ if file_path:
                         st.caption(FAIL_DESCRIPTIONS[fail_type])
                     if fail_type != "Ninguno":
                         if fail_type == "FAIL/JOHNSON":
-                            fail_params["D1"] = st.number_input("D1", value=0.0)
-                            fail_params["D2"] = st.number_input("D2", value=0.0)
-                            fail_params["D3"] = st.number_input("D3", value=0.0)
-                            fail_params["D4"] = st.number_input("D4", value=0.0)
-                            fail_params["D5"] = st.number_input("D5", value=0.0)
+                            fail_params["D1"] = input_with_help("D1", 0.0, "d1")
+                            fail_params["D2"] = input_with_help("D2", 0.0, "d2")
+                            fail_params["D3"] = input_with_help("D3", 0.0, "d3")
+                            fail_params["D4"] = input_with_help("D4", 0.0, "d4")
+                            fail_params["D5"] = input_with_help("D5", 0.0, "d5")
                         elif fail_type == "FAIL/BIQUAD":
-                            fail_params["C1"] = st.number_input("C1", value=0.0)
-                            fail_params["C2"] = st.number_input("C2", value=0.0)
-                            fail_params["C3"] = st.number_input("C3", value=0.0)
+                            fail_params["C1"] = input_with_help("C1", 0.0, "c1")
+                            fail_params["C2"] = input_with_help("C2", 0.0, "c2")
+                            fail_params["C3"] = input_with_help("C3", 0.0, "c3")
                         elif fail_type == "FAIL/TAB1":
-                            fail_params["Dcrit"] = st.number_input("Dcrit", value=1.0)
+                            fail_params["Dcrit"] = input_with_help("Dcrit", 1.0, "dcrit")
 
                     if st.button("Añadir material"):
                         data = {
@@ -498,65 +539,38 @@ if file_path:
             runname = st.text_input(
                 "Nombre de la simulación", value=DEFAULT_RUNNAME
             )
-            t_end = st.number_input(
-                "Tiempo final", value=DEFAULT_FINAL_TIME, format="%.5f"
-            )
-            anim_dt = st.number_input(
-                "Paso animación", value=DEFAULT_ANIM_DT, format="%.5f"
-            )
-            tfile_dt = st.number_input(
-                "Intervalo historial", value=DEFAULT_HISTORY_DT, format="%.5f"
-            )
-            dt_ratio = st.number_input(
+            t_end = input_with_help("Tiempo final", DEFAULT_FINAL_TIME, "t_end")
+            anim_dt = input_with_help("Paso animación", DEFAULT_ANIM_DT, "anim_dt")
+            tfile_dt = input_with_help("Intervalo historial", DEFAULT_HISTORY_DT, "tfile_dt")
+            dt_ratio = input_with_help(
                 "Factor seguridad DT",
-                value=DEFAULT_DT_RATIO,
-                min_value=0.0,
-                max_value=1.0,
+                DEFAULT_DT_RATIO,
+                "dt_ratio",
             )
             adv_enabled = st.checkbox("Activar opciones avanzadas")
             if adv_enabled:
                 st.markdown("### Opciones avanzadas")
-                print_n = st.number_input(
-                    "PRINT cada n ciclos", value=DEFAULT_PRINT_N, step=1
-                )
-                print_line = st.number_input(
-                    "Línea cabecera", value=DEFAULT_PRINT_LINE, step=1
-                )
-                rfile_cycle = st.number_input(
-                    "Ciclos entre RFILE", value=0, step=1
-                )
-                rfile_n = st.number_input("Número de RFILE", value=0, step=1)
-                h3d_dt = st.number_input(
-                    "Paso H3D", value=0.0, format="%.5f"
-                )
+                print_n = input_with_help("PRINT cada n ciclos", DEFAULT_PRINT_N, "print_n")
+                print_line = input_with_help("Línea cabecera", DEFAULT_PRINT_LINE, "print_line")
+                rfile_cycle = input_with_help("Ciclos entre RFILE", 0, "rfile_cycle")
+                rfile_n = input_with_help("Número de RFILE", 0, "rfile_n")
+                h3d_dt = input_with_help("Paso H3D", 0.0, "h3d_dt")
                 col1, col2, col3 = st.columns(3)
                 with col1:
-                    stop_emax = st.number_input(
-                        "Emax", value=DEFAULT_STOP_EMAX
-                    )
+                    stop_emax = input_with_help("Emax", DEFAULT_STOP_EMAX, "stop_emax")
                 with col2:
-                    stop_mmax = st.number_input(
-                        "Mmax", value=DEFAULT_STOP_MMAX
-                    )
+                    stop_mmax = input_with_help("Mmax", DEFAULT_STOP_MMAX, "stop_mmax")
                 with col3:
-                    stop_nmax = st.number_input(
-                        "Nmax", value=DEFAULT_STOP_NMAX
-                    )
+                    stop_nmax = input_with_help("Nmax", DEFAULT_STOP_NMAX, "stop_nmax")
                 col4, col5, col6 = st.columns(3)
                 with col4:
-                    stop_nth = st.number_input(
-                        "NTH", value=DEFAULT_STOP_NTH, step=1
-                    )
+                    stop_nth = input_with_help("NTH", DEFAULT_STOP_NTH, "stop_nth")
                 with col5:
-                    stop_nanim = st.number_input(
-                        "NANIM", value=DEFAULT_STOP_NANIM, step=1
-                    )
+                    stop_nanim = input_with_help("NANIM", DEFAULT_STOP_NANIM, "stop_nanim")
                 with col6:
-                    stop_nerr = st.number_input(
-                        "NERR_POSIT", value=DEFAULT_STOP_NERR, step=1
-                    )
-                adyrel_start = st.number_input("ADYREL inicio", value=0.0)
-                adyrel_stop = st.number_input("ADYREL fin", value=0.0)
+                    stop_nerr = input_with_help("NERR_POSIT", DEFAULT_STOP_NERR, "stop_nerr")
+                adyrel_start = input_with_help("ADYREL inicio", 0.0, "adyrel_start")
+                adyrel_stop = input_with_help("ADYREL fin", 0.0, "adyrel_stop")
             else:
                 print_n = DEFAULT_PRINT_N
                 print_line = DEFAULT_PRINT_LINE
@@ -591,8 +605,8 @@ if file_path:
                 bc_rot = st.text_input("Rotación (111/000)", value="111")
                 bc_data.update({"tra": bc_tra, "rot": bc_rot})
             else:
-                bc_dir = st.number_input("Dirección", value=1, step=1)
-                bc_val = st.number_input("Valor", value=0.0)
+                bc_dir = input_with_help("Dirección", 1, "bc_dir")
+                bc_val = input_with_help("Valor", 0.0, "bc_val")
                 bc_data.update({"dir": int(bc_dir), "value": float(bc_val)})
 
             if st.button("Añadir BC") and bc_set:
@@ -629,13 +643,13 @@ if file_path:
                 key="master_set",
                 disabled=not node_sets,
             )
-            fric = st.number_input("Fricción", value=0.0)
+            fric = input_with_help("Fricción", 0.0, "fric")
 
             gap = stiff = igap = None
             if int_type == "TYPE7":
-                gap = st.number_input("Gap", value=0.0)
-                stiff = st.number_input("Stiffness", value=0.0)
-                igap = st.number_input("Igap", value=0, step=1)
+                gap = input_with_help("Gap", 0.0, "gap")
+                stiff = input_with_help("Stiffness", 0.0, "stiff")
+                igap = input_with_help("Igap", 0, "igap")
 
             if st.button("Añadir interfaz") and slave_set and master_set:
                 s_list = node_sets.get(slave_set, [])
@@ -664,9 +678,9 @@ if file_path:
                 key="vel_set",
                 disabled=not node_sets,
             )
-            vx = st.number_input("Vx", value=0.0)
-            vy = st.number_input("Vy", value=0.0)
-            vz = st.number_input("Vz", value=0.0)
+            vx = input_with_help("Vx", 0.0, "vx")
+            vy = input_with_help("Vy", 0.0, "vy")
+            vz = input_with_help("Vz", 0.0, "vz")
             if st.button("Asignar velocidad") and vel_set:
                 n_list = node_sets.get(vel_set, [])
                 st.session_state["init_vel"] = {
@@ -679,11 +693,11 @@ if file_path:
                 st.json(st.session_state["init_vel"])
 
         with st.expander("Carga de gravedad (GRAVITY)"):
-            g = st.number_input("g", value=9.81)
-            nx = st.number_input("nx", value=0.0)
-            ny = st.number_input("ny", value=0.0)
-            nz = st.number_input("nz", value=-1.0)
-            comp = st.number_input("Componente", value=3, step=1)
+            g = input_with_help("g", 9.81, "grav_g")
+            nx = input_with_help("nx", 0.0, "grav_nx")
+            ny = input_with_help("ny", 0.0, "grav_ny")
+            nz = input_with_help("nz", -1.0, "grav_nz")
+            comp = input_with_help("Componente", 3, "grav_comp")
             if st.button("Asignar gravedad"):
                 st.session_state["gravity"] = {
                     "g": g,
@@ -792,14 +806,19 @@ if file_path:
                 lines = rad_path.read_text().splitlines()[:20]
                 st.code("\n".join(lines))
 
+    # Documentation search with dynamic manual selection
     with help_tab:
         st.subheader("Buscar en documentación")
         doc_choice = st.selectbox(
-            "Documento", ["Reference Guide", "Theory Manual"]
+
+            "Documento",
+            ["Reference Guide", "User Guide", "Theory Manual"],
+
         )
         query = st.text_input("Término de búsqueda")
         if st.button("Buscar", key="search_docs") and query:
             if doc_choice == "Reference Guide":
+
                 source = (
                     REFERENCE_GUIDE
                     if REFERENCE_GUIDE.exists()
@@ -821,15 +840,18 @@ if file_path:
             except Exception as e:  # pragma: no cover - network errors
                 st.error(f"No se pudo buscar en el PDF: {e}")
                 results = []
+
             if results:
                 for r in results:
                     st.write(r)
             elif results == []:
                 st.warning("Sin coincidencias")
+
         else:
             link = (
                 REFERENCE_GUIDE_URL if doc_choice == "Reference Guide" else THEORY_MANUAL_URL
             )
+
         st.markdown(f"[Abrir {doc_choice}]({link})")
 else:
     st.info("Sube un archivo .cdb")

@@ -52,7 +52,13 @@ def test_write_rad(tmp_path):
         node_sets=node_sets,
         elem_sets=elem_sets,
         materials=materials,
+        thickness=2.0,
+        young=1e5,
+        poisson=0.25,
+        density=7000.0,
     )
     content = rad.read_text()
     assert '/BEGIN' in content
     assert '/END' in content
+    assert '2.0' in content
+    assert '100000.0' in content

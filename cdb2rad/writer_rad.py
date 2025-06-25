@@ -18,6 +18,11 @@ def write_rad(
     node_sets: Dict[str, List[int]] | None = None,
     elem_sets: Dict[str, List[int]] | None = None,
     materials: Dict[int, Dict[str, float]] | None = None,
+    *,
+    thickness: float = DEFAULT_THICKNESS,
+    young: float = DEFAULT_E,
+    poisson: float = DEFAULT_NU,
+    density: float = DEFAULT_RHO,
 ) -> None:
     """Generate a minimal ``model_0000.rad`` file and the referenced mesh."""
 
@@ -38,16 +43,16 @@ def write_rad(
         f.write("/PART/1/1/1\n")
 
         f.write("/PROP/SHELL/1\n")
-        f.write(f"{DEFAULT_THICKNESS}\n")
+        f.write(f"{thickness}\n")
 
         if not materials:
             f.write("/MAT/LAW1/1\n")
-            f.write(f"{DEFAULT_E} {DEFAULT_NU} {DEFAULT_RHO}\n")
+            f.write(f"{young} {poisson} {density}\n")
         else:
             for mid, props in materials.items():
-                e = props.get("EX", DEFAULT_E)
-                nu = props.get("NUXY", DEFAULT_NU)
-                rho = props.get("DENS", DEFAULT_RHO)
+                e = props.get("EX", young)
+                nu = props.get("NUXY", poisson)
+                rho = props.get("DENS", density)
                 f.write(f"/MAT/LAW1/{mid}\n")
                 f.write(f"{e} {nu} {rho}\n")
 

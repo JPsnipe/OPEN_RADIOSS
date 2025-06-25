@@ -62,26 +62,17 @@ def write_rad(
         # radioss 2024 uses `#include` for file references
         f.write(f"#include {mesh_inc}\n")
 
-        f.write("/PART/1\n")
-        f.write("Part1\n")
-        f.write("1 1 0\n")
-
-        f.write("/PROP/SHELL/1\n")
-        f.write(f"{thickness}\n")
+        f.write(f"/PART/1/1/1\n")
+        f.write(f"/PROP/SHELL/1 {thickness} 0\n")
 
         if not materials:
-            f.write("/MAT/LAW1/1\n")
-            f.write(f"{young} {poisson} {density}\n")
+            f.write(f"/MAT/LAW1/1 {young} {poisson} {density}\n")
         else:
             for mid, props in materials.items():
                 e = props.get("EX", young)
                 nu = props.get("NUXY", poisson)
                 rho = props.get("DENS", density)
-                f.write(f"/MAT/LAW1/{mid}\n")
-                f.write(f"{e} {nu} {rho}\n")
-
-        f.write("/BCS/1\n")
-        f.write("1 1 1 1 1 1\n")
+                f.write(f"/MAT/LAW1/{mid} {e} {nu} {rho}\n")
 
 
         # Basic engine control cards

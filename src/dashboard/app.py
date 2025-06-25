@@ -533,17 +533,18 @@ if file_path:
         clean_name = st.text_input(
             "Nombre archivo RAD limpio", value="minimal", key="clean_name"
         )
-        overwrite_zip = st.checkbox("Sobrescribir ZIP si existe", value=False, key="overwrite_zip")
+        overwrite_clean = st.checkbox(
+            "Sobrescribir si existe", value=False, key="overwrite_clean"
+        )
 
         if st.button("Generar .rad limpio"):
             out_dir = Path(clean_dir).expanduser()
             out_dir.mkdir(parents=True, exist_ok=True)
             mesh_path = out_dir / "mesh.inc"
 
-            rad_path = out_dir / "minimal.rad"
-            zip_path = out_dir / f"{zip_name}.zip"
-            if zip_path.exists() and not overwrite_zip:
-                st.error("El archivo ZIP ya existe. Cambie el nombre o directorio")
+            rad_path = out_dir / f"{clean_name}.rad"
+            if rad_path.exists() and not overwrite_clean:
+                st.error("El archivo RAD ya existe. Cambie el nombre o directorio")
 
             else:
                 write_mesh_inc(nodes, elements, str(mesh_path))

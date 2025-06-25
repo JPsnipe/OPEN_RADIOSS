@@ -125,7 +125,7 @@ ejemplo. La interfaz cuenta con cuatro pestañas principales:
 - **Generar RAD** para introducir parámetros de cálculo y obtener
   ``model_0000.rad``.
 Se incluyen casillas opcionales para **sobrescribir** los archivos
-``.inc``, ``.rad`` o ``.zip`` si ya existen en el directorio de salida.
+``.inc`` o ``.rad`` si ya existen en el directorio de salida.
 
 - **RAD limpio (.rad)** genera ``minimal.rad`` para probar rápidamente ``mesh.inc``.
 

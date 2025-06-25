@@ -28,6 +28,68 @@ from cdb2rad.writer_inc import write_mesh_inc
 MAX_EDGES = 10000
 MAX_FACES = 15000
 
+# Descripciones breves de las leyes de material disponibles. Se muestran en
+# la interfaz para clarificar el significado del "Tipo" seleccionado.
+LAW_DESCRIPTIONS: Dict[str, str] = {
+    "LAW1": "Material elástico lineal isotrópico",
+    "LAW2": "Modelo elastoplástico de Johnson-Cook",
+    "LAW27": "Material plástico con criterio de rotura",
+    "LAW36": "Espuma viscoelástica simplificada",
+    "LAW44": "Modelo Cowper-Symonds dependiente de la tasa",
+}
+
+# Texto de ayuda para los parámetros comunes y específicos de cada ley.
+COMMON_HELP = {
+    "Densidad": "DENS – densidad del material [kg/m^3]",
+    "E": "EX – módulo de Young [MPa]",
+    "Poisson": "NUXY – coeficiente de Poisson",
+}
+
+LAW_PARAM_HELP: Dict[str, Dict[str, str]] = {
+    "LAW2": {
+        "A": "Límite elástico estático A [MPa]",
+        "B": "Coeficiente de endurecimiento B [MPa]",
+        "n": "Exponente de endurecimiento n",
+        "C": "Coeficiente de sensibilidad a la tasa C",
+        "EPS0": "Tasa de deformación de referencia EPS0",
+    },
+    "LAW27": {
+        "SIG0": "Esfuerzo inicial SIG0 [MPa]",
+        "SU": "Resistencia última SU [MPa]",
+        "EPSU": "Deformación última EPSU",
+    },
+    "LAW36": {
+        "Fsmooth": "Suavizado de la curva Fsmooth",
+        "Fcut": "Valor de corte en tensión Fcut",
+        "Chard": "Parámetro de endurecimiento Chard",
+    },
+    "LAW44": {
+        "A": "Constante A de Cowper–Symonds",
+        "B": "Constante B de Cowper–Symonds",
+        "N": "Exponente de endurecimiento N",
+        "C": "Coeficiente de tasa C",
+    },
+}
+
+# Ayuda para los parámetros de los modelos de fallo opcionales.
+FAIL_HELP: Dict[str, Dict[str, str]] = {
+    "FAIL/JOHNSON": {
+        "D1": "Parámetro D1 del criterio Johnson-Cook",
+        "D2": "Parámetro D2 del criterio Johnson-Cook",
+        "D3": "Parámetro D3 del criterio Johnson-Cook",
+        "D4": "Parámetro D4 del criterio Johnson-Cook",
+        "D5": "Parámetro D5 del criterio Johnson-Cook",
+    },
+    "FAIL/BIQUAD": {
+        "C1": "Coeficiente C1 del modelo Biquad",
+        "C2": "Coeficiente C2 del modelo Biquad",
+        "C3": "Coeficiente C3 del modelo Biquad",
+    },
+    "FAIL/TAB1": {
+        "Dcrit": "Deformación crítica para el fallo",
+    },
+}
+
 
 def viewer_html(
 
@@ -296,7 +358,10 @@ if file_path:
             st.write(f"- {name}: {len(eids)} elementos")
         st.write("Materiales:")
         for mid, props in materials.items():
-            st.write(f"- ID {mid}: {props}")
+            law = str(props.get("LAW", "LAW1")).upper()
+            desc = LAW_DESCRIPTIONS.get(law, "")
+            st.write(f"- ID {mid} ({law}): {desc}")
+            st.json(props)
 
     with preview_tab:
         st.write("Selecciona conjuntos de elementos para visualizar:")
@@ -376,37 +441,78 @@ if file_path:
                     )
                     law = st.selectbox(
                         "Tipo",
-                        [
-                            "LAW1",
-                            "LAW2",
-                            "LAW27",
-                            "LAW36",
-                            "LAW44",
-                        ],
+                        list(LAW_DESCRIPTIONS.keys()),
                     )
-                    dens_i = st.number_input("Densidad", value=7800.0, key="dens_i")
-                    e_i = st.number_input("E", value=210000.0, key="e_i")
-                    nu_i = st.number_input("Poisson", value=0.3, key="nu_i")
+                    st.caption(LAW_DESCRIPTIONS.get(law, ""))
+
+                    dens_i = st.number_input(
+                        "Densidad",
+                        value=7800.0,
+                        key="dens_i",
+                        help=COMMON_HELP["Densidad"],
+                    )
+                    e_i = st.number_input(
+                        "E",
+                        value=210000.0,
+                        key="e_i",
+                        help=COMMON_HELP["E"],
+                    )
+                    nu_i = st.number_input(
+                        "Poisson",
+                        value=0.3,
+                        key="nu_i",
+                        help=COMMON_HELP["Poisson"],
+                    )
                     extra: Dict[str, float] = {}
                     if law == "LAW2":
-                        extra["A"] = st.number_input("A", value=200.0, key="a_i")
-                        extra["B"] = st.number_input("B", value=400.0, key="b_i")
-                        extra["N"] = st.number_input("n", value=0.5, key="n_i")
-                        extra["C"] = st.number_input("C", value=0.01, key="c_i")
-                        extra["EPS0"] = st.number_input("EPS0", value=1.0, key="eps0_i")
+                        extra["A"] = st.number_input(
+                            "A", value=200.0, key="a_i", help=LAW_PARAM_HELP["LAW2"]["A"]
+                        )
+                        extra["B"] = st.number_input(
+                            "B", value=400.0, key="b_i", help=LAW_PARAM_HELP["LAW2"]["B"]
+                        )
+                        extra["N"] = st.number_input(
+                            "n", value=0.5, key="n_i", help=LAW_PARAM_HELP["LAW2"]["n"]
+                        )
+                        extra["C"] = st.number_input(
+                            "C", value=0.01, key="c_i", help=LAW_PARAM_HELP["LAW2"]["C"]
+                        )
+                        extra["EPS0"] = st.number_input(
+                            "EPS0", value=1.0, key="eps0_i", help=LAW_PARAM_HELP["LAW2"]["EPS0"]
+                        )
                     elif law == "LAW27":
-                        extra["SIG0"] = st.number_input("SIG0", value=200.0, key="sig0")
-                        extra["SU"] = st.number_input("SU", value=0.0, key="su")
-                        extra["EPSU"] = st.number_input("EPSU", value=0.0, key="epsu")
+                        extra["SIG0"] = st.number_input(
+                            "SIG0", value=200.0, key="sig0", help=LAW_PARAM_HELP["LAW27"]["SIG0"]
+                        )
+                        extra["SU"] = st.number_input(
+                            "SU", value=0.0, key="su", help=LAW_PARAM_HELP["LAW27"]["SU"]
+                        )
+                        extra["EPSU"] = st.number_input(
+                            "EPSU", value=0.0, key="epsu", help=LAW_PARAM_HELP["LAW27"]["EPSU"]
+                        )
                     elif law == "LAW36":
-                        extra["Fsmooth"] = st.number_input("Fsmooth", value=0.0, key="fs")
-                        extra["Fcut"] = st.number_input("Fcut", value=0.0, key="fc")
-                        extra["Chard"] = st.number_input("Chard", value=0.0, key="ch")
+                        extra["Fsmooth"] = st.number_input(
+                            "Fsmooth", value=0.0, key="fs", help=LAW_PARAM_HELP["LAW36"]["Fsmooth"]
+                        )
+                        extra["Fcut"] = st.number_input(
+                            "Fcut", value=0.0, key="fc", help=LAW_PARAM_HELP["LAW36"]["Fcut"]
+                        )
+                        extra["Chard"] = st.number_input(
+                            "Chard", value=0.0, key="ch", help=LAW_PARAM_HELP["LAW36"]["Chard"]
+                        )
                     elif law == "LAW44":
-                        extra["A"] = st.number_input("A", value=0.0, key="cow_a")
-                        extra["B"] = st.number_input("B", value=0.0, key="cow_b")
-                        extra["N"] = st.number_input("N", value=1.0, key="cow_n")
-                        extra["C"] = st.number_input("C", value=0.0, key="cow_c")
+                        extra["A"] = st.number_input(
+                            "A", value=0.0, key="cow_a", help=LAW_PARAM_HELP["LAW44"]["A"]
+                        )
+                        extra["B"] = st.number_input(
+                            "B", value=0.0, key="cow_b", help=LAW_PARAM_HELP["LAW44"]["B"]
+                        )
+                        extra["N"] = st.number_input(
+                            "N", value=1.0, key="cow_n", help=LAW_PARAM_HELP["LAW44"]["N"]
+                        )
+                        extra["C"] = st.number_input(
+                            "C", value=0.0, key="cow_c", help=LAW_PARAM_HELP["LAW44"]["C"]
+                        )
 
                     fail_type = st.selectbox(
                         "Modo de fallo",
@@ -415,17 +521,35 @@ if file_path:
                     fail_params: Dict[str, float] = {}
                     if fail_type != "Ninguno":
                         if fail_type == "FAIL/JOHNSON":
-                            fail_params["D1"] = st.number_input("D1", value=0.0)
-                            fail_params["D2"] = st.number_input("D2", value=0.0)
-                            fail_params["D3"] = st.number_input("D3", value=0.0)
-                            fail_params["D4"] = st.number_input("D4", value=0.0)
-                            fail_params["D5"] = st.number_input("D5", value=0.0)
+                            fail_params["D1"] = st.number_input(
+                                "D1", value=0.0, help=FAIL_HELP["FAIL/JOHNSON"]["D1"]
+                            )
+                            fail_params["D2"] = st.number_input(
+                                "D2", value=0.0, help=FAIL_HELP["FAIL/JOHNSON"]["D2"]
+                            )
+                            fail_params["D3"] = st.number_input(
+                                "D3", value=0.0, help=FAIL_HELP["FAIL/JOHNSON"]["D3"]
+                            )
+                            fail_params["D4"] = st.number_input(
+                                "D4", value=0.0, help=FAIL_HELP["FAIL/JOHNSON"]["D4"]
+                            )
+                            fail_params["D5"] = st.number_input(
+                                "D5", value=0.0, help=FAIL_HELP["FAIL/JOHNSON"]["D5"]
+                            )
                         elif fail_type == "FAIL/BIQUAD":
-                            fail_params["C1"] = st.number_input("C1", value=0.0)
-                            fail_params["C2"] = st.number_input("C2", value=0.0)
-                            fail_params["C3"] = st.number_input("C3", value=0.0)
+                            fail_params["C1"] = st.number_input(
+                                "C1", value=0.0, help=FAIL_HELP["FAIL/BIQUAD"]["C1"]
+                            )
+                            fail_params["C2"] = st.number_input(
+                                "C2", value=0.0, help=FAIL_HELP["FAIL/BIQUAD"]["C2"]
+                            )
+                            fail_params["C3"] = st.number_input(
+                                "C3", value=0.0, help=FAIL_HELP["FAIL/BIQUAD"]["C3"]
+                            )
                         elif fail_type == "FAIL/TAB1":
-                            fail_params["Dcrit"] = st.number_input("Dcrit", value=1.0)
+                            fail_params["Dcrit"] = st.number_input(
+                                "Dcrit", value=1.0, help=FAIL_HELP["FAIL/TAB1"]["Dcrit"]
+                            )
 
                     if st.button("Añadir material"):
                         data = {
@@ -443,6 +567,7 @@ if file_path:
                     if st.session_state["impact_materials"]:
                         st.write("Materiales definidos:")
                         for mat in st.session_state["impact_materials"]:
+                            st.caption(LAW_DESCRIPTIONS.get(mat.get("LAW", ""), ""))
                             st.json(mat)
 
 

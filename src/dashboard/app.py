@@ -3,7 +3,7 @@ from pathlib import Path
 import sys
 import json
 import math
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import streamlit as st
 
@@ -18,18 +18,25 @@ from cdb2rad.writer_rad import write_rad
 MAX_POINTS = 10000
 
 
-def viewer_html(nodes: Dict[int, List[float]], max_points: int = MAX_POINTS) -> str:
-    """Return a small Three.js viewer for the given nodes.
+def viewer_html(
+    nodes: Dict[int, List[float]],
+    elements: List[Tuple[int, int, List[int]]],
+    max_edges: int = MAX_POINTS,
+) -> str:
+    """Return an HTML snippet with a lightweight Three.js mesh viewer.
 
-    If the mesh contains more than ``max_points`` nodes a subset is used in the
-    preview to keep the browser responsive.
+    A subset of ``max_edges`` edges is used when the mesh is large to keep the
+    browser responsive.
     """
-    if not nodes:
+
+    if not nodes or not elements:
         return "<p>No data</p>"
+
     coords = list(nodes.values())
-    if len(coords) > max_points:
-        step = max(1, len(coords) // max_points)
-        coords = coords[::step][:max_points]
+    if len(coords) > max_edges:
+        step = max(1, len(coords) // max_edges)
+        coords = coords[::step][:max_edges]
+
     xs = [c[0] for c in coords]
     ys = [c[1] for c in coords]
     zs = [c[2] for c in coords]
@@ -42,32 +49,71 @@ def viewer_html(nodes: Dict[int, List[float]], max_points: int = MAX_POINTS) -> 
         if r > max_r:
             max_r = r
     cam_dist = max_r * 3 if max_r > 0 else 10.0
+
+    def elem_edges(nids: List[int]) -> List[Tuple[int, int]]:
+        if len(nids) == 4:  # shell quad
+            idx = [(0, 1), (1, 2), (2, 3), (3, 0)]
+        elif len(nids) == 3:  # shell tri
+            idx = [(0, 1), (1, 2), (2, 0)]
+        elif len(nids) in (8, 20):  # brick/hex
+            idx = [
+                (0, 1), (1, 2), (2, 3), (3, 0),
+                (4, 5), (5, 6), (6, 7), (7, 4),
+                (0, 4), (1, 5), (2, 6), (3, 7),
+            ]
+        elif len(nids) in (4, 10):  # tetra
+            idx = [
+                (0, 1), (1, 2), (2, 0),
+                (0, 3), (1, 3), (2, 3),
+            ]
+        else:
+            idx = [(i, (i + 1) % len(nids)) for i in range(len(nids))]
+        return [(nids[a], nids[b]) for a, b in idx if a < len(nids) and b < len(nids)]
+
+    edges = []
+    seen = set()
+    for _eid, _et, nids in elements:
+        for a, b in elem_edges(nids):
+            key = tuple(sorted((a, b)))
+            if key in seen:
+                continue
+            if a in nodes and b in nodes:
+                seen.add(key)
+                edges.append(nodes[a] + nodes[b])
+            if len(edges) >= max_edges:
+                break
+        if len(edges) >= max_edges:
+            break
+
     template = """
 <div id='c'></div>
 <script src='https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/three@0.154.0/examples/js/controls/OrbitControls.js'></script>
 <script>
-const pts = {coords};
+const segments = {segs};
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 1000);
-camera.position.z = {cam_dist};
+camera.position.set({cam_dist}, {cam_dist}, {cam_dist});
 const renderer = new THREE.WebGLRenderer({{antialias:true}});
 renderer.setSize(400, 400);
 document.getElementById('c').appendChild(renderer.domElement);
 const g = new THREE.BufferGeometry();
-const verts = new Float32Array(pts.flat());
+const verts = new Float32Array(segments.flat());
 g.setAttribute('position', new THREE.BufferAttribute(verts, 3));
-const m = new THREE.PointsMaterial({{size:2,color:0x0080ff}});
-const points = new THREE.Points(g, m);
-scene.add(points);
+const m = new THREE.LineBasicMaterial({{color:0x0080ff}});
+const lines = new THREE.LineSegments(g, m);
+scene.add(lines);
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
 function animate(){{
   requestAnimationFrame(animate);
-  points.rotation.y += 0.01;
+  controls.update();
   renderer.render(scene, camera);
 }}
 animate();
 </script>
 """
-    return template.format(coords=json.dumps(coords), cam_dist=cam_dist)
+    return template.format(segs=json.dumps(edges), cam_dist=cam_dist)
 
 
 @st.cache_data(ttl=3600)
@@ -137,11 +183,11 @@ if file_path:
                 st.code("\n".join(lines))
 
     with preview_tab:
-        html = viewer_html(nodes)
-        if len(nodes) > MAX_POINTS:
+        html = viewer_html(nodes, elements)
+        if len(elements) > MAX_POINTS:
             st.caption(
-                f"Mostrando un subconjunto de {MAX_POINTS} de {len(nodes)} nodos "
-                "para agilizar la vista"
+                f"Mostrando un subconjunto de {MAX_POINTS} de {len(elements)} "
+                "elementos para agilizar la vista"
             )
         st.components.v1.html(html, height=420)
 else:

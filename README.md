@@ -66,3 +66,6 @@ streamlit run src/dashboard/app.py
 
 Sube un archivo ``.cdb`` y pulsa *Generar input deck* para ver las primeras
 líneas de ``mesh.inp`` junto con un resumen de tipos de elemento.
+La pestaña *Vista 3D* muestra una representación ligera de la malla en modo
+wireframe usando Three.js, que se puede rotar libremente para revisar la
+geometría.

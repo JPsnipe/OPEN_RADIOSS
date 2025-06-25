@@ -459,7 +459,7 @@ if file_path:
             if st.session_state["init_vel"]:
                 st.json(st.session_state["init_vel"])
 
-        use_cdb_mats = st.checkbox("Incluir materiales del CDB", value=True)
+        use_cdb_mats = st.checkbox("Incluir materiales del CDB", value=False)
         use_impact = st.checkbox(
             "Incluir materiales de impacto", value=True
         )

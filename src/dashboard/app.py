@@ -22,6 +22,7 @@ if root_path not in sys.path:
 
 from cdb2rad.parser import parse_cdb
 from cdb2rad.writer_rad import write_rad
+from cdb2rad.writer_inc import write_mesh_inp
 
 
 MAX_EDGES = 10000
@@ -255,9 +256,10 @@ elif selected:
 
 if file_path:
     nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
-    info_tab, preview_tab, rad_tab = st.tabs([
+    info_tab, preview_tab, inp_tab, rad_tab = st.tabs([
         "Información",
         "Vista 3D",
+        "Generar INP",
         "Generar RAD",
     ])
 
@@ -291,6 +293,23 @@ if file_path:
                 "elementos para agilizar la vista"
             )
         st.components.v1.html(html, height=420)
+
+    with inp_tab:
+        st.subheader("Generar mesh.inp")
+        if st.button("Generar .inp"):
+            with tempfile.TemporaryDirectory() as tmpdir:
+                inp_path = Path(tmpdir) / "mesh.inp"
+                write_mesh_inp(
+                    nodes,
+                    elements,
+                    str(inp_path),
+                    node_sets=node_sets,
+                    elem_sets=elem_sets,
+                    materials=materials,
+                )
+                st.success("Fichero generado en directorio temporal")
+                lines = inp_path.read_text().splitlines()[:20]
+                st.code("\n".join(lines))
 
     with rad_tab:
         st.subheader("Opciones de cálculo")

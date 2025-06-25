@@ -65,10 +65,13 @@ streamlit run src/dashboard/app.py
 ```
 
 Se puede subir un archivo propio o escoger ``data_files/model.cdb`` como
-ejemplo. Tras pulsar *Generar input deck* se muestran las primeras líneas de
-``mesh.inp`` junto con un resumen de tipos de elemento.
-La pestaña *Vista 3D* muestra una representación ligera de la malla en modo
-wireframe usando Three.js, que se puede rotar libremente para revisar la
-geometría. Existe además una pestaña *Generar RAD* para introducir parámetros de
-material y control del cálculo (tiempo final, frecuencia de animación, etc.)
-antes de crear el fichero ``model_0000.rad``.
+ejemplo. La interfaz cuenta con cuatro pestañas principales:
+
+- **Información** resumen de nodos y elementos.
+- **Vista 3D** previsualización ligera de la malla.
+- **Generar INP** permite crear ``mesh.inp`` y muestra sus primeras líneas.
+- **Generar RAD** para introducir parámetros de cálculo y obtener
+  ``model_0000.rad``.
+
+Tras pulsar *Generar .inp* o *Generar .rad* se muestran las primeras líneas de
+los ficheros generados.

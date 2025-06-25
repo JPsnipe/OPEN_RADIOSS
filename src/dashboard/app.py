@@ -329,63 +329,67 @@ if file_path:
                 st.code("\n".join(lines))
 
     with rad_tab:
-        st.subheader("Opciones de cálculo")
-        thickness = st.number_input("Grosor", value=1.0, min_value=0.0)
-        young = st.number_input("Módulo E", value=210000.0)
-        poisson = st.number_input("Coeficiente de Poisson", value=0.3)
-        density = st.number_input("Densidad", value=7800.0)
+        st.subheader("Generar RAD")
 
         if "impact_materials" not in st.session_state:
             st.session_state["impact_materials"] = []
-
-        with st.expander("Materiales de impacto (Johnson-Cook)"):
-            mat_id = st.number_input(
-                "ID material", value=len(st.session_state["impact_materials"]) + 1, step=1
-            )
-            dens_i = st.number_input("Densidad", value=7800.0, key="dens_i")
-            e_i = st.number_input("E", value=210000.0, key="e_i")
-            nu_i = st.number_input("Poisson", value=0.3, key="nu_i")
-            a_i = st.number_input("A", value=200.0, key="a_i")
-            b_i = st.number_input("B", value=400.0, key="b_i")
-            n_i = st.number_input("n", value=0.5, key="n_i")
-            c_i = st.number_input("C", value=0.01, key="c_i")
-            eps_i = st.number_input("EPS0", value=1.0, key="eps0_i")
-            if st.button("Añadir material"):
-                st.session_state["impact_materials"].append(
-                    {
-                        "id": int(mat_id),
-                        "LAW": "LAW2",
-                        "EX": e_i,
-                        "NUXY": nu_i,
-                        "DENS": dens_i,
-                        "A": a_i,
-                        "B": b_i,
-                        "N": n_i,
-                        "C": c_i,
-                        "EPS0": eps_i,
-                    }
-                )
-            if st.session_state["impact_materials"]:
-                st.write("Materiales definidos:")
-                for mat in st.session_state["impact_materials"]:
-                    st.json(mat)
-
-
-        st.markdown("### Control del cálculo")
-        runname = st.text_input("Nombre de la simulación", value="model")
-        t_end = st.number_input("Tiempo final", value=0.01, format="%.5f")
-        anim_dt = st.number_input("Paso animación", value=0.001, format="%.5f")
-        tfile_dt = st.number_input("Intervalo historial", value=0.00001, format="%.5f")
-        dt_ratio = st.number_input(
-            "Factor seguridad DT", value=0.9, min_value=0.0, max_value=1.0
-        )
-
         if "bcs" not in st.session_state:
             st.session_state["bcs"] = []
         if "interfaces" not in st.session_state:
             st.session_state["interfaces"] = []
         if "init_vel" not in st.session_state:
             st.session_state["init_vel"] = None
+
+        with st.expander("Definición de materiales"):
+            thickness = st.number_input("Grosor", value=1.0, min_value=0.0)
+            young = st.number_input("Módulo E", value=210000.0)
+            poisson = st.number_input("Coeficiente de Poisson", value=0.3)
+            density = st.number_input("Densidad", value=7800.0)
+
+            use_cdb_mats = st.checkbox("Incluir materiales del CDB", value=False)
+            use_impact = st.checkbox("Incluir materiales de impacto", value=True)
+
+            with st.expander("Materiales de impacto (Johnson-Cook)"):
+                mat_id = st.number_input(
+                    "ID material", value=len(st.session_state["impact_materials"]) + 1, step=1
+                )
+                dens_i = st.number_input("Densidad", value=7800.0, key="dens_i")
+                e_i = st.number_input("E", value=210000.0, key="e_i")
+                nu_i = st.number_input("Poisson", value=0.3, key="nu_i")
+                a_i = st.number_input("A", value=200.0, key="a_i")
+                b_i = st.number_input("B", value=400.0, key="b_i")
+                n_i = st.number_input("n", value=0.5, key="n_i")
+                c_i = st.number_input("C", value=0.01, key="c_i")
+                eps_i = st.number_input("EPS0", value=1.0, key="eps0_i")
+                if st.button("Añadir material"):
+                    st.session_state["impact_materials"].append(
+                        {
+                            "id": int(mat_id),
+                            "LAW": "LAW2",
+                            "EX": e_i,
+                            "NUXY": nu_i,
+                            "DENS": dens_i,
+                            "A": a_i,
+                            "B": b_i,
+                            "N": n_i,
+                            "C": c_i,
+                            "EPS0": eps_i,
+                        }
+                    )
+                if st.session_state["impact_materials"]:
+                    st.write("Materiales definidos:")
+                    for mat in st.session_state["impact_materials"]:
+                        st.json(mat)
+
+
+        with st.expander("Control del cálculo"):
+            runname = st.text_input("Nombre de la simulación", value="model")
+            t_end = st.number_input("Tiempo final", value=0.01, format="%.5f")
+            anim_dt = st.number_input("Paso animación", value=0.001, format="%.5f")
+            tfile_dt = st.number_input("Intervalo historial", value=0.00001, format="%.5f")
+            dt_ratio = st.number_input(
+                "Factor seguridad DT", value=0.9, min_value=0.0, max_value=1.0
+            )
 
         with st.expander("Condiciones de contorno (BCS)"):
             bc_name = st.text_input("Nombre BC", value="Fixed")
@@ -459,10 +463,6 @@ if file_path:
             if st.session_state["init_vel"]:
                 st.json(st.session_state["init_vel"])
 
-        use_cdb_mats = st.checkbox("Incluir materiales del CDB", value=False)
-        use_impact = st.checkbox(
-            "Incluir materiales de impacto", value=True
-        )
         rad_dir = st.text_input(
             "Directorio de salida",
             value=st.session_state.get("work_dir", str(Path.cwd())),

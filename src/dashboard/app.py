@@ -360,6 +360,8 @@ if file_path:
             st.session_state["interfaces"] = []
         if "init_vel" not in st.session_state:
             st.session_state["init_vel"] = None
+        if "gravity" not in st.session_state:
+            st.session_state["gravity"] = None
 
         with st.expander("Definición de materiales"):
             thickness = st.number_input("Grosor", value=1.0, min_value=0.0)
@@ -510,6 +512,23 @@ if file_path:
             if st.session_state["init_vel"]:
                 st.json(st.session_state["init_vel"])
 
+        with st.expander("Carga de gravedad (GRAVITY)"):
+            g = st.number_input("g", value=9.81)
+            nx = st.number_input("nx", value=0.0)
+            ny = st.number_input("ny", value=0.0)
+            nz = st.number_input("nz", value=-1.0)
+            comp = st.number_input("Componente", value=3, step=1)
+            if st.button("Asignar gravedad"):
+                st.session_state["gravity"] = {
+                    "g": g,
+                    "nx": nx,
+                    "ny": ny,
+                    "nz": nz,
+                    "comp": int(comp),
+                }
+            if st.session_state["gravity"]:
+                st.json(st.session_state["gravity"])
+
         rad_dir = st.text_input(
             "Directorio de salida",
             value=st.session_state.get("work_dir", str(Path.cwd())),
@@ -561,6 +580,7 @@ if file_path:
                     boundary_conditions=st.session_state.get("bcs"),
                     interfaces=st.session_state.get("interfaces"),
                     init_velocity=st.session_state.get("init_vel"),
+                    gravity=st.session_state.get("gravity"),
 
                 )
                 st.success(f"Ficheros generados en: {rad_path}")

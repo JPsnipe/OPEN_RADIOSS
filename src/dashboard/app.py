@@ -25,6 +25,7 @@ from cdb2rad.writer_rad import write_rad
 
 
 MAX_EDGES = 10000
+MAX_FACES = 15000
 
 
 def viewer_html(
@@ -32,12 +33,13 @@ def viewer_html(
     nodes: Dict[int, List[float]],
     elements: List[Tuple[int, int, List[int]]],
     max_edges: int = MAX_EDGES,
+    max_faces: int = MAX_FACES,
 ) -> str:
     """Return an HTML snippet with a lightweight Three.js mesh viewer.
 
 
-    A subset of ``max_edges`` edges is used when the mesh is large to keep the
-    browser responsive.
+    A subset of ``max_edges`` edges and ``max_faces`` triangular faces is used
+    when the mesh is large to keep the browser responsive.
     """
 
     if not nodes or not elements:
@@ -82,7 +84,38 @@ def viewer_html(
         return [(nids[a], nids[b]) for a, b in idx if a < len(nids) and b < len(nids)]
 
     edges = []
+    faces = []
     seen = set()
+
+    def add_face(tri: Tuple[int, int, int]):
+        if all(n in nodes for n in tri):
+            faces.append(nodes[tri[0]] + nodes[tri[1]] + nodes[tri[2]])
+
+    def elem_faces(nids: List[int]) -> List[Tuple[int, int, int]]:
+        if len(nids) == 4:  # shell quad
+            idx = [(0, 1, 2), (0, 2, 3)]
+        elif len(nids) == 3:  # shell tri
+            idx = [(0, 1, 2)]
+        elif len(nids) in (8, 20):  # brick/hex
+            idx = [
+                (0, 1, 2), (0, 2, 3),
+                (4, 5, 6), (4, 6, 7),
+                (0, 1, 5), (0, 5, 4),
+                (1, 2, 6), (1, 6, 5),
+                (2, 3, 7), (2, 7, 6),
+                (3, 0, 4), (3, 4, 7),
+            ]
+        elif len(nids) in (4, 10):  # tetra
+            idx = [
+                (0, 1, 2),
+                (0, 1, 3),
+                (1, 2, 3),
+                (0, 2, 3),
+            ]
+        else:
+            idx = []
+        return [(nids[a], nids[b], nids[c]) for a, b, c in idx]
+
     for _eid, _et, nids in elements:
         for a, b in elem_edges(nids):
             key = tuple(sorted((a, b)))
@@ -93,7 +126,11 @@ def viewer_html(
                 edges.append(nodes[a] + nodes[b])
             if len(edges) >= max_edges:
                 break
-        if len(edges) >= max_edges:
+        for tri in elem_faces(nids):
+            add_face(tri)
+            if len(faces) >= max_faces:
+                break
+        if len(edges) >= max_edges and len(faces) >= max_faces:
             break
 
     template = """
@@ -102,6 +139,7 @@ def viewer_html(
 <script src='https://cdn.jsdelivr.net/npm/three@0.154.0/examples/js/controls/OrbitControls.js'></script>
 <script>
 const segments = {segs};
+const triangles = {tris};
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 1000);
 camera.position.set({cam_dist}, {cam_dist}, {cam_dist});
@@ -114,6 +152,17 @@ g.setAttribute('position', new THREE.BufferAttribute(verts, 3));
 const m = new THREE.LineBasicMaterial({{color:0x0080ff}});
 const lines = new THREE.LineSegments(g, m);
 scene.add(lines);
+const fg = new THREE.BufferGeometry();
+const fverts = new Float32Array(triangles.flat());
+fg.setAttribute('position', new THREE.BufferAttribute(fverts, 3));
+fg.computeVertexNormals();
+const fmat = new THREE.MeshPhongMaterial({{color:0xcccccc, side:THREE.DoubleSide, opacity:0.5, transparent:true}});
+const mesh = new THREE.Mesh(fg, fmat);
+scene.add(mesh);
+scene.add(new THREE.AmbientLight(0x404040));
+const dlight = new THREE.DirectionalLight(0xffffff, 0.8);
+dlight.position.set(1,1,1);
+scene.add(dlight);
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 function animate(){{
@@ -124,7 +173,9 @@ function animate(){{
 animate();
 </script>
 """
-    return template.format(segs=json.dumps(edges), cam_dist=cam_dist)
+    return template.format(
+        segs=json.dumps(edges), tris=json.dumps(faces), cam_dist=cam_dist
+    )
 
 
 @st.cache_data(ttl=3600)

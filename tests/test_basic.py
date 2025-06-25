@@ -149,3 +149,11 @@ def test_write_rad_with_impvel(tmp_path):
     txt = rad.read_text()
     assert '/IMPVEL/1' in txt
 
+
+def test_write_rad_with_gravity(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'grav.rad'
+    write_rad(nodes, elements, str(rad), gravity={'g': 9.81, 'nz': -1.0})
+    txt = rad.read_text()
+    assert '/GRAVITY' in txt
+

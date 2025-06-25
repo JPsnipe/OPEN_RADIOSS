@@ -44,13 +44,15 @@ def write_rad(
     boundary_conditions: List[Dict[str, object]] | None = None,
     interfaces: List[Dict[str, object]] | None = None,
     init_velocity: Dict[str, object] | None = None,
+    gravity: Dict[str, float] | None = None,
 
 ) -> None:
     """Generate ``model_0000.rad`` with optional solver controls.
 
     Parameters allow customizing material properties and basic engine
     settings such as final time, animation frequency and time-step
-    controls.
+    controls. Gravity loading can be specified via the ``gravity``
+    parameter.
     """
 
     all_mats: Dict[int, Dict[str, float]] = {}
@@ -166,6 +168,16 @@ def write_rad(
             f.write("Init_Vel_Nodes\n")
             for nid in nodes_v:
                 f.write(f"{nid:10d}\n")
+
+        if gravity:
+            g = gravity.get("g", 9.81)
+            nx = gravity.get("nx", 0.0)
+            ny = gravity.get("ny", 0.0)
+            nz = gravity.get("nz", -1.0)
+            comp = int(gravity.get("comp", 3))
+            f.write("/GRAVITY\n")
+            f.write(f"{comp} {g}\n")
+            f.write(f"{nx} {ny} {nz}\n")
 
         f.write("/END\n")
 

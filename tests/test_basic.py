@@ -126,3 +126,26 @@ def test_write_minimal_rad(tmp_path):
     assert '#include mesh.inc' in text
     assert '/END' in text
 
+
+def test_write_rad_with_bc(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'bc.rad'
+    bc = [{
+        'name': 'fixed',
+        'tra': '111',
+        'rot': '111',
+        'nodes': [1, 2]
+    }]
+    write_rad(nodes, elements, str(rad), boundary_conditions=bc)
+    txt = rad.read_text()
+    assert '/BCS/1' in txt
+    assert 'fixed' in txt
+
+
+def test_write_rad_with_impvel(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'vel.rad'
+    write_rad(nodes, elements, str(rad), init_velocity={'nodes': [1], 'vx': 10.0})
+    txt = rad.read_text()
+    assert '/IMPVEL/1' in txt
+

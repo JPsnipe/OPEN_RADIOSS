@@ -3,3 +3,5 @@ __pycache__/
 *.pyc
 openradioss_bin/
 *.zip
+mesh.inc
+sample.rad

@@ -39,6 +39,13 @@ fichero mínimo contiene:
 /END
 ```
 
+El ``starter`` se organiza siguiendo un orden similar al de los ejemplos de
+OpenRadioss. Primero se colocan las tarjetas de control (``/RUN`` y
+parámetros de tiempo), seguidas de los materiales. A continuación se
+incluyen los nodos mediante ``#include`` y se definen las condiciones de
+contorno. Finalmente se añaden partes y propiedades antes de otras
+tarjetas opcionales como contactos o cargas iniciales.
+
 Cada bloque está descrito en detalle en la guía oficial de comandos de
 Radioss. Para depurar y ampliar estos ficheros se recomienda consultar el
 [Overview of the Input Reference Guide](https://help.altair.com/hwsolvers/rad/topics/solvers/rad/overview_ref_guide_rad_c.htm).

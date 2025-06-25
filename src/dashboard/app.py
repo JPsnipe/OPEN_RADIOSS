@@ -28,6 +28,32 @@ from cdb2rad.writer_inc import write_mesh_inc
 MAX_EDGES = 10000
 MAX_FACES = 15000
 
+# Mappings for dropdown labels with short explanations
+LAW_DESCRIPTIONS = {
+    "LAW1": "Elástico lineal",
+    "LAW2": "Modelo Johnson-Cook",
+    "LAW27": "Modelo plástico isotrópico",
+    "LAW36": "Modelo material avanzado",
+    "LAW44": "Modelo Cowper-Symonds",
+}
+
+FAIL_DESCRIPTIONS = {
+    "Ninguno": "Sin criterio de fallo",
+    "FAIL/JOHNSON": "Johnson-Cook failure",
+    "FAIL/BIQUAD": "Criterio Biquadrático",
+    "FAIL/TAB1": "Fallo tabulado",
+}
+
+BC_DESCRIPTIONS = {
+    "BCS": "Condición fija",
+    "PRESCRIBED_MOTION": "Movimiento prescrito",
+}
+
+INT_DESCRIPTIONS = {
+    "TYPE2": "Nodo-superficie",
+    "TYPE7": "Superficie-superficie",
+}
+
 
 def viewer_html(
 
@@ -376,14 +402,10 @@ if file_path:
                     )
                     law = st.selectbox(
                         "Tipo",
-                        [
-                            "LAW1",
-                            "LAW2",
-                            "LAW27",
-                            "LAW36",
-                            "LAW44",
-                        ],
+                        list(LAW_DESCRIPTIONS.keys()),
+                        format_func=lambda k: f"{k} - {LAW_DESCRIPTIONS[k]}",
                     )
+                    st.caption(LAW_DESCRIPTIONS[law])
                     dens_i = st.number_input("Densidad", value=7800.0, key="dens_i")
                     e_i = st.number_input("E", value=210000.0, key="e_i")
                     nu_i = st.number_input("Poisson", value=0.3, key="nu_i")
@@ -410,9 +432,12 @@ if file_path:
 
                     fail_type = st.selectbox(
                         "Modo de fallo",
-                        ["Ninguno", "FAIL/JOHNSON", "FAIL/BIQUAD", "FAIL/TAB1"],
+                        list(FAIL_DESCRIPTIONS.keys()),
+                        format_func=lambda k: f"{k} - {FAIL_DESCRIPTIONS[k]}",
                     )
                     fail_params: Dict[str, float] = {}
+                    if fail_type:
+                        st.caption(FAIL_DESCRIPTIONS[fail_type])
                     if fail_type != "Ninguno":
                         if fail_type == "FAIL/JOHNSON":
                             fail_params["D1"] = st.number_input("D1", value=0.0)
@@ -481,8 +506,10 @@ if file_path:
             bc_name = st.text_input("Nombre BC", value="Fixed")
             bc_type = st.selectbox(
                 "Tipo BC",
-                ["BCS", "PRESCRIBED_MOTION"],
+                list(BC_DESCRIPTIONS.keys()),
+                format_func=lambda k: f"{k} - {BC_DESCRIPTIONS[k]}",
             )
+            st.caption(BC_DESCRIPTIONS[bc_type])
             bc_set = st.selectbox(
                 "Conjunto de nodos",
                 list(node_sets.keys()),
@@ -512,7 +539,13 @@ if file_path:
                 st.json(bc)
 
         with st.expander("Interacciones (INTER)"):
-            int_type = st.selectbox("Tipo", ["TYPE2", "TYPE7"], key="itf_type")
+            int_type = st.selectbox(
+                "Tipo",
+                list(INT_DESCRIPTIONS.keys()),
+                key="itf_type",
+                format_func=lambda k: f"{k} - {INT_DESCRIPTIONS[k]}",
+            )
+            st.caption(INT_DESCRIPTIONS[int_type])
             int_name = st.text_input("Nombre interfaz", value=f"{int_type}_1")
             slave_set = st.selectbox(
                 "Conjunto esclavo",

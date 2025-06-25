@@ -305,12 +305,13 @@ if file_path:
         inc_name = st.text_input(
             "Nombre de archivo", value="mesh", key="inc_name"
         )
+        overwrite_inc = st.checkbox("Sobrescribir si existe", value=False, key="overwrite_inc")
 
         if st.button("Generar .inc"):
             out_dir = Path(inc_dir).expanduser()
             out_dir.mkdir(parents=True, exist_ok=True)
             inp_path = out_dir / f"{inc_name}.inc"
-            if inp_path.exists():
+            if inp_path.exists() and not overwrite_inc:
                 st.error("El archivo ya existe. Elija otro nombre o directorio")
             else:
                 write_mesh_inc(
@@ -466,13 +467,14 @@ if file_path:
         rad_name = st.text_input(
             "Nombre de archivo RAD", value="model_0000", key="rad_name"
         )
+        overwrite_rad = st.checkbox("Sobrescribir si existe", value=False, key="overwrite_rad")
 
         if st.button("Generar .rad"):
             out_dir = Path(rad_dir).expanduser()
             out_dir.mkdir(parents=True, exist_ok=True)
             rad_path = out_dir / f"{rad_name}.rad"
             mesh_path = out_dir / "mesh.inc"
-            if rad_path.exists() or mesh_path.exists():
+            if (rad_path.exists() or mesh_path.exists()) and not overwrite_rad:
                 st.error("El archivo ya existe. Elija otro nombre o directorio")
             else:
                 extra = None
@@ -520,6 +522,7 @@ if file_path:
         zip_name = st.text_input(
             "Nombre archivo ZIP", value="clean", key="zip_name"
         )
+        overwrite_zip = st.checkbox("Sobrescribir ZIP si existe", value=False, key="overwrite_zip")
 
         if st.button("Generar .zip limpio"):
             out_dir = Path(zip_dir).expanduser()
@@ -527,7 +530,7 @@ if file_path:
             mesh_path = out_dir / "mesh.inc"
             rad_path = out_dir / "minimal.rad"
             zip_path = out_dir / f"{zip_name}.zip"
-            if zip_path.exists():
+            if zip_path.exists() and not overwrite_zip:
                 st.error("El archivo ZIP ya existe. Cambie el nombre o directorio")
             else:
                 write_mesh_inc(nodes, elements, str(mesh_path))

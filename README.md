@@ -57,13 +57,12 @@ pytest -q
 ## Interfaz web
 
 Se incluye una pequeña interfaz en Streamlit para cargar un `.cdb`, visualizar
-el número de nodos y elementos y generar los ficheros ``mesh.inp`` y
+el número y tipo de elementos y generar los ficheros ``mesh.inp`` y
 ``model_0000.rad`` de forma interactiva. Para ejecutarla:
 
 ```bash
 streamlit run src/dashboard/app.py
 ```
 
-Se puede subir un archivo propio o seleccionar ``data_files/model.cdb`` como
-ejemplo. Tras pulsar *Generar input deck* se muestran las primeras líneas de
-``mesh.inp``.
+Sube un archivo ``.cdb`` y pulsa *Generar input deck* para ver las primeras
+líneas de ``mesh.inp`` junto con un resumen de tipos de elemento.

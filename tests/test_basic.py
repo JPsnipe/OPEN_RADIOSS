@@ -3,6 +3,7 @@ from cdb2rad.parser import parse_cdb
 from cdb2rad.writer_inc import write_mesh_inc
 from cdb2rad.writer_rad import write_rad, write_minimal_rad
 from cdb2rad.utils import element_summary
+from cdb2rad.material_defaults import apply_default_materials
 
 DATA = os.path.join(os.path.dirname(__file__), '..', 'data', 'model.cdb')
 
@@ -203,4 +204,11 @@ def test_write_rad_with_type2_contact(tmp_path):
     txt = rad.read_text()
     assert '/INTER/TYPE2/1' in txt
     assert '/FRICTION' in txt
+
+
+def test_apply_default_materials():
+    mats = {1: {"LAW": "LAW2"}}
+    out = apply_default_materials(mats)
+    assert out[1]["A"] == 220.0
+    assert "EX" not in out[1]
 

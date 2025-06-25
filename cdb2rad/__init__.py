@@ -4,6 +4,7 @@ from .parser import parse_cdb
 from .writer_inc import write_mesh_inc
 from .writer_rad import write_rad, write_minimal_rad
 from .utils import element_summary
+from .material_defaults import apply_default_materials
 
 __all__ = [
     "parse_cdb",
@@ -11,4 +12,5 @@ __all__ = [
     "write_rad",
     "write_minimal_rad",
     "element_summary",
+    "apply_default_materials",
 ]

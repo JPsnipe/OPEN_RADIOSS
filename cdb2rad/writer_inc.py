@@ -4,6 +4,8 @@ from typing import Dict, List, Tuple
 import json
 from pathlib import Path
 
+from .material_defaults import apply_default_materials
+
 
 def write_mesh_inc(
     nodes: Dict[int, List[float]],
@@ -70,6 +72,7 @@ def write_mesh_inc(
                     f.write(f"{eid:10d}\n")
 
         if materials:
+            materials = apply_default_materials(materials)
             for mid, props in materials.items():
                 law = props.get("LAW", "LAW1").upper()
                 e = props.get("EX", 210000.0)

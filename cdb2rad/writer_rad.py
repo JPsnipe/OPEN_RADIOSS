@@ -135,17 +135,30 @@ def write_rad(
 
         if interfaces:
             for idx, inter in enumerate(interfaces, start=1):
+                itype = inter.get("type", "TYPE2").upper()
                 s_nodes = inter.get("slave", [])
                 m_nodes = inter.get("master", [])
                 name = inter.get("name", f"INTER_{idx}")
                 fric = inter.get("fric", 0.0)
                 slave_id = 200 + idx
                 master_id = 300 + idx
-                f.write(f"/INTER/TYPE2/{idx}\n")
-                f.write(f"{name}\n")
-                f.write(f"{slave_id} {master_id}\n")
-                f.write("/FRICTION\n")
-                f.write(f"{fric}\n")
+
+                if itype == "TYPE7":
+                    gap = inter.get("gap", 0.0)
+                    stif = inter.get("stiff", 0.0)
+                    igap = inter.get("igap", 0)
+                    f.write(f"/INTER/TYPE7/{idx}\n")
+                    f.write(f"{name}\n")
+                    f.write(f"{slave_id} {master_id} {stif} {gap} {igap}\n")
+                    f.write("/FRICTION\n")
+                    f.write(f"{fric}\n")
+                else:
+                    f.write(f"/INTER/TYPE2/{idx}\n")
+                    f.write(f"{name}\n")
+                    f.write(f"{slave_id} {master_id}\n")
+                    f.write("/FRICTION\n")
+                    f.write(f"{fric}\n")
+
                 f.write(f"/GRNOD/NODE/{slave_id}\n")
                 f.write(f"{name}_slave\n")
                 for nid in s_nodes:

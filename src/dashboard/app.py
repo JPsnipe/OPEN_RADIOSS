@@ -409,7 +409,9 @@ if file_path:
                     dt_ratio=dt_ratio,
 
                 )
-                st.success("Ficheros generados en directorio temporal")
+                st.success(
+                    f"Ficheros generados en directorio temporal: {rad_path.parent}"
+                )
                 lines = rad_path.read_text().splitlines()[:20]
                 st.code("\n".join(lines))
 

@@ -48,6 +48,7 @@ tarjetas opcionales como contactos o cargas iniciales.
 
 Cada bloque está descrito en detalle en la guía oficial de comandos de
 Radioss. Para depurar y ampliar estos ficheros se recomienda consultar el
+[Altair Radioss 2022 Reference Guide](https://2022.help.altair.com/2022/simulation/pdfs/radopen/AltairRadioss_2022_ReferenceGuide.pdf) es la referencia principal para la sintaxis y
 [Overview of the Input Reference Guide](https://help.altair.com/hwsolvers/rad/topics/solvers/rad/overview_ref_guide_rad_c.htm).
 En ella se explica el formato, las palabras clave disponibles y la estructura
 del ``starter`` y los ficheros ``engine``.

@@ -124,7 +124,8 @@ Se puede subir un archivo ``.cdb`` propio. La interfaz cuenta con cuatro
 pestañas principales:
 
 - **Información** resumen de nodos y elementos.
-- **Vista 3D** previsualización ligera de la malla.
+- **Vista 3D** muestra la malla usando Plotly y permite escoger qué
+  *name selections* se representan.
 
 -- **Generar INC** permite crear ``mesh.inc`` y muestra sus primeras líneas. \
   Incluye casillas para decidir si exportar las selecciones nombradas y los

@@ -55,10 +55,15 @@ def write_rad(
     with open(outfile, "w") as f:
         f.write("#RADIOSS STARTER\n")
         f.write("/BEGIN\n")
+        f.write(f"{runname}\n")
+        f.write("     2024         0\n")
+        f.write("                  kg                  mm                   s\n")
+        f.write("                  kg                  mm                   s\n")
         f.write(f"/INCLUDE \"{mesh_inc}\"\n")
 
         f.write("/PART/1\n")
-        f.write("/PART/1/1/1\n")
+        f.write("Part1\n")
+        f.write("1 1 0\n")
 
         f.write("/PROP/SHELL/1\n")
         f.write(f"{thickness}\n")

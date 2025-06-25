@@ -126,6 +126,8 @@ pestañas principales:
   ``model_0000.rad``.
 Se incluyen casillas opcionales para **sobrescribir** los archivos
 ``.inc`` o ``.rad`` si ya existen en el directorio de salida.
+- La opción **Incluir materiales del CDB** está desactivada por defecto;
+  actívala si deseas copiar al starter los materiales extraídos del `.cdb`.
 
 - **RAD limpio (.rad)** genera ``minimal.rad`` para probar rápidamente ``mesh.inc``.
 

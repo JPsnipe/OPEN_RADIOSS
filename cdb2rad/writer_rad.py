@@ -53,6 +53,7 @@ def write_rad(
     )
 
     with open(outfile, "w") as f:
+        f.write("#RADIOSS STARTER\n")
         f.write("/BEGIN\n")
         f.write(f"/INCLUDE \"{mesh_inc}\"\n")
 

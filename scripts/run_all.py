@@ -20,6 +20,11 @@ def main() -> None:
     parser.add_argument("--rad", dest="rad", help="Output .rad file")
     parser.add_argument("--inc", dest="inc", help="Output mesh.inc file")
     parser.add_argument("--exec", dest="exec_path", help="Run OpenRadioss starter after generation")
+    parser.add_argument(
+        "--skip-include",
+        action="store_true",
+        help="Do not include the mesh.inc file inside the generated .rad",
+    )
 
     args = parser.parse_args()
 
@@ -45,6 +50,7 @@ def main() -> None:
             elements,
             args.rad,
             mesh_inc=args.inc or "mesh.inc",
+            include_inc=not args.skip_include,
             node_sets=node_sets,
             elem_sets=elem_sets,
             materials=materials,

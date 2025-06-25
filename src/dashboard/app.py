@@ -255,7 +255,11 @@ elif selected:
 
 if file_path:
     nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
-    info_tab, preview_tab = st.tabs(["Información", "Vista 3D"])
+    info_tab, preview_tab, rad_tab = st.tabs([
+        "Información",
+        "Vista 3D",
+        "Generar RAD",
+    ])
 
     with info_tab:
         st.write("Nodos:", len(nodes))
@@ -279,7 +283,32 @@ if file_path:
         for mid, props in materials.items():
             st.write(f"- ID {mid}: {props}")
 
-        if st.button("Generar input deck"):
+    with preview_tab:
+        html = viewer_html(nodes, elements)
+        if len(elements) > MAX_EDGES:
+            st.caption(
+                f"Mostrando un subconjunto de {MAX_EDGES} de {len(elements)} "
+                "elementos para agilizar la vista"
+            )
+        st.components.v1.html(html, height=420)
+
+    with rad_tab:
+        st.subheader("Opciones de cálculo")
+        thickness = st.number_input("Grosor", value=1.0, min_value=0.0)
+        young = st.number_input("Módulo E", value=210000.0)
+        poisson = st.number_input("Coeficiente de Poisson", value=0.3)
+        density = st.number_input("Densidad", value=7800.0)
+
+        st.markdown("### Control del cálculo")
+        runname = st.text_input("Nombre de la simulación", value="model")
+        t_end = st.number_input("Tiempo final", value=0.01, format="%.5f")
+        anim_dt = st.number_input("Paso animación", value=0.001, format="%.5f")
+        tfile_dt = st.number_input("Intervalo historial", value=0.00001, format="%.5f")
+        dt_ratio = st.number_input(
+            "Factor seguridad DT", value=0.9, min_value=0.0, max_value=1.0
+        )
+
+        if st.button("Generar .rad"):
             with tempfile.TemporaryDirectory() as tmpdir:
                 rad_path = Path(tmpdir) / "model_0000.rad"
                 mesh_path = Path(tmpdir) / "mesh.inp"
@@ -291,21 +320,18 @@ if file_path:
                     node_sets=node_sets,
                     elem_sets=elem_sets,
                     materials=materials,
+                    thickness=thickness,
+                    young=young,
+                    poisson=poisson,
+                    density=density,
+                    runname=runname,
+                    t_end=t_end,
+                    anim_dt=anim_dt,
+                    tfile_dt=tfile_dt,
+                    dt_ratio=dt_ratio,
                 )
                 st.success("Ficheros generados en directorio temporal")
-                st.write("Resumen de elementos traducidos:")
-                for kw, cnt in kw_counts.items():
-                    st.write(f"- {kw}: {cnt}")
-                lines = mesh_path.read_text().splitlines()[:20]
+                lines = rad_path.read_text().splitlines()[:20]
                 st.code("\n".join(lines))
-
-    with preview_tab:
-        html = viewer_html(nodes, elements)
-        if len(elements) > MAX_EDGES:
-            st.caption(
-                f"Mostrando un subconjunto de {MAX_EDGES} de {len(elements)} "
-                "elementos para agilizar la vista"
-            )
-        st.components.v1.html(html, height=420)
 else:
     st.info("Sube un archivo .cdb")

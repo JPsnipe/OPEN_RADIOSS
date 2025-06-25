@@ -67,3 +67,5 @@ streamlit run src/dashboard/app.py
 Se puede subir un archivo propio o seleccionar ``data_files/model.cdb`` como
 ejemplo. Tras pulsar *Generar input deck* se muestran las primeras líneas de
 ``mesh.inp``.
+
+La pestaña *Vista 3D* genera una visualización interactiva con Plotly. Las superficies se construyen a partir de los elementos del modelo y se limita a 20 000 caras para mantener el rendimiento.

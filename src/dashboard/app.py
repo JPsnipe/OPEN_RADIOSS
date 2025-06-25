@@ -222,11 +222,20 @@ div.stButton>button {{
     background-color: {SDEA_BLUE};
     color: white;
 }}
+.app-title {{
+    text-align: center;
+    color: {SDEA_ORANGE};
+    font-size: 2.5em;
+    margin-bottom: 0.2em;
+}}
 </style>
 """
 st.markdown(style, unsafe_allow_html=True)
 
-st.title("CDB → OpenRadioss")
+st.markdown(
+    "<h1 class='app-title'>\u2728 CDB2Rad Dashboard v0.0</h1>",
+    unsafe_allow_html=True,
+)
 
 header = st.container()
 with header:

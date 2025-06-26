@@ -667,11 +667,11 @@ if file_path:
                     fail_params: Dict[str, float] = {}
                     if fail_type:
                         if fail_type == "JOHNSON":
-                            fail_params["D1"] = input_with_help("D1", 0.0, "d1")
-                            fail_params["D2"] = input_with_help("D2", 0.0, "d2")
-                            fail_params["D3"] = input_with_help("D3", 0.0, "d3")
-                            fail_params["D4"] = input_with_help("D4", 0.0, "d4")
-                            fail_params["D5"] = input_with_help("D5", 0.0, "d5")
+                            fail_params["D1"] = input_with_help("D1", -0.09, "d1")
+                            fail_params["D2"] = input_with_help("D2", 0.25, "d2")
+                            fail_params["D3"] = input_with_help("D3", -0.5, "d3")
+                            fail_params["D4"] = input_with_help("D4", 0.014, "d4")
+                            fail_params["D5"] = input_with_help("D5", 1.12, "d5")
                         elif fail_type == "BIQUAD":
                             fail_params["C1"] = input_with_help("C1", 0.0, "c1")
                             fail_params["C2"] = input_with_help("C2", 0.0, "c2")

@@ -45,6 +45,12 @@ DEFAULT_STEEL_MATERIALS: Dict[str, Dict[str, float]] = {
     },
 }
 
+# Default failure parameters for common criteria
+DEFAULT_FAIL_PARAMS: Dict[str, Dict[str, float]] = {
+    "JOHNSON": {"D1": -0.09, "D2": 0.25, "D3": -0.5, "D4": 0.014, "D5": 1.12},
+    "BIQUAD": {"ALPHA": 0.0, "BETA": 0.0, "M": 0.0, "N": 0.0},
+}
+
 
 def apply_default_materials(materials: Dict[int, Dict[str, float]]) -> Dict[int, Dict[str, float]]:
     """Fill missing properties using :data:`DEFAULT_STEEL_MATERIALS`."""
@@ -58,6 +64,14 @@ def apply_default_materials(materials: Dict[int, Dict[str, float]]) -> Dict[int,
                 # defer to global parameters if provided in writers
                 continue
             merged.setdefault(key, val)
+        if "FAIL" in merged:
+            fail = merged["FAIL"]
+            ftype = str(fail.get("TYPE", "")).upper()
+            f_defaults = DEFAULT_FAIL_PARAMS.get(ftype)
+            if f_defaults:
+                for k, v in f_defaults.items():
+                    fail.setdefault(k, v)
+            fail["TYPE"] = ftype
         merged["LAW"] = law
         result[mid] = merged
     return result

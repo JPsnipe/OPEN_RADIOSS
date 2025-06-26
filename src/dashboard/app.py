@@ -751,11 +751,23 @@ if file_path:
                         hr = st.number_input("hr", value=0.0, key="prop_hr")
                         dm = st.number_input("dm", value=0.0, key="prop_dm")
                         dn = st.number_input("dn", value=0.0, key="prop_dn")
+                elif ptype == "SOLID":
+                    thick = None
+                    with st.expander("Par\u00e1metros avanzados"):
+                        isolid = st.number_input("Isolid", value=24, step=1, key="prop_isolid")
+                        ismstr = st.number_input("Ismstr", value=4, step=1, key="prop_ismstr")
+                        icpre = st.number_input("Icpre", value=1, step=1, key="prop_icpre")
+                        iframe = st.number_input("Iframe", value=1, step=1, key="prop_iframe")
+                        inpts = st.number_input("Inpts", value=222, step=1, key="prop_inpts")
+                        qa = st.number_input("qa", value=1.1, format="%f", key="prop_qa")
+                        qb = st.number_input("qb", value=0.05, format="%f", key="prop_qb")
+                        dn_s = st.number_input("dn", value=0.1, format="%f", key="prop_dn_s")
+                        h = st.number_input("h", value=0.0, format="%f", key="prop_h")
                 else:
                     thick = None
                 if st.button("Añadir propiedad"):
                     data = {"id": int(pid), "name": pname, "type": ptype}
-                    if thick is not None:
+                    if ptype == "SHELL":
                         data["thickness"] = thick
                         data.update(
                             {
@@ -769,6 +781,20 @@ if file_path:
                                 "hr": float(hr),
                                 "dm": float(dm),
                                 "dn": float(dn),
+                            }
+                        )
+                    elif ptype == "SOLID":
+                        data.update(
+                            {
+                                "Isolid": int(isolid),
+                                "Ismstr": int(ismstr),
+                                "Icpre": int(icpre),
+                                "Iframe": int(iframe),
+                                "Inpts": int(inpts),
+                                "qa": float(qa),
+                                "qb": float(qb),
+                                "dn": float(dn_s),
+                                "h": float(h),
                             }
                         )
                     st.session_state["properties"].append(data)

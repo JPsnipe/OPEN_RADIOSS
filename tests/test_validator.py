@@ -43,3 +43,9 @@ def test_invalid_keyword(tmp_path):
     bad.write_text("/UNKNOWN\n1 2 3\n")
     with pytest.raises(ValueError):
         validate_rad_format(str(bad))
+
+
+def test_validate_subset(tmp_path):
+    rad = tmp_path / "subset.rad"
+    rad.write_text("/SUBSET/1\nset1\n1 2 3\n/END\n")
+    validate_rad_format(str(rad))

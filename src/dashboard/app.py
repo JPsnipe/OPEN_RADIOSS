@@ -5,6 +5,11 @@ import json
 import math
 from typing import Dict, List, Tuple, Optional, Set
 
+# Ensure repository root is on the Python path before importing local modules
+root_path = str(Path(__file__).resolve().parents[2])
+if root_path not in sys.path:
+    sys.path.insert(0, root_path)
+
 import streamlit as st
 
 SDEA_LOGO_URL = (
@@ -43,10 +48,6 @@ from cdb2rad.pdf_search import (
     THEORY_MANUAL_URL,
     search_pdf,
 )
-
-root_path = str(Path(__file__).resolve().parents[2])
-if root_path not in sys.path:
-    sys.path.insert(0, root_path)
 
 MAX_EDGES = 10000
 MAX_FACES = 15000

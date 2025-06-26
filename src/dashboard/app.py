@@ -420,12 +420,11 @@ if file_path:
         st.session_state["subsets"] = {}
     nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
 
-    info_tab, preview_tab, vtk_tab, settings_tab, inp_tab, rad_tab, help_tab = st.tabs(
+    info_tab, preview_tab, prop_tab, inp_tab, rad_tab, help_tab = st.tabs(
         [
             "Información",
             "Vista 3D",
-            "Generar VTK",
-            "Settings",
+            "Propiedades",
             "Generar INC",
             "Generar RAD",
             "Ayuda",
@@ -482,7 +481,6 @@ if file_path:
                 height=620,
             )
 
-    with vtk_tab:
         st.subheader("Exportar VTK")
         vtk_dir = st.text_input(
             "Directorio de salida",
@@ -506,7 +504,7 @@ if file_path:
                 st.success(f"Archivo guardado en: {vtk_path}")
 
 
-    with settings_tab:
+    with prop_tab:
         st.subheader("Configuración de propiedades")
         if "properties" not in st.session_state:
             st.session_state["properties"] = []

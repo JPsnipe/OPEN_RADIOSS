@@ -181,3 +181,18 @@ del archivo para guardar fácilmente los resultados.
 ### Ayuda interactiva
 
 La pestaña **Ayuda** ofrece enlaces directos a la documentación principal de Radioss: la [Reference Guide](https://2022.help.altair.com/2022/simulation/pdfs/radopen/AltairRadioss_2022_ReferenceGuide.pdf), la [User Guide](https://2022.help.altair.com/2022/simulation/pdfs/radopen/AltairRadioss_2022_UserGuide.pdf) y el [Theory Manual](https://2022.help.altair.com/2022/simulation/pdfs/radopen/AltairRadioss_2022_TheoryManual.pdf). Puedes descargar estos PDF con ``scripts/download_docs.py`` para consultarlos sin conexión.
+
+### Vista 3D con ParaView Web
+
+Para una visualización más completa de la malla se puede utilizar un servidor
+**ParaView Web**. Con ``scripts/start_paraview_web.py`` se genera un fichero
+``.vtk`` temporal a partir del ``.cdb`` y se lanza el visualizador de ParaView
+en el puerto 12345 por defecto:
+
+```bash
+python scripts/start_paraview_web.py data_files/model.cdb
+```
+
+Al ejecutar el comando se mostrará la URL del visualizador. Desde la pestaña
+**Vista 3D** del dashboard se puede abrir dicho enlace para inspeccionar la malla
+con todas las herramientas de ParaView.

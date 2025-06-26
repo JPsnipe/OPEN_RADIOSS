@@ -3,6 +3,7 @@ from pathlib import Path
 import sys
 import json
 import math
+import subprocess
 from typing import Dict, List, Tuple, Optional, Set
 
 # Ensure repository root is on the Python path before importing local modules
@@ -18,6 +19,13 @@ def _rerun():
         st.rerun()
     elif hasattr(st, "experimental_rerun"):
         st.experimental_rerun()
+
+
+def launch_paraview_server(cdb_path: str, port: int = 12345) -> str:
+    """Spawn ParaView Web server for the given CDB file."""
+    script = Path(__file__).resolve().parents[2] / "scripts" / "start_paraview_web.py"
+    subprocess.Popen(["python", str(script), cdb_path, "--port", str(port)])
+    return f"http://localhost:{port}/"
 
 SDEA_LOGO_URL = (
     "https://sdeasolutions.com/wp-content/uploads/2021/11/"
@@ -445,6 +453,11 @@ if file_path:
                 "elementos para agilizar la vista"
             )
         st.components.v1.html(html, height=420)
+        if st.button("Abrir en ParaView Web"):
+            url = launch_paraview_server(file_path)
+            st.session_state["pvw_url"] = url
+        if "pvw_url" in st.session_state:
+            st.markdown(f"[Abrir ParaView]({st.session_state['pvw_url']})")
 
     with inp_tab:
         st.subheader("Generar mesh.inc")

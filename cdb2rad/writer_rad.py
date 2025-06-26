@@ -75,6 +75,7 @@ def write_rad(
     rbe3: List[Dict[str, object]] | None = None,
     init_velocity: Dict[str, object] | None = None,
     gravity: Dict[str, float] | None = None,
+    remote_points: List[Dict[str, object]] | None = None,
 
 ) -> None:
     """Generate ``model_0000.rad`` with optional solver controls.
@@ -466,6 +467,17 @@ def write_rad(
             f.write("/GRAVITY\n")
             f.write(f"{comp} {g}\n")
             f.write(f"{nx} {ny} {nz}\n")
+
+        if remote_points:
+            for idx, rp in enumerate(remote_points, start=1):
+                mass = rp.get("mass")
+                if mass is None:
+                    continue
+                label = rp.get("label", f"REMOTE_{rp['id']}")
+                f.write(f"/INERTIA/PRINC/{idx}\n")
+                f.write(f"{label}\n")
+                f.write(f"{rp['id']}\n")
+                f.write(f"{mass} 0 0 0 0 0 0\n")
 
         f.write("/END\n")
 

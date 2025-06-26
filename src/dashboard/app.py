@@ -48,6 +48,7 @@ from cdb2rad.writer_rad import (
 from cdb2rad.writer_inc import write_mesh_inc
 from cdb2rad.rad_validator import validate_rad_format
 from cdb2rad.utils import check_rad_inputs
+from cdb2rad.remote import add_remote_point, next_free_node_id
 from cdb2rad.pdf_search import (
     REFERENCE_GUIDE_URL,
     THEORY_MANUAL_URL,
@@ -504,6 +505,13 @@ if file_path:
             st.session_state["rbe2"] = []
         if "rbe3" not in st.session_state:
             st.session_state["rbe3"] = []
+        if "remote_points" not in st.session_state:
+            st.session_state["remote_points"] = []
+
+        extra_nodes = {rp["id"]: list(rp["coords"]) for rp in st.session_state["remote_points"]}
+        all_nodes = {**nodes, **extra_nodes}
+        extra_sets = {rp.get("label", f"REMOTE_{rp['id']}"): [rp["id"]] for rp in st.session_state["remote_points"]}
+        all_node_sets = {**node_sets, **extra_sets}
 
         with st.expander("Definición de materiales"):
             use_cdb_mats = st.checkbox("Incluir materiales del CDB", value=False)
@@ -688,8 +696,8 @@ if file_path:
             st.caption(BC_DESCRIPTIONS[bc_type])
             bc_set = st.selectbox(
                 "Conjunto de nodos",
-                list(node_sets.keys()),
-                disabled=not node_sets,
+                list(all_node_sets.keys()),
+                disabled=not all_node_sets,
             )
             bc_data = {}
             if bc_type == "BCS":
@@ -702,7 +710,7 @@ if file_path:
                 bc_data.update({"dir": int(bc_dir), "value": float(bc_val)})
 
             if st.button("Añadir BC") and bc_set:
-                node_list = node_sets.get(bc_set, [])
+                node_list = all_node_sets.get(bc_set, [])
                 entry = {
                     "name": bc_name,
                     "type": bc_type,
@@ -731,15 +739,15 @@ if file_path:
             int_name = st.text_input("Nombre interfaz", value=f"{int_type}_1")
             slave_set = st.selectbox(
                 "Conjunto esclavo",
-                list(node_sets.keys()),
+                list(all_node_sets.keys()),
                 key="slave_set",
-                disabled=not node_sets,
+                disabled=not all_node_sets,
             )
             master_set = st.selectbox(
                 "Conjunto maestro",
-                list(node_sets.keys()),
+                list(all_node_sets.keys()),
                 key="master_set",
-                disabled=not node_sets,
+                disabled=not all_node_sets,
             )
             fric = input_with_help("Fricción", 0.0, "fric")
 
@@ -750,8 +758,8 @@ if file_path:
                 igap = input_with_help("Igap", 0, "igap")
 
             if st.button("Añadir interfaz") and slave_set and master_set:
-                s_list = node_sets.get(slave_set, [])
-                m_list = node_sets.get(master_set, [])
+                s_list = all_node_sets.get(slave_set, [])
+                m_list = all_node_sets.get(master_set, [])
                 itf = {
                     "type": int_type,
                     "name": int_name,
@@ -778,15 +786,15 @@ if file_path:
         with st.expander("Velocidad inicial (IMPVEL)"):
             vel_set = st.selectbox(
                 "Conjunto de nodos",
-                list(node_sets.keys()),
+                list(all_node_sets.keys()),
                 key="vel_set",
-                disabled=not node_sets,
+                disabled=not all_node_sets,
             )
             vx = input_with_help("Vx", 0.0, "vx")
             vy = input_with_help("Vy", 0.0, "vy")
             vz = input_with_help("Vz", 0.0, "vz")
             if st.button("Asignar velocidad") and vel_set:
-                n_list = node_sets.get(vel_set, [])
+                n_list = all_node_sets.get(vel_set, [])
                 st.session_state["init_vel"] = {
                     "nodes": n_list,
                     "vx": vx,
@@ -823,6 +831,45 @@ if file_path:
                 with cols[1]:
                     if st.button("Eliminar", key="del_gravity"):
                         st.session_state["gravity"] = None
+                        _rerun()
+
+        with st.expander("Puntos remotos"):
+            colx, coly, colz = st.columns(3)
+            with colx:
+                rx = st.number_input("X", 0.0, key="rp_x")
+            with coly:
+                ry = st.number_input("Y", 0.0, key="rp_y")
+            with colz:
+                rz = st.number_input("Z", 0.0, key="rp_z")
+            label = st.text_input("Label", "", key="rp_label")
+            mass = st.number_input("Masa", 0.0, key="rp_mass")
+            auto = st.checkbox("ID automático", value=True, key="rp_auto")
+            next_id = next_free_node_id(all_nodes)
+            rid = st.number_input("ID", value=next_id, key="rp_id", disabled=auto)
+            if st.button("Añadir punto remoto"):
+                try:
+                    if auto:
+                        _, rp = add_remote_point(all_nodes, (rx, ry, rz), label=label or None, mass=mass or None)
+                    else:
+                        _, rp = add_remote_point(all_nodes, (rx, ry, rz), node_id=int(rid), label=label or None, mass=mass or None)
+                    st.session_state["remote_points"].append(rp)
+                    _rerun()
+                except ValueError as e:
+                    st.error(str(e))
+            for i, rp in enumerate(st.session_state.get("remote_points", [])):
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    label = rp.get("label", f"REMOTE_{rp['id']}")
+                    mass = rp.get("mass")
+                    txt = f"ID {rp['id']} → {rp['coords']}"
+                    if label:
+                        txt += f" [{label}]"
+                    if mass is not None:
+                        txt += f" m={mass}"
+                    st.write(txt)
+                with cols[1]:
+                    if st.button("Eliminar", key=f"del_rp_{i}"):
+                        st.session_state["remote_points"].pop(i)
                         _rerun()
 
         rad_dir = st.text_input(
@@ -873,7 +920,7 @@ if file_path:
                 st.error("El archivo ya existe. Elija otro nombre o directorio")
             else:
                 if no_opts:
-                    write_mesh_inc(nodes, elements, str(mesh_path))
+                    write_mesh_inc(all_nodes, elements, str(mesh_path), node_sets=all_node_sets)
                     from cdb2rad.writer_rad import write_minimal_rad
                     write_minimal_rad(
                         str(rad_path),
@@ -909,14 +956,14 @@ if file_path:
                         adyrel_start = ctrl.get("adyrel_start", adyrel_start)
                         adyrel_stop = ctrl.get("adyrel_stop", adyrel_stop)
                     if not include_inc:
-                        write_mesh_inc(nodes, elements, str(mesh_path))
+                        write_mesh_inc(all_nodes, elements, str(mesh_path), node_sets=all_node_sets)
                     write_rad(
-                        nodes,
+                        all_nodes,
                         elements,
                         str(rad_path),
                         mesh_inc=str(mesh_path),
                         include_inc=include_inc,
-                        node_sets=node_sets,
+                        node_sets=all_node_sets,
                         elem_sets=elem_sets,
                         materials=materials if use_cdb_mats else None,
                         extra_materials=extra,
@@ -946,6 +993,7 @@ if file_path:
                         rbe3=st.session_state.get("rbe3"),
                         init_velocity=st.session_state.get("init_vel"),
                         gravity=st.session_state.get("gravity"),
+                        remote_points=st.session_state.get("remote_points"),
                     )
                 try:
                     validate_rad_format(str(rad_path))
@@ -978,7 +1026,7 @@ if file_path:
                 st.error("El archivo RAD ya existe. Cambie el nombre o directorio")
 
             else:
-                write_mesh_inc(nodes, elements, str(mesh_path))
+                write_mesh_inc(all_nodes, elements, str(mesh_path), node_sets=all_node_sets)
                 from cdb2rad.writer_rad import write_minimal_rad
 
                 write_minimal_rad(
@@ -996,8 +1044,8 @@ if file_path:
         st.subheader("Rigid Connectors")
         with st.expander("/RBODY"):
             rb_id = st.number_input("RBID", 1)
-            master = st.selectbox("Nodo maestro", list(nodes.keys()))
-            slaves = st.multiselect("Nodos secundarios", list(nodes.keys()))
+            master = st.selectbox("Nodo maestro", list(all_nodes.keys()))
+            slaves = st.multiselect("Nodos secundarios", list(all_nodes.keys()))
             if st.button("Añadir RBODY"):
                 st.session_state["rbodies"].append({
                     "RBID": int(rb_id),
@@ -1011,8 +1059,8 @@ if file_path:
                 st.experimental_rerun()
 
         with st.expander("/RBE2"):
-            m = st.selectbox("Master", list(nodes.keys()), key="rbe2m")
-            slaves2 = st.multiselect("Slaves", list(nodes.keys()), key="rbe2s")
+            m = st.selectbox("Master", list(all_nodes.keys()), key="rbe2m")
+            slaves2 = st.multiselect("Slaves", list(all_nodes.keys()), key="rbe2s")
             if st.button("Añadir RBE2"):
                 st.session_state["rbe2"].append({
                     "N_master": int(m),
@@ -1025,8 +1073,8 @@ if file_path:
                 st.experimental_rerun()
 
         with st.expander("/RBE3"):
-            dep = st.selectbox("Dependiente", list(nodes.keys()), key="rbe3d")
-            indep_nodes = st.multiselect("Independientes", list(nodes.keys()), key="rbe3i")
+            dep = st.selectbox("Dependiente", list(all_nodes.keys()), key="rbe3d")
+            indep_nodes = st.multiselect("Independientes", list(all_nodes.keys()), key="rbe3i")
             if st.button("Añadir RBE3"):
                 st.session_state["rbe3"].append({
                     "N_dependent": int(dep),

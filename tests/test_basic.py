@@ -277,3 +277,18 @@ def test_write_rad_with_connectors(tmp_path):
     assert '/RBE3/1' in text
 
 
+def test_write_rad_remote_mass(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'rmass.rad'
+    rp = [{
+        'id': max(nodes) + 1,
+        'coords': (0.0, 0.0, 1.0),
+        'label': 'Punto',
+        'mass': 5.0,
+    }]
+    write_rad(nodes, elements, str(rad), remote_points=rp)
+    content = rad.read_text()
+    assert '/INERTIA/PRINC/1' in content
+    assert '5.0 0 0 0 0 0 0' in content
+
+

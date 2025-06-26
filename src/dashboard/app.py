@@ -740,12 +740,37 @@ if file_path:
                 ptype = st.selectbox("Tipo", ["SHELL", "SOLID"], key="prop_type")
                 if ptype == "SHELL":
                     thick = st.number_input("Espesor", value=DEFAULT_THICKNESS, key="prop_thick")
+                    with st.expander("Par\u00e1metros avanzados"):
+                        ishell = st.number_input("Ishell", value=24, step=1, key="prop_ishell")
+                        ip = st.number_input("Iplas", value=1, step=1, key="prop_ip")
+                        ithick = st.number_input("Ithick", value=1, step=1, key="prop_ithick")
+                        istr = st.number_input("Istrain", value=0, step=1, key="prop_istrain")
+                        ashear = st.number_input("Ashear", value=0, step=1, key="prop_ashear")
+                        hm = st.number_input("hm", value=0.0, key="prop_hm")
+                        hf = st.number_input("hf", value=0.0, key="prop_hf")
+                        hr = st.number_input("hr", value=0.0, key="prop_hr")
+                        dm = st.number_input("dm", value=0.0, key="prop_dm")
+                        dn = st.number_input("dn", value=0.0, key="prop_dn")
                 else:
                     thick = None
                 if st.button("Añadir propiedad"):
                     data = {"id": int(pid), "name": pname, "type": ptype}
                     if thick is not None:
                         data["thickness"] = thick
+                        data.update(
+                            {
+                                "Ishell": int(ishell),
+                                "Iplas": int(ip),
+                                "Ithick": int(ithick),
+                                "Istrain": int(istr),
+                                "Ashear": int(ashear),
+                                "hm": float(hm),
+                                "hf": float(hf),
+                                "hr": float(hr),
+                                "dm": float(dm),
+                                "dn": float(dn),
+                            }
+                        )
                     st.session_state["properties"].append(data)
 
             if st.session_state["properties"]:

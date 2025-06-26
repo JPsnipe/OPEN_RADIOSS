@@ -77,6 +77,7 @@ def write_rad(
     gravity: Dict[str, float] | None = None,
     properties: List[Dict[str, Any]] | None = None,
     parts: List[Dict[str, Any]] | None = None,
+    subsets: Dict[str, List[int]] | None = None,
     include_run: bool = True,
     default_material: bool = True,
 ) -> None:
@@ -485,6 +486,19 @@ def write_rad(
                     f.write(f"/PROP/{ptype}/{pid}\n")
                     f.write(f"{pname}\n")
                     f.write("# property parameters not defined\n")
+
+        if subsets:
+            for idx, (name, ids) in enumerate(subsets.items(), start=1):
+                f.write(f"/SUBSET/{idx}\n")
+                f.write(f"{name}\n")
+                line: List[str] = []
+                for i, sid in enumerate(ids, 1):
+                    line.append(str(sid))
+                    if i % 10 == 0:
+                        f.write(" ".join(line) + "\n")
+                        line = []
+                if line:
+                    f.write(" ".join(line) + "\n")
 
         if init_velocity:
             nodes_v = init_velocity.get("nodes", [])

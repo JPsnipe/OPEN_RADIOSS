@@ -300,3 +300,13 @@ def test_write_rad_with_properties(tmp_path):
     assert '/PART/1' in txt
 
 
+def test_write_rad_with_subset(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'subset.rad'
+    subs = {'grp1': [1, 2, 3]}
+    write_rad(nodes, elements, str(rad), subsets=subs)
+    txt = rad.read_text()
+    assert '/SUBSET/1' in txt
+    assert 'grp1' in txt
+
+

@@ -1254,6 +1254,7 @@ if file_path:
                         gravity=st.session_state.get("gravity"),
                         properties=st.session_state.get("properties"),
                         parts=st.session_state.get("parts"),
+                        subsets=st.session_state.get("subsets"),
                     )
                 try:
                     validate_rad_format(str(rad_path))

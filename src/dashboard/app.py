@@ -57,6 +57,11 @@ from cdb2rad.writer_inc import write_mesh_inc
 from cdb2rad.rad_validator import validate_rad_format
 from cdb2rad.utils import check_rad_inputs
 from cdb2rad.remote import add_remote_point, next_free_node_id
+from cdb2rad.pdf_search import (
+    REFERENCE_GUIDE_URL,
+    THEORY_MANUAL_URL,
+    USER_GUIDE as USER_GUIDE_URL,
+)
 
 MAX_EDGES = 10000
 MAX_FACES = 15000
@@ -366,12 +371,13 @@ if file_path:
     )
     st.session_state["work_dir"] = work_dir
     nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
-    info_tab, preview_tab, inp_tab, rad_tab = st.tabs(
+    info_tab, preview_tab, inp_tab, rad_tab, help_tab = st.tabs(
         [
             "Información",
             "Vista 3D",
             "Generar INC",
             "Generar RAD",
+            "Ayuda",
         ]
     )
 
@@ -1036,6 +1042,14 @@ if file_path:
                     st.text_area(
                         "model.rad", rad_path.read_text(), height=400
                     )
+
+    with help_tab:
+        st.subheader("Documentación")
+        st.markdown(
+            f"[Reference Guide]({REFERENCE_GUIDE_URL}) | "
+            f"[User Guide]({USER_GUIDE_URL}) | "
+            f"[Theory Manual]({THEORY_MANUAL_URL})"
+        )
 
 else:
     st.info("Sube un archivo .cdb")

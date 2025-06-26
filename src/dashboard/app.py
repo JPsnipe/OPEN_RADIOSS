@@ -453,11 +453,17 @@ if file_path:
                 "elementos para agilizar la vista"
             )
         st.components.v1.html(html, height=420)
-        if st.button("Abrir en ParaView Web"):
+
+        if st.button("Visualizar con ParaView Web"):
             url = launch_paraview_server(file_path)
             st.session_state["pvw_url"] = url
         if "pvw_url" in st.session_state:
-            st.markdown(f"[Abrir ParaView]({st.session_state['pvw_url']})")
+            st.components.v1.html(
+                f'<iframe src="{st.session_state["pvw_url"]}" '
+                'style="width:100%;height:600px;border:none;"></iframe>',
+                height=620,
+            )
+
 
     with inp_tab:
         st.subheader("Generar mesh.inc")

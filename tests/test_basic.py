@@ -300,13 +300,38 @@ def test_write_rad_with_properties(tmp_path):
     assert '/PART/1' in txt
 
 
-def test_write_rad_with_subset(tmp_path):
+
+def test_write_rad_with_advanced_shell(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
-    rad = tmp_path / 'subset.rad'
-    subs = {'grp1': [1, 2, 3]}
-    write_rad(nodes, elements, str(rad), subsets=subs)
-    txt = rad.read_text()
-    assert '/SUBSET/1' in txt
-    assert 'grp1' in txt
+    rad = tmp_path / 'prop_adv.rad'
+    props = [
+        {
+            'id': 1,
+            'name': 'adv',
+            'type': 'SHELL',
+            'thickness': 1.2,
+            'Ishell': 22,
+            'Iplas': 0,
+            'Ithick': 0,
+            'Istrain': 1,
+            'Ashear': 1,
+            'hm': 0.1,
+            'hf': 0.2,
+            'hr': 0.3,
+            'dm': 0.4,
+            'dn': 0.5,
+        }
+    ]
+    write_rad(nodes, elements, str(rad), properties=props)
+    lines = rad.read_text().splitlines()
+    idx = lines.index('/PROP/SHELL/1')
+    nums1 = lines[idx + 3].split()
+    nums2 = lines[idx + 5].split()
+    nums3 = lines[idx + 7].split()
+    assert nums1[0] == '22'
+    assert nums2[0] == '0.1'
+    assert nums3[1] == '1'
+    assert nums3[2] == '1.2'
+
 
 

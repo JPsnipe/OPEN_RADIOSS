@@ -481,6 +481,8 @@ if file_path:
             st.session_state["bcs"] = []
         if "interfaces" not in st.session_state:
             st.session_state["interfaces"] = []
+        if "next_inter_idx" not in st.session_state:
+            st.session_state["next_inter_idx"] = 1
         if "init_vel" not in st.session_state:
             st.session_state["init_vel"] = None
         if "gravity" not in st.session_state:
@@ -767,7 +769,13 @@ if file_path:
                 key="itf_type",
                 format_func=lambda k: f"{k} - {INT_DESCRIPTIONS[k]}",
             )
-            int_name = st.text_input("Nombre interfaz", value=f"{int_type}_1")
+            idx = st.session_state.get("next_inter_idx", 1)
+            def_name = f"{int_type}_{idx}"
+            int_name = st.text_input(
+                "Nombre interfaz",
+                value=st.session_state.get("int_name", def_name),
+                key="int_name",
+            )
             slave_set = st.selectbox(
                 "Conjunto esclavo",
                 list(all_node_sets.keys()),
@@ -791,20 +799,24 @@ if file_path:
             if st.button("Añadir interfaz") and slave_set and master_set:
                 s_list = all_node_sets.get(slave_set, [])
                 m_list = all_node_sets.get(master_set, [])
-                itf = {
-                    "type": int_type,
-                    "name": int_name,
-                    "slave": s_list,
-                    "master": m_list,
-                    "fric": fric,
-                }
-                if int_type == "TYPE7":
-                    itf.update({
-                        "gap": gap,
-                        "stiff": stiff,
-                        "igap": int(igap),
-                    })
-                st.session_state["interfaces"].append(itf)
+                if s_list and m_list:
+                    itf = {
+                        "type": int_type,
+                        "name": int_name,
+                        "slave": s_list,
+                        "master": m_list,
+                        "fric": float(fric),
+                    }
+                    if int_type == "TYPE7":
+                        itf.update({
+                            "gap": gap,
+                            "stiff": stiff,
+                            "igap": int(igap),
+                        })
+                    st.session_state["interfaces"].append(itf)
+                    st.session_state["next_inter_idx"] += 1
+                    st.session_state["int_name"] = f"{int_type}_{st.session_state['next_inter_idx']}"
+                    _rerun()
             for i, itf in enumerate(st.session_state["interfaces"]):
                 cols = st.columns([4, 1])
                 with cols[0]:

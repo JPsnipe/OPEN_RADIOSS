@@ -498,6 +498,27 @@ def write_rad(
                     f.write(f"                   {hm}                   {hf}                {hr}                   {dm}                   {dn}\n")
                     f.write("#        N   Istrain               Thick           Ashear              Ithick     Iplas\n")
                     f.write(f"         {n}         {istr}                 {thick}                   {ashear}                   {ithick}         {ip}\n")
+                elif ptype == "SOLID":
+                    isol = int(prop.get("Isolid", 24))
+                    ismstr = int(prop.get("Ismstr", 4))
+                    icpre = int(prop.get("Icpre", 1))
+                    iframe = int(prop.get("Iframe", 1))
+                    inpts = int(prop.get("Inpts", 222))
+                    qa = float(prop.get("qa", 1.1))
+                    qb = float(prop.get("qb", 0.05))
+                    dn = float(prop.get("dn", 0.1))
+                    h = float(prop.get("h", 0.0))
+
+                    f.write(f"/PROP/SOLID/{pid}\n")
+                    f.write(f"{pname}\n")
+                    f.write("#  Isolid   Ismstr    Icpre   Iframe\n")
+                    f.write(
+                        f"       {isol}        {ismstr}        {icpre}        {iframe}\n"
+                    )
+                    f.write("#  Inpts       qa        qb        dn         h\n")
+                    f.write(
+                        f"   {inpts:5d}   {qa:<8g}   {qb:<8g}   {dn:<8g}   {h:<8g}\n"
+                    )
                 else:
                     f.write(f"/PROP/{ptype}/{pid}\n")
                     f.write(f"{pname}\n")

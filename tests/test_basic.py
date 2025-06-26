@@ -334,4 +334,30 @@ def test_write_rad_with_advanced_shell(tmp_path):
     assert nums3[2] == '1.2'
 
 
+def test_write_rad_with_solid_prop(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'solid.rad'
+    props = [
+        {
+            'id': 1,
+            'name': 'solid_p',
+            'type': 'SOLID',
+            'Isolid': 24,
+            'Ismstr': 4,
+        }
+    ]
+    parts = [{
+        'id': 1,
+        'name': 'part1',
+        'pid': 1,
+        'mid': 1,
+    }]
+    write_rad(nodes, elements, str(rad), properties=props, parts=parts)
+    lines = rad.read_text().splitlines()
+    idx = lines.index('/PROP/SOLID/1')
+    assert 'Isolid' in lines[idx + 2]
+    nums = lines[idx + 3].split()
+    assert nums[0] == '24'
+
+
 

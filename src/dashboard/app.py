@@ -454,19 +454,13 @@ if file_path:
             st.write(f"- ID {mid}: {props}")
 
     with preview_tab:
-        st.write("Selecciona conjuntos de elementos para visualizar:")
-        all_elem_sets = {**elem_sets, **st.session_state.get("subsets", {})}
-        selected_sets = st.multiselect(
-            "Conjuntos", list(all_elem_sets.keys()), default=list(all_elem_sets.keys())
+        port = st.number_input("Puerto ParaView Web", value=8080, step=1)
+        cmd = (
+            f"\"C:\\Program Files\\ParaView 5.12.0\\bin\\pvpython.exe\" "
+            f"-m paraview.apps.visualizer --data \"C:\\JAVIER\\OPEN_RADIOSS\\paraview\\data\" "
+            f"--content \"C:\\JAVIER\\OPEN_RADIOSS\\paraview\\www\" --port {int(port)}"
         )
-        sel_eids = set()
-        for name in selected_sets:
-            sel_eids.update(all_elem_sets.get(name, []))
-
-        html = viewer_html(nodes, elements, selected_eids=sel_eids if sel_eids else None)
-        st.components.v1.html(html, height=420)
-
-        port = st.number_input("Puerto ParaView Web", value=12345, step=1)
+        st.text_input("Comando para lanzar", value=cmd, key="pv_cmd")
         if st.button("Visualizar con ParaView Web"):
             url = launch_paraview_server(
                 nodes=nodes,

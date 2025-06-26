@@ -395,6 +395,9 @@ if file_path:
         value=st.session_state.get("work_dir", str(Path.cwd())),
     )
     st.session_state["work_dir"] = work_dir
+
+    if "parts" not in st.session_state:
+        st.session_state["parts"] = []
     nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
     info_tab, preview_tab, inp_tab, rad_tab, help_tab = st.tabs(
         [

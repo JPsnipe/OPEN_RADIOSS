@@ -12,7 +12,10 @@ if root_path not in sys.path:
     sys.path.insert(0, root_path)
 
 import streamlit as st
-from cdb2rad.mesh_convert import convert_to_vtk
+from cdb2rad.mesh_convert import convert_to_vtk, mesh_to_temp_vtk
+
+from cdb2rad.vtk_writer import write_vtk, write_vtp
+
 
 def _rerun():
     """Compatibility wrapper for streamlit rerun."""
@@ -22,15 +25,45 @@ def _rerun():
         st.experimental_rerun()
 
 
-def launch_paraview_server(mesh_path: str, port: int = 12345) -> str:
-    """Spawn ParaViewWeb server for the given mesh file."""
+
+def launch_paraview_server(
+    mesh_path: str | None = None,
+    *,
+    nodes: Dict[int, List[float]] | None = None,
+    elements: List[Tuple[int, int, List[int]]] | None = None,
+    port: int = 12345,
+    host: str = "127.0.0.1",
+    verbose: bool = False,
+) -> str:
+
+    """Spawn ParaViewWeb server for ``mesh_path`` or an in-memory mesh."""
     script = Path(__file__).resolve().parents[2] / "scripts" / "pv_visualizer.py"
-    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".vtk")
-    tmp.close()
-    convert_to_vtk(mesh_path, tmp.name)
-    cmd = ["python", str(script), "--data", tmp.name, "--port", str(port)]
+
+    if mesh_path:
+        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".vtk")
+        tmp.close()
+        convert_to_vtk(mesh_path, tmp.name)
+        data_path = tmp.name
+    elif nodes is not None and elements is not None:
+        data_path = mesh_to_temp_vtk(nodes, elements)
+    else:
+        raise ValueError("mesh_path or nodes/elements must be provided")
+
+    cmd = [
+        "python",
+        str(script),
+        "--data",
+        data_path,
+        "--port",
+        str(port),
+        "--host",
+        host,
+    ]
+    if verbose:
+        cmd.append("--verbose")
     subprocess.Popen(cmd)
-    return f"http://localhost:{port}/"
+    return f"http://{host}:{port}/"
+
 
 SDEA_LOGO_URL = (
     "https://sdeasolutions.com/wp-content/uploads/2021/11/"
@@ -40,6 +73,9 @@ OPENRADIOSS_LOGO_URL = (
     "https://openradioss.org/wp-content/uploads/2023/07/openradioss-logo.png"
 )
 ANSYS_LOGO_URL = "https://www.ansys.com/content/dam/company/brand/logos/ansys-logos/ansys-logo.svg"
+
+# Default output directory for exported VTK files
+DEFAULT_VTK_DIR = r"C:\JAVIER\OPEN_RADIOSS\paraview\data"
 
 from cdb2rad.parser import parse_cdb
 from cdb2rad.writer_rad import (
@@ -363,6 +399,10 @@ unit_sel = st.selectbox(
 
 uploaded = st.file_uploader("Subir archivo .cdb", type="cdb")
 
+# Ensure session state has expected keys even before loading a CDB
+if "subsets" not in st.session_state:
+    st.session_state["subsets"] = {}
+
 file_path = None
 if uploaded is not None:
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".cdb")
@@ -376,11 +416,18 @@ if file_path:
         value=st.session_state.get("work_dir", str(Path.cwd())),
     )
     st.session_state["work_dir"] = work_dir
+
+    if "parts" not in st.session_state:
+        st.session_state["parts"] = []
+    if "subsets" not in st.session_state:
+        st.session_state["subsets"] = {}
     nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
-    info_tab, preview_tab, inp_tab, rad_tab, help_tab = st.tabs(
+
+    info_tab, preview_tab, prop_tab, inp_tab, rad_tab, help_tab = st.tabs(
         [
             "Información",
             "Vista 3D",
+            "Propiedades",
             "Generar INC",
             "Generar RAD",
             "Ayuda",
@@ -402,27 +449,38 @@ if file_path:
         st.write("Conjuntos de nodos:", len(node_sets))
         for name, nids in node_sets.items():
             st.write(f"- {name}: {len(nids)} nodos")
-        st.write("Conjuntos de elementos:", len(elem_sets))
-        for name, eids in elem_sets.items():
+        all_elem_sets = {**elem_sets, **st.session_state.get("subsets", {})}
+        st.write("Conjuntos de elementos:", len(all_elem_sets))
+        for name, eids in all_elem_sets.items():
             st.write(f"- {name}: {len(eids)} elementos")
+        if st.session_state["parts"]:
+            st.write("Partes definidas:")
+            for part in st.session_state["parts"]:
+                if "set" in part:
+                    st.write(
+                        f"- {part['name']} (ID {part['id']}) → {part['set']}"
+                    )
+                else:
+                    st.write(f"- {part['name']} (ID {part['id']})")
         st.write("Materiales:")
         for mid, props in materials.items():
             st.write(f"- ID {mid}: {props}")
 
     with preview_tab:
-        st.write("Selecciona conjuntos de elementos para visualizar:")
-        selected_sets = st.multiselect(
-            "Conjuntos", list(elem_sets.keys()), default=list(elem_sets.keys())
+        port = st.number_input("Puerto ParaView Web", value=8080, step=1)
+        cmd = (
+            f"\"C:\\Program Files\\ParaView 5.12.0\\bin\\pvpython.exe\" "
+            f"-m paraview.apps.visualizer --data \"C:\\JAVIER\\OPEN_RADIOSS\\paraview\\data\" "
+            f"--content \"C:\\JAVIER\\OPEN_RADIOSS\\paraview\\www\" --port {int(port)}"
         )
-        sel_eids = set()
-        for name in selected_sets:
-            sel_eids.update(elem_sets.get(name, []))
-
-        html = viewer_html(nodes, elements, selected_eids=sel_eids if sel_eids else None)
-        st.components.v1.html(html, height=420)
-
+        st.text_input("Comando para lanzar", value=cmd, key="pv_cmd")
         if st.button("Visualizar con ParaView Web"):
-            url = launch_paraview_server(file_path)
+            url = launch_paraview_server(
+                nodes=nodes,
+                elements=elements,
+                port=int(port),
+                verbose=True,
+            )
             st.session_state["pvw_url"] = url
         if "pvw_url" in st.session_state:
             st.components.v1.html(
@@ -430,6 +488,96 @@ if file_path:
                 'style="width:100%;height:600px;border:none;"></iframe>',
                 height=620,
             )
+
+
+        st.subheader("Exportar VTK")
+        vtk_dir = st.text_input(
+            "Directorio de salida",
+            value=st.session_state.get("vtk_dir", DEFAULT_VTK_DIR),
+            key="vtk_dir",
+        )
+        vtk_name = st.text_input("Nombre de archivo", value="mesh", key="vtk_name")
+        vtk_format = st.selectbox("Formato", [".vtk", ".vtp"], key="vtk_format")
+        overwrite_vtk = st.checkbox("Sobrescribir si existe", value=False, key="overwrite_vtk")
+        if st.button("Generar VTK"):
+            out_dir = Path(vtk_dir).expanduser()
+            out_dir.mkdir(parents=True, exist_ok=True)
+            vtk_path = out_dir / f"{vtk_name}{vtk_format}"
+            if vtk_path.exists() and not overwrite_vtk:
+                st.error("El archivo ya existe. Elija otro nombre o active sobrescribir")
+            else:
+                if vtk_format == ".vtp":
+                    write_vtp(nodes, elements, str(vtk_path))
+                else:
+                    write_vtk(nodes, elements, str(vtk_path))
+                st.success(f"Archivo guardado en: {vtk_path}")
+
+
+    with prop_tab:
+        st.subheader("Configuración de propiedades")
+        if "properties" not in st.session_state:
+            st.session_state["properties"] = []
+        if "parts" not in st.session_state:
+            st.session_state["parts"] = []
+
+        with st.expander("Definir propiedad"):
+            pid = st.number_input("ID propiedad", value=len(st.session_state["properties"]) + 1, key="prop_id")
+            pname = st.text_input("Nombre", value=f"PROP_{pid}", key="prop_name")
+            ptype = st.selectbox("Tipo", ["SHELL", "SOLID"], key="prop_type")
+            if ptype == "SHELL":
+                thick = st.number_input("Espesor", value=DEFAULT_THICKNESS, key="prop_thick")
+            else:
+                thick = None
+            if st.button("Añadir propiedad"):
+                data = {"id": int(pid), "name": pname, "type": ptype}
+                if thick is not None:
+                    data["thickness"] = thick
+                st.session_state["properties"].append(data)
+
+        if st.session_state["properties"]:
+            st.write("Propiedades definidas:")
+            for i, pr in enumerate(st.session_state["properties"]):
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.json(pr)
+                with cols[1]:
+                    if st.button("Eliminar", key=f"del_prop_{i}"):
+                        st.session_state["properties"].pop(i)
+                        _rerun()
+
+        with st.expander("Definir parte"):
+            part_id = st.number_input(
+                "ID parte",
+                value=len(st.session_state["parts"]) + 1,
+                key="def_part_id",
+            )
+            part_name = st.text_input(
+                "Nombre parte", value=f"PART_{part_id}", key="def_part_name"
+            )
+            prop_opts = [p["id"] for p in st.session_state["properties"]]
+            pid_sel = st.selectbox(
+                "Propiedad", prop_opts, disabled=not prop_opts, key="def_part_pid"
+            )
+            mid_sel = st.number_input("Material ID", value=1, key="def_part_mid")
+            if st.button("Añadir parte"):
+                st.session_state["parts"].append({
+                    "id": int(part_id),
+                    "name": part_name,
+                    "pid": int(pid_sel) if prop_opts else 1,
+                    "mid": int(mid_sel),
+                })
+
+        if st.session_state["parts"]:
+            st.write("Partes definidas:")
+            for i, pt in enumerate(st.session_state["parts"]):
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.json(pt)
+                with cols[1]:
+                    if st.button("Eliminar", key=f"del_part_{i}"):
+                        st.session_state["parts"].pop(i)
+                        _rerun()
+
 
     with inp_tab:
         st.subheader("Generar mesh.inc")
@@ -453,12 +601,13 @@ if file_path:
             if inp_path.exists() and not overwrite_inc:
                 st.error("El archivo ya existe. Elija otro nombre o directorio")
             else:
+                all_elem_sets = {**elem_sets, **st.session_state.get("subsets", {})}
                 write_mesh_inc(
                     nodes,
                     elements,
                     str(inp_path),
                     node_sets=node_sets if use_sets else None,
-                    elem_sets=elem_sets if use_sets else None,
+                    elem_sets=all_elem_sets if use_sets else None,
                     materials=materials if use_mats else None,
                 )
                 st.success(f"Fichero generado en: {inp_path}")
@@ -566,6 +715,12 @@ if file_path:
                             st.session_state["parts"].pop(i)
                             _rerun()
 
+        if "properties" not in st.session_state:
+            st.session_state["properties"] = []
+        if "parts" not in st.session_state:
+            st.session_state["parts"] = []
+
+
         extra_nodes = {
             rp["id"]: list(rp["coords"])
             for rp in st.session_state["remote_points"]
@@ -575,6 +730,17 @@ if file_path:
             f"REMOTE_{rp['id']}": [rp['id']] for rp in st.session_state["remote_points"]
         }
         all_node_sets = {**node_sets, **extra_sets}
+        all_elem_sets = {**elem_sets, **st.session_state["subsets"]}
+
+        part_node_sets = {}
+        for part in st.session_state["parts"]:
+            set_name = part.get("set")
+            eids = all_elem_sets.get(set_name, [])
+            nodes_in_part = {nid for eid, _et, ns in elements if eid in eids for nid in ns}
+            if nodes_in_part:
+                part_node_sets[part["name"]] = sorted(nodes_in_part)
+
+        all_node_sets.update(part_node_sets)
 
         with st.expander("Definición de materiales"):
             use_cdb_mats = st.checkbox("Incluir materiales del CDB", value=False)
@@ -662,6 +828,63 @@ if file_path:
                                 if st.button("Eliminar", key=f"del_mat_{i}"):
                                     st.session_state["impact_materials"].pop(i)
                                     _rerun()
+
+        with st.expander("Bloques (/PART y /SUBSET)"):
+            with st.expander("/SUBSET"):
+                sub_name = st.text_input("Nombre subset", key="sub_name")
+                base_sets = st.multiselect(
+                    "Conjuntos base", list(all_elem_sets.keys()), key="sub_sets"
+                )
+                manual = st.text_area("IDs manuales", key="sub_ids")
+                if st.button("Añadir subset") and sub_name:
+                    ids = set()
+                    for s in base_sets:
+                        ids.update(all_elem_sets.get(s, []))
+                    for tok in manual.replace(',', ' ').split():
+                        try:
+                            ids.add(int(tok))
+                        except ValueError:
+                            pass
+                    if ids:
+                        st.session_state["subsets"][sub_name] = sorted(ids)
+                        _rerun()
+            for name, ids in st.session_state["subsets"].items():
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.write(f"{name}: {len(ids)} elementos")
+                with cols[1]:
+                    if st.button("Eliminar", key=f"del_subset_{name}"):
+                        del st.session_state["subsets"][name]
+                        _rerun()
+
+            with st.expander("/PART"):
+                pid = st.number_input("ID", 1, key="rad_part_id")
+                pname = st.text_input("Nombre part", key="rad_part_name")
+                sel_set = st.selectbox(
+                    "Subset o conjunto", list(all_elem_sets.keys()), key="part_set", disabled=not all_elem_sets
+                )
+                mat_pid = st.number_input("Material ID", 1, key="part_mat")
+                if st.button("Añadir part") and pname and sel_set:
+                    st.session_state["parts"].append({
+                        "id": int(pid),
+                        "name": pname,
+                        "set": sel_set,
+                        "mat": int(mat_pid),
+                    })
+                    _rerun()
+            for i, part in enumerate(st.session_state["parts"]):
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    if "set" in part:
+                        st.write(
+                            f"{part['name']} → {part['set']} (ID {part['id']})"
+                        )
+                    else:
+                        st.write(f"{part['name']} (ID {part['id']})")
+                with cols[1]:
+                    if st.button("Eliminar", key=f"del_part_{i}"):
+                        st.session_state["parts"].pop(i)
+                        _rerun()
 
 
         with st.expander("Control del cálculo"):
@@ -1080,6 +1303,7 @@ if file_path:
                     adyrel_stop = ctrl.get("adyrel_stop", adyrel_stop)
                 if not include_inc:
                     write_mesh_inc(all_nodes, elements, str(mesh_path), node_sets=all_node_sets)
+                all_elem_sets = {**elem_sets, **st.session_state.get("subsets", {})}
                 write_rad(
                         all_nodes,
                         elements,
@@ -1087,7 +1311,7 @@ if file_path:
                         mesh_inc=str(mesh_path),
                         include_inc=include_inc,
                         node_sets=all_node_sets,
-                        elem_sets=elem_sets,
+                        elem_sets=all_elem_sets,
                         materials=materials if use_cdb_mats else None,
                         extra_materials=extra,
 

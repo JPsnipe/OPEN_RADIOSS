@@ -12,13 +12,12 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 
-from cdb2rad.parser import parse_cdb
-from cdb2rad.vtk_writer import write_vtk
+from cdb2rad.mesh_convert import convert_to_vtk
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Start ParaView Web server")
-    parser.add_argument("cdb_file", help="Input .cdb file")
+    parser.add_argument("mesh_file", help="Input mesh (.cdb/.inp/.rad/.inc)")
     parser.add_argument(
         "--port",
         type=int,
@@ -27,11 +26,9 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    nodes, elements, *_ = parse_cdb(args.cdb_file)
-
     tmp_dir = tempfile.mkdtemp()
     vtk_path = Path(tmp_dir) / "mesh.vtk"
-    write_vtk(nodes, elements, str(vtk_path))
+    convert_to_vtk(args.mesh_file, str(vtk_path))
 
     cmd = [
         "pvpython",

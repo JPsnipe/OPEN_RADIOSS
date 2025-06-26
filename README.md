@@ -159,7 +159,8 @@ pestañas principales:
 - **Información** resumen de nodos y elementos.
 - **Vista 3D** previsualización ligera de la malla con opción de seleccionar
   los *name selections* que se quieran mostrar. Desde esta pestaña también es
-  posible **exportar VTK** indicando directorio y formato.
+  posible **exportar VTK** indicando directorio y formato. Por defecto se sugiere
+  `C:\JAVIER\OPEN_RADIOSS\paraview\data` como directorio de salida.
 - **Propiedades** permite definir propiedades y partes que luego se incluirán en
   el ``starter``.
 - **Generar INC** permite crear ``mesh.inc`` y muestra sus primeras líneas. \

@@ -74,6 +74,9 @@ OPENRADIOSS_LOGO_URL = (
 )
 ANSYS_LOGO_URL = "https://www.ansys.com/content/dam/company/brand/logos/ansys-logos/ansys-logo.svg"
 
+# Default output directory for exported VTK files
+DEFAULT_VTK_DIR = r"C:\JAVIER\OPEN_RADIOSS\paraview\data"
+
 from cdb2rad.parser import parse_cdb
 from cdb2rad.writer_rad import (
     write_rad,
@@ -489,7 +492,7 @@ if file_path:
         st.subheader("Exportar VTK")
         vtk_dir = st.text_input(
             "Directorio de salida",
-            value=st.session_state.get("work_dir", str(Path.cwd())),
+            value=st.session_state.get("vtk_dir", DEFAULT_VTK_DIR),
             key="vtk_dir",
         )
         vtk_name = st.text_input("Nombre de archivo", value="mesh", key="vtk_name")

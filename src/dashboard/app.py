@@ -412,14 +412,16 @@ if file_path:
 
     if "parts" not in st.session_state:
         st.session_state["parts"] = []
+    if "subsets" not in st.session_state:
+        st.session_state["subsets"] = {}
     nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
 
-    info_tab, preview_tab, vtk_tab, inp_tab, rad_tab, help_tab = st.tabs(
+    info_tab, preview_tab, vtk_tab, settings_tab, inp_tab, rad_tab, help_tab = st.tabs(
         [
             "Información",
             "Vista 3D",
             "Generar VTK",
-
+            "Settings",
             "Generar INC",
             "Generar RAD",
             "Ayuda",

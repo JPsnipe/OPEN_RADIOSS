@@ -52,12 +52,12 @@ def write_rad(
 
     runname: str = DEFAULT_RUNNAME,
     t_end: float = DEFAULT_FINAL_TIME,
-    anim_dt: float = DEFAULT_ANIM_DT,
-    tfile_dt: float = DEFAULT_HISTORY_DT,
-    dt_ratio: float = DEFAULT_DT_RATIO,
+    anim_dt: float | None = DEFAULT_ANIM_DT,
+    tfile_dt: float | None = DEFAULT_HISTORY_DT,
+    dt_ratio: float | None = DEFAULT_DT_RATIO,
     # Additional engine control options
-    print_n: int = DEFAULT_PRINT_N,
-    print_line: int = DEFAULT_PRINT_LINE,
+    print_n: int | None = DEFAULT_PRINT_N,
+    print_line: int | None = DEFAULT_PRINT_LINE,
     rfile_cycle: int | None = None,
     rfile_n: int | None = None,
     h3d_dt: float | None = None,
@@ -81,8 +81,10 @@ def write_rad(
 
     Parameters allow customizing material properties and basic engine
     settings such as final time, animation frequency and time-step
-    controls. Gravity loading can be specified via the ``gravity``
-    parameter. Set ``include_inc`` to ``False`` to omit the
+    controls. Pass ``None`` for ``anim_dt``, ``tfile_dt``, ``dt_ratio``,
+    ``print_n`` or ``print_line`` to omit the corresponding block in
+    the generated file. Gravity loading can be specified via the
+    ``gravity`` parameter. Set ``include_inc`` to ``False`` to omit the
     ``#include`` line referencing the mesh.
     """
 
@@ -150,20 +152,24 @@ def write_rad(
         f.write("                  kg                  mm                   s\n")
 
         # General printout frequency
-        f.write(f"/PRINT/{print_n}/{print_line}\n")
+        if print_n is not None and print_line is not None:
+            f.write(f"/PRINT/{print_n}/{print_line}\n")
         f.write(f"/RUN/{runname}/1/\n")
         f.write(f"                {t_end}\n")
         f.write("/STOP\n")
         f.write(
             f"{stop_emax} {stop_mmax} {stop_nmax} {stop_nth} {stop_nanim} {stop_nerr}\n"
         )
-        f.write("/TFILE/0\n")
-        f.write(f"{tfile_dt}\n")
+        if tfile_dt is not None:
+            f.write("/TFILE/0\n")
+            f.write(f"{tfile_dt}\n")
         f.write("/VERS/2024\n")
-        f.write("/DT/NODA/CST/0\n")
-        f.write(f"{dt_ratio} 0 0\n")
-        f.write("/ANIM/DT\n")
-        f.write(f"0 {anim_dt}\n")
+        if dt_ratio is not None:
+            f.write("/DT/NODA/CST/0\n")
+            f.write(f"{dt_ratio} 0 0\n")
+        if anim_dt is not None:
+            f.write("/ANIM/DT\n")
+            f.write(f"0 {anim_dt}\n")
         if h3d_dt is not None:
             f.write("/H3D/DT\n")
             f.write(f"0 {h3d_dt}\n")

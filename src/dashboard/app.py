@@ -630,18 +630,31 @@ if file_path:
                 "Nombre de la simulación", value=DEFAULT_RUNNAME
             )
             t_end = input_with_help("Tiempo final", DEFAULT_FINAL_TIME, "t_end")
-            anim_dt = input_with_help("Paso animación", DEFAULT_ANIM_DT, "anim_dt")
-            tfile_dt = input_with_help("Intervalo historial", DEFAULT_HISTORY_DT, "tfile_dt")
-            dt_ratio = input_with_help(
-                "Factor seguridad DT",
-                DEFAULT_DT_RATIO,
-                "dt_ratio",
-            )
+            if st.checkbox("Definir paso animación", key="en_anim"):
+                anim_dt = input_with_help("Paso animación", DEFAULT_ANIM_DT, "anim_dt")
+            else:
+                anim_dt = None
+            if st.checkbox("Definir intervalo historial", key="en_tfile"):
+                tfile_dt = input_with_help("Intervalo historial", DEFAULT_HISTORY_DT, "tfile_dt")
+            else:
+                tfile_dt = None
+            if st.checkbox("Definir factor seguridad DT", key="en_dt"):
+                dt_ratio = input_with_help(
+                    "Factor seguridad DT",
+                    DEFAULT_DT_RATIO,
+                    "dt_ratio",
+                )
+            else:
+                dt_ratio = None
             adv_enabled = st.checkbox("Activar opciones avanzadas")
             if adv_enabled:
                 st.markdown("### Opciones avanzadas")
-                print_n = input_with_help("PRINT cada n ciclos", DEFAULT_PRINT_N, "print_n")
-                print_line = input_with_help("Línea cabecera", DEFAULT_PRINT_LINE, "print_line")
+                if st.checkbox("Definir /PRINT", key="en_print"):
+                    print_n = input_with_help("PRINT cada n ciclos", DEFAULT_PRINT_N, "print_n")
+                    print_line = input_with_help("Línea cabecera", DEFAULT_PRINT_LINE, "print_line")
+                else:
+                    print_n = None
+                    print_line = None
                 rfile_cycle = input_with_help("Ciclos entre RFILE", 0, "rfile_cycle")
                 rfile_n = input_with_help("Número de RFILE", 0, "rfile_n")
                 h3d_dt = input_with_help("Paso H3D", 0.0, "h3d_dt")
@@ -662,8 +675,8 @@ if file_path:
                 adyrel_start = input_with_help("ADYREL inicio", 0.0, "adyrel_start")
                 adyrel_stop = input_with_help("ADYREL fin", 0.0, "adyrel_stop")
             else:
-                print_n = DEFAULT_PRINT_N
-                print_line = DEFAULT_PRINT_LINE
+                print_n = None
+                print_line = None
                 rfile_cycle = 0
                 rfile_n = 0
                 h3d_dt = 0.0
@@ -683,8 +696,8 @@ if file_path:
                     "anim_dt": anim_dt,
                     "tfile_dt": tfile_dt,
                     "dt_ratio": dt_ratio,
-                    "print_n": int(print_n),
-                    "print_line": int(print_line),
+                    "print_n": int(print_n) if print_n is not None else None,
+                    "print_line": int(print_line) if print_line is not None else None,
                     "rfile_cycle": int(rfile_cycle) if rfile_cycle else None,
                     "rfile_n": int(rfile_n) if rfile_n else None,
                     "h3d_dt": h3d_dt if h3d_dt > 0 else None,
@@ -1018,8 +1031,8 @@ if file_path:
                         anim_dt=anim_dt,
                         tfile_dt=tfile_dt,
                         dt_ratio=dt_ratio,
-                        print_n=int(print_n),
-                        print_line=int(print_line),
+                        print_n=int(print_n) if print_n is not None else None,
+                        print_line=int(print_line) if print_line is not None else None,
                         rfile_cycle=int(rfile_cycle) if rfile_cycle else None,
                         rfile_n=int(rfile_n) if rfile_n else None,
                         h3d_dt=h3d_dt if h3d_dt > 0 else None,

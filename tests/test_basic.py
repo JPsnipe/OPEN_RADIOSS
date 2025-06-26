@@ -300,6 +300,7 @@ def test_write_rad_with_properties(tmp_path):
     assert '/PART/1' in txt
 
 
+
 def test_write_rad_with_advanced_shell(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
     rad = tmp_path / 'prop_adv.rad'
@@ -331,5 +332,6 @@ def test_write_rad_with_advanced_shell(tmp_path):
     assert nums2[0] == '0.1'
     assert nums3[1] == '1'
     assert nums3[2] == '1.2'
+
 
 

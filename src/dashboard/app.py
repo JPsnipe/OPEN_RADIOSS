@@ -492,6 +492,8 @@ if file_path:
             st.session_state["gravity"] = None
         if "control_settings" not in st.session_state:
             st.session_state["control_settings"] = None
+        if "connectors" not in st.session_state:
+            st.session_state["connectors"] = []
 
         with st.expander("Definición de materiales"):
             use_cdb_mats = st.checkbox("Incluir materiales del CDB", value=False)
@@ -572,16 +574,63 @@ if file_path:
                             data["FAIL"] = {"TYPE": fail_type, **fail_params}
                         st.session_state["impact_materials"].append(data)
 
-                    if st.session_state["impact_materials"]:
-                        st.write("Materiales definidos:")
-                        for i, mat in enumerate(st.session_state["impact_materials"]):
-                            cols = st.columns([4, 1])
-                            with cols[0]:
-                                st.json(mat)
-                            with cols[1]:
-                                if st.button("Eliminar", key=f"del_mat_{i}"):
-                                    st.session_state["impact_materials"].pop(i)
-                                    st.experimental_rerun()
+        if st.session_state["impact_materials"]:
+            st.write("Materiales definidos:")
+            for i, mat in enumerate(st.session_state["impact_materials"]):
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.json(mat)
+                with cols[1]:
+                    if st.button("Eliminar", key=f"del_mat_{i}"):
+                        st.session_state["impact_materials"].pop(i)
+                        st.experimental_rerun()
+
+        with st.expander("Conectores rígidos"):
+            c_type = st.selectbox("Tipo", ["RBODY", "RBE2", "RBE3"])
+            if c_type == "RBODY":
+                rb_id = st.number_input("RBID", 1)
+                master_set = st.selectbox("Set maestro", list(node_sets.keys()))
+                slave_set = st.selectbox("Set secundarios", list(node_sets.keys()))
+                if st.button("Añadir", key="add_rbody"):
+                    st.session_state["connectors"].append({
+                        "type": "RBODY",
+                        "RBID": int(rb_id),
+                        "Gnod_id": node_sets[master_set][0] if node_sets[master_set] else 0,
+                        "nodes": node_sets.get(slave_set, []),
+                    })
+            elif c_type == "RBE2":
+                master_set = st.selectbox("Set maestro", list(node_sets.keys()))
+                slave_set = st.selectbox("Set esclavos", list(node_sets.keys()), key="rbe2_slave")
+                dof = st.text_input("DOF", "123456")
+                if st.button("Añadir", key="add_rbe2"):
+                    st.session_state["connectors"].append({
+                        "type": "RBE2",
+                        "N_master": node_sets[master_set][0] if node_sets[master_set] else 0,
+                        "N_slave_list": node_sets.get(slave_set, []),
+                        "DOF_flags": dof,
+                        "MSELECT": 1,
+                    })
+            else:
+                dep_set = st.selectbox("Set dependiente", list(node_sets.keys()))
+                ind_set = st.selectbox("Set independientes", list(node_sets.keys()), key="rbe3_ind")
+                dof = st.text_input("DOF", "123456", key="rbe3_dof")
+                if st.button("Añadir", key="add_rbe3"):
+                    st.session_state["connectors"].append({
+                        "type": "RBE3",
+                        "N_dependent": node_sets[dep_set][0] if node_sets[dep_set] else 0,
+                        "independent": [(nid, 1.0) for nid in node_sets.get(ind_set, [])],
+                        "DOF_flags": dof,
+                        "MSELECT": 0,
+                    })
+
+            for i, con in enumerate(st.session_state.get("connectors", [])):
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.json(con)
+                with cols[1]:
+                    if st.button("Eliminar", key=f"del_con_{i}"):
+                        st.session_state["connectors"].pop(i)
+                        st.experimental_rerun()
 
 
         with st.expander("Control del cálculo"):
@@ -850,6 +899,7 @@ if file_path:
                 and not impact_defined
                 and not st.session_state.get("bcs")
                 and not st.session_state.get("interfaces")
+                and not st.session_state.get("connectors")
                 and not st.session_state.get("init_vel")
                 and not st.session_state.get("gravity")
                 and not st.session_state.get("control_settings")
@@ -926,6 +976,7 @@ if file_path:
 
                         boundary_conditions=st.session_state.get("bcs"),
                         interfaces=st.session_state.get("interfaces"),
+                        connectors=st.session_state.get("connectors"),
                         init_velocity=st.session_state.get("init_vel"),
                         gravity=st.session_state.get("gravity"),
                     )
@@ -972,6 +1023,7 @@ if file_path:
                 st.success("Archivo RAD limpio generado")
                 lines = rad_path.read_text().splitlines()[:20]
                 st.code("\n".join(lines))
+
 
     # Documentation search with dynamic manual selection
     with help_tab:

@@ -174,6 +174,8 @@ desplegable. Estos campos se pueden editar, añadir o eliminar en el panel
 correspondiente antes de generar el archivo.
 El panel de gravedad está junto a **Velocidad inicial** y permite indicar la magnitud `g` y la dirección `(nx, ny, nz)`.
 
+Los **conectores rígidos** (`/RBODY`, `/RBE2` y `/RBE3`) comparten un panel dedicado que permite elegir el tipo y asignar los conjuntos de nodos desde desplegables. Cada definición se añade a la lista de conectores a incluir en el ``.rad``.
+
 
 Tras pulsar *Generar .inc* o *Generar .rad* se muestran las primeras líneas de
 los ficheros generados.

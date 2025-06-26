@@ -1,8 +1,9 @@
-import tempfile
-from pathlib import Path
-import sys
 import json
 import math
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Set
 
 # Ensure repository root is on the Python path before importing local modules
@@ -10,7 +11,7 @@ root_path = str(Path(__file__).resolve().parents[2])
 if root_path not in sys.path:
     sys.path.insert(0, root_path)
 
-import streamlit as st
+import streamlit as st  # noqa: E402
 
 def _rerun():
     """Compatibility wrapper for streamlit rerun."""
@@ -18,6 +19,21 @@ def _rerun():
         st.rerun()
     elif hasattr(st, "experimental_rerun"):
         st.experimental_rerun()
+
+
+def launch_paraview_server(cdb_path: str, port: int = 12345) -> str:
+    """Spawn ParaView Web server for the given CDB file."""
+    script = (
+        Path(__file__).resolve().parents[2] / "scripts" / "start_paraview_web.py"
+    )
+    subprocess.Popen([
+        "python",
+        str(script),
+        cdb_path,
+        "--port",
+        str(port),
+    ])
+    return f"http://localhost:{port}/"
 
 SDEA_LOGO_URL = (
     "https://sdeasolutions.com/wp-content/uploads/2021/11/"
@@ -28,7 +44,7 @@ OPENRADIOSS_LOGO_URL = (
 )
 ANSYS_LOGO_URL = "https://www.ansys.com/content/dam/company/brand/logos/ansys-logos/ansys-logo.svg"
 
-from cdb2rad.parser import parse_cdb
+from cdb2rad.parser import parse_cdb  # noqa: E402
 from cdb2rad.writer_rad import (
     write_rad,
     DEFAULT_RUNNAME,
@@ -45,11 +61,11 @@ from cdb2rad.writer_rad import (
     DEFAULT_STOP_NANIM,
     DEFAULT_STOP_NERR,
 )
-from cdb2rad.writer_inc import write_mesh_inc
-from cdb2rad.rad_validator import validate_rad_format
-from cdb2rad.utils import check_rad_inputs
-from cdb2rad.remote import add_remote_point, next_free_node_id
-from cdb2rad.pdf_search import (
+from cdb2rad.writer_inc import write_mesh_inc  # noqa: E402
+from cdb2rad.rad_validator import validate_rad_format  # noqa: E402
+from cdb2rad.utils import check_rad_inputs  # noqa: E402
+from cdb2rad.remote import add_remote_point, next_free_node_id  # noqa: E402
+from cdb2rad.pdf_search import (  # noqa: E402
     REFERENCE_GUIDE_URL,
     THEORY_MANUAL_URL,
     USER_GUIDE as USER_GUIDE_URL,
@@ -445,6 +461,15 @@ if file_path:
                 "elementos para agilizar la vista"
             )
         st.components.v1.html(html, height=420)
+        if st.button("Visualizar con ParaView Web"):
+            url = launch_paraview_server(file_path)
+            st.session_state["pvw_url"] = url
+        if "pvw_url" in st.session_state:
+            st.components.v1.html(
+                f'<iframe src="{st.session_state["pvw_url"]}" '
+                'style="width:100%;height:600px;border:none;"></iframe>',
+                height=620,
+            )
 
     with inp_tab:
         st.subheader("Generar mesh.inc")

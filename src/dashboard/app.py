@@ -754,7 +754,7 @@ if file_path:
                     else:
                         st.write(f"{part['name']} (ID {part['id']})")
                 with cols[1]:
-                    if st.button("Eliminar", key=f"del_part_{i}"):
+                    if st.button("Eliminar", key=f"del_part_set_{i}"):
                         st.session_state["parts"].pop(i)
                         _rerun()
 
@@ -816,10 +816,10 @@ if file_path:
                     cols = st.columns([4, 1])
                     with cols[0]:
                         st.json(pt)
-                    with cols[1]:
-                        if st.button("Eliminar", key=f"del_part_{i}"):
-                            st.session_state["parts"].pop(i)
-                            _rerun()
+                with cols[1]:
+                    if st.button("Eliminar", key=f"del_part_conf_{i}"):
+                        st.session_state["parts"].pop(i)
+                        _rerun()
 
         with st.expander("Condiciones de contorno (BCS)"):
             bc_name = st.text_input("Nombre BC", value="Fixed")

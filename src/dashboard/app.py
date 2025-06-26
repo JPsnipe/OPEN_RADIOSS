@@ -539,11 +539,19 @@ if file_path:
                         _rerun()
 
         with st.expander("Definir parte"):
-            part_id = st.number_input("ID parte", value=len(st.session_state["parts"]) + 1, key="part_id")
-            part_name = st.text_input("Nombre parte", value=f"PART_{part_id}", key="part_name")
+            part_id = st.number_input(
+                "ID parte",
+                value=len(st.session_state["parts"]) + 1,
+                key="def_part_id",
+            )
+            part_name = st.text_input(
+                "Nombre parte", value=f"PART_{part_id}", key="def_part_name"
+            )
             prop_opts = [p["id"] for p in st.session_state["properties"]]
-            pid_sel = st.selectbox("Propiedad", prop_opts, disabled=not prop_opts, key="part_pid")
-            mid_sel = st.number_input("Material ID", value=1, key="part_mid")
+            pid_sel = st.selectbox(
+                "Propiedad", prop_opts, disabled=not prop_opts, key="def_part_pid"
+            )
+            mid_sel = st.number_input("Material ID", value=1, key="def_part_mid")
             if st.button("Añadir parte"):
                 st.session_state["parts"].append({
                     "id": int(part_id),
@@ -774,8 +782,8 @@ if file_path:
                         _rerun()
 
             with st.expander("/PART"):
-                pid = st.number_input("ID", 1, key="part_id")
-                pname = st.text_input("Nombre part", key="part_name")
+                pid = st.number_input("ID", 1, key="rad_part_id")
+                pname = st.text_input("Nombre part", key="rad_part_name")
                 sel_set = st.selectbox(
                     "Subset o conjunto", list(all_elem_sets.keys()), key="part_set", disabled=not all_elem_sets
                 )

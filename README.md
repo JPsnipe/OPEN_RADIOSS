@@ -159,8 +159,10 @@ pestañas principales:
 - **Información** resumen de nodos y elementos.
 - **Vista 3D** previsualización ligera de la malla con opción de seleccionar
   los *name selections* que se quieran mostrar.
+
 - **Generar VTK** exporta la malla a ``.vtk`` o ``.vtp`` indicando ruta y nombre.
 - **Generar INC** permite crear ``mesh.inc`` y muestra sus primeras líneas. \
+
   Incluye casillas para decidir si exportar las selecciones nombradas y los
   materiales.
 
@@ -200,8 +202,10 @@ cualquier malla soportada a ``.vtk`` o ``.vtp`` de forma temporal y lanza un
 servidor wslink (host 127.0.0.1 y puerto 12345 por defecto). Ahora también es
 posible generar el fichero VTK en memoria desde la propia aplicación:
 
+
 Además, la pestaña permite guardar el archivo con el botón **Generar VTK**,
 especificando la ruta y el nombre deseado.
+
 
 ```bash
 python scripts/pv_visualizer.py --data data_files/model.cdb --port 12345 --verbose

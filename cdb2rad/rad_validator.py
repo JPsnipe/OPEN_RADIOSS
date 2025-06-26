@@ -52,6 +52,7 @@ KEYWORDS = (
     "/RBE3/",
     "/TH/",
     "/FUNCT/",
+    "/SUBSET/",
 )
 
 
@@ -83,6 +84,27 @@ def _validate_grnod(lines: list[str], idx: int) -> int:
             break
         if not t.isdigit():
             raise ValueError(f"Invalid node id: {t}")
+        i += 1
+    return i - 1
+
+
+def _validate_subset(lines: list[str], idx: int) -> int:
+    """Validate a ``/SUBSET`` block starting at ``idx``."""
+    if idx + 1 >= len(lines):
+        raise ValueError("Incomplete /SUBSET block")
+    if not lines[idx + 1].strip():
+        raise ValueError("Missing subset name")
+    i = idx + 2
+    while i < len(lines):
+        t = lines[i].strip()
+        if not t or t.startswith("#"):
+            i += 1
+            continue
+        if t.startswith("/"):
+            break
+        for tok in t.split():
+            if not tok.isdigit():
+                raise ValueError(f"Invalid subset id: {tok}")
         i += 1
     return i - 1
 
@@ -169,6 +191,11 @@ def validate_rad_format(filepath: str) -> None:
             if i + 5 >= len(lines):
                 raise ValueError("Incomplete /RBE3 block")
             i += 6
+            continue
+
+        if line.startswith("/SUBSET/"):
+            i = _validate_subset(lines, i)
+            i += 1
             continue
 
 

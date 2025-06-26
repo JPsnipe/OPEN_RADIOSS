@@ -6,7 +6,7 @@ as ``/BCS`` for boundary conditions, ``/INTER`` for contact definitions and
 function parameters.
 """
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Any
 
 from .writer_inc import write_mesh_inc
 from .material_defaults import apply_default_materials
@@ -75,7 +75,8 @@ def write_rad(
     rbe3: List[Dict[str, object]] | None = None,
     init_velocity: Dict[str, object] | None = None,
     gravity: Dict[str, float] | None = None,
-
+    properties: List[Dict[str, Any]] | None = None,
+    parts: List[Dict[str, Any]] | None = None,
 ) -> None:
     """Generate ``model_0000.rad`` with optional solver controls.
 
@@ -446,7 +447,37 @@ def write_rad(
                 for nid, wt in rb.get('independent', []):
                     f.write(f"   {nid}     {wt}\n")
 
-        # 6. PARTS -- explicit part definitions are omitted by default
+        # 6. PARTS AND PROPERTIES
+
+        if parts:
+            for p in parts:
+                pid = int(p.get("id", 1))
+                name = p.get("name", f"PART_{pid}")
+                prop_id = int(p.get("pid", 1))
+                mat_id = int(p.get("mid", 1))
+                f.write(f"/PART/{pid}\n")
+                f.write(f"{name}\n")
+                f.write(f"         {prop_id}         {mat_id}         0\n")
+
+        if properties:
+            for prop in properties:
+                pid = int(prop.get("id", 1))
+                pname = prop.get("name", f"PROP_{pid}")
+                ptype = str(prop.get("type", "SHELL")).upper()
+                if ptype == "SHELL":
+                    thick = prop.get("thickness", thickness)
+                    f.write(f"/PROP/SHELL/{pid}\n")
+                    f.write(f"{pname}\n")
+                    f.write("#   Ishell    Ismstr     Ish3n    Idrill                            P_thick_fail\n")
+                    f.write("        24         0         0         0                                       0\n")
+                    f.write("#                 hm                  hf                  hr                  dm                  dn\n")
+                    f.write("                   0                   0                   0                   0                   0\n")
+                    f.write("#        N   Istrain               Thick              Ashear              Ithick     Iplas\n")
+                    f.write(f"         5         0                 {thick}                   0                   1         1\n")
+                else:
+                    f.write(f"/PROP/{ptype}/{pid}\n")
+                    f.write(f"{pname}\n")
+                    f.write("# property parameters not defined\n")
 
         if init_velocity:
             nodes_v = init_velocity.get("nodes", [])

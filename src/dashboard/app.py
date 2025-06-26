@@ -495,7 +495,10 @@ if file_path:
 
         with st.expander("Definición de materiales"):
             use_cdb_mats = st.checkbox("Incluir materiales del CDB", value=False)
-            use_impact = st.checkbox("Incluir materiales de impacto", value=True)
+            # Desactivado por defecto para evitar añadir tarjetas vacías
+            use_impact = st.checkbox(
+                "Incluir materiales de impacto", value=False
+            )
 
             if use_impact:
                 with st.expander("Materiales de impacto"):
@@ -805,8 +808,10 @@ if file_path:
             out_dir.mkdir(parents=True, exist_ok=True)
             rad_path = out_dir / f"{rad_name}.rad"
             mesh_path = out_dir / "mesh.inc"
+            impact_defined = use_impact and st.session_state.get("impact_materials")
             no_opts = (
-                not use_cdb_mats and not use_impact
+                not use_cdb_mats
+                and not impact_defined
                 and not st.session_state.get("bcs")
                 and not st.session_state.get("interfaces")
                 and not st.session_state.get("init_vel")

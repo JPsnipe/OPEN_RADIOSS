@@ -134,12 +134,11 @@ def write_rad(
             else:
                 f.write("/RFILE\n")
             f.write(f"{rfile_cycle}\n")
-        if adyrel is not None:
+        if adyrel is not None and (adyrel[0] is not None or adyrel[1] is not None):
             f.write("/ADYREL\n")
-            if adyrel[0] is not None or adyrel[1] is not None:
-                tstart = 0.0 if adyrel[0] is None else adyrel[0]
-                tstop = t_end if adyrel[1] is None else adyrel[1]
-                f.write(f"{tstart} {tstop}\n")
+            tstart = 0.0 if adyrel[0] is None else adyrel[0]
+            tstop = t_end if adyrel[1] is None else adyrel[1]
+            f.write(f"{tstart} {tstop}\n")
 
         # 2. MATERIALS
         def write_law1(mid: int, name: str, rho: float, e: float, nu: float) -> None:

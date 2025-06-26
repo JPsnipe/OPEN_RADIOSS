@@ -11,6 +11,8 @@ def write_vtk(
     nodes: Dict[int, List[float]],
     elements: List[Tuple[int, int, List[int]]],
     outfile: str,
+    node_sets: Dict[str, List[int]] | None = None,
+    elem_sets: Dict[str, List[int]] | None = None,
 ) -> None:
     """Write an ASCII VTK UnstructuredGrid file."""
     # map node ids to 0-based indices
@@ -47,11 +49,29 @@ def write_vtk(
                 ctype = 7  # POLYGON
             f.write(f"{ctype}\n")
 
+        if node_sets:
+            f.write(f"\nPOINT_DATA {len(nodes)}\n")
+            for name, ids in node_sets.items():
+                arr = ["1" if nid in ids else "0" for nid in sorted(nodes)]
+                f.write(f"SCALARS {name} int 1\n")
+                f.write("LOOKUP_TABLE default\n")
+                f.write("\n".join(arr) + "\n")
+
+        if elem_sets:
+            f.write(f"\nCELL_DATA {len(elements)}\n")
+            for name, ids in elem_sets.items():
+                arr = ["1" if eid in ids else "0" for eid, _, _ in elements]
+                f.write(f"SCALARS {name} int 1\n")
+                f.write("LOOKUP_TABLE default\n")
+                f.write("\n".join(arr) + "\n")
+
 
 def write_vtp(
     nodes: Dict[int, List[float]],
     elements: List[Tuple[int, int, List[int]]],
     outfile: str,
+    node_sets: Dict[str, List[int]] | None = None,
+    elem_sets: Dict[str, List[int]] | None = None,
 ) -> None:
     """Write a VTK PolyData ``.vtp`` file.
 
@@ -83,6 +103,28 @@ def write_vtp(
     poly = vtk.vtkPolyData()
     poly.SetPoints(points)
     poly.SetPolys(polys)
+
+    if node_sets:
+        for name, ids in node_sets.items():
+            arr = vtk.vtkIntArray()
+            arr.SetName(name)
+            arr.SetNumberOfTuples(len(nodes))
+            arr.FillComponent(0, 0)
+            for i, nid in enumerate(sorted(nodes)):
+                if nid in ids:
+                    arr.SetTuple1(i, 1)
+            poly.GetPointData().AddArray(arr)
+
+    if elem_sets:
+        for name, ids in elem_sets.items():
+            arr = vtk.vtkIntArray()
+            arr.SetName(name)
+            arr.SetNumberOfTuples(len(elements))
+            arr.FillComponent(0, 0)
+            for i, (eid, _, _) in enumerate(elements):
+                if eid in ids:
+                    arr.SetTuple1(i, 1)
+            poly.GetCellData().AddArray(arr)
 
     writer = vtk.vtkXMLPolyDataWriter()
     writer.SetFileName(outfile)

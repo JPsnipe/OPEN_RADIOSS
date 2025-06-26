@@ -566,6 +566,8 @@ if file_path:
             st.session_state["interfaces"] = []
         if "next_inter_idx" not in st.session_state:
             st.session_state["next_inter_idx"] = 1
+        if "reset_int_name" in st.session_state:
+            st.session_state["int_name"] = st.session_state.pop("reset_int_name")
         if "init_vel" not in st.session_state:
             st.session_state["init_vel"] = None
         if "gravity" not in st.session_state:
@@ -1045,7 +1047,7 @@ if file_path:
                         })
                     st.session_state["interfaces"].append(itf)
                     st.session_state["next_inter_idx"] += 1
-                    st.session_state["int_name"] = f"{int_type}_{st.session_state['next_inter_idx']}"
+                    st.session_state["reset_int_name"] = f"{int_type}_{st.session_state['next_inter_idx']}"
                     _rerun()
             for i, itf in enumerate(st.session_state["interfaces"]):
                 cols = st.columns([4, 1])

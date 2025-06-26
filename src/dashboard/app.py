@@ -571,8 +571,14 @@ if file_path:
 
                     if st.session_state["impact_materials"]:
                         st.write("Materiales definidos:")
-                        for mat in st.session_state["impact_materials"]:
-                            st.json(mat)
+                        for i, mat in enumerate(st.session_state["impact_materials"]):
+                            cols = st.columns([4, 1])
+                            with cols[0]:
+                                st.json(mat)
+                            with cols[1]:
+                                if st.button("Eliminar", key=f"del_mat_{i}"):
+                                    st.session_state["impact_materials"].pop(i)
+                                    st.experimental_rerun()
 
 
         with st.expander("Control del cálculo"):
@@ -649,7 +655,13 @@ if file_path:
                 }
             if st.session_state["control_settings"]:
                 st.write("Control de cálculo definido:")
-                st.json(st.session_state["control_settings"])
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.json(st.session_state["control_settings"])
+                with cols[1]:
+                    if st.button("Eliminar", key="del_ctrl"):
+                        st.session_state["control_settings"] = None
+                        st.experimental_rerun()
 
         with st.expander("Condiciones de contorno (BCS)"):
             bc_name = st.text_input("Nombre BC", value="Fixed")
@@ -684,8 +696,14 @@ if file_path:
                 entry.update(bc_data)
                 st.session_state["bcs"].append(entry)
 
-            for bc in st.session_state["bcs"]:
-                st.json(bc)
+            for i, bc in enumerate(st.session_state["bcs"]):
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.json(bc)
+                with cols[1]:
+                    if st.button("Eliminar", key=f"del_bc_{i}"):
+                        st.session_state["bcs"].pop(i)
+                        st.experimental_rerun()
 
         with st.expander("Interacciones (INTER)"):
             int_type = st.selectbox(
@@ -733,8 +751,14 @@ if file_path:
                         "igap": int(igap),
                     })
                 st.session_state["interfaces"].append(itf)
-            for itf in st.session_state["interfaces"]:
-                st.json(itf)
+            for i, itf in enumerate(st.session_state["interfaces"]):
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.json(itf)
+                with cols[1]:
+                    if st.button("Eliminar", key=f"del_itf_{i}"):
+                        st.session_state["interfaces"].pop(i)
+                        st.experimental_rerun()
 
         with st.expander("Velocidad inicial (IMPVEL)"):
             vel_set = st.selectbox(
@@ -755,7 +779,13 @@ if file_path:
                     "vz": vz,
                 }
             if st.session_state["init_vel"]:
-                st.json(st.session_state["init_vel"])
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.json(st.session_state["init_vel"])
+                with cols[1]:
+                    if st.button("Eliminar", key="del_initvel"):
+                        st.session_state["init_vel"] = None
+                        st.experimental_rerun()
 
         with st.expander("Carga de gravedad (GRAVITY)"):
             g = input_with_help("g", 9.81, "grav_g")
@@ -772,7 +802,13 @@ if file_path:
                     "comp": int(comp),
                 }
             if st.session_state["gravity"]:
-                st.json(st.session_state["gravity"])
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.json(st.session_state["gravity"])
+                with cols[1]:
+                    if st.button("Eliminar", key="del_gravity"):
+                        st.session_state["gravity"] = None
+                        st.experimental_rerun()
 
         rad_dir = st.text_input(
             "Directorio de salida",

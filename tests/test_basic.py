@@ -63,6 +63,7 @@ def test_write_rad(tmp_path):
         anim_dt=0.002,
         tfile_dt=0.0001,
         dt_ratio=0.8,
+        include_run=True,
 
     )
     content = rad.read_text()
@@ -217,6 +218,7 @@ def test_write_rad_advanced_options(tmp_path):
         stop_nanim=1,
         stop_nerr=0,
         adyrel=(0.0, 0.02),
+        include_run=True,
     )
     text = rad.read_text()
     assert '/RFILE/2' in text

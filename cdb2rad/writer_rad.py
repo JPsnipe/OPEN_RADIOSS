@@ -389,6 +389,8 @@ def write_rad(
                 for nid in m_nodes:
                     f.write(f"{nid:10d}\n")
 
+        # 5. RIGID CONNECTORS
+
         if rbody:
             for idx, rb in enumerate(rbody, start=1):
                 title = rb.get("title", "")
@@ -438,7 +440,7 @@ def write_rad(
                 for nid, wt in rb.get('independent', []):
                     f.write(f"   {nid}     {wt}\n")
 
-        # 5. PARTS -- explicit part definitions are omitted by default
+        # 6. PARTS -- explicit part definitions are omitted by default
 
         if init_velocity:
             nodes_v = init_velocity.get("nodes", [])

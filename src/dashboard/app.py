@@ -980,7 +980,47 @@ if file_path:
                     st.text_area(
                         "model.rad", rad_path.read_text(), height=400
                     )
+<<<<<<< g7k7zz-codex/añadir-opción-de-scroll-en-visor-de-archivo
 
+=======
+
+        clean_dir = st.text_input(
+            "Directorio RAD limpio",
+            value=st.session_state.get("work_dir", str(Path.cwd())),
+            key="clean_dir",
+        )
+        clean_name = st.text_input(
+            "Nombre archivo RAD limpio", value="minimal", key="clean_name"
+        )
+        overwrite_clean = st.checkbox(
+            "Sobrescribir si existe", value=False, key="overwrite_clean"
+        )
+
+        if st.button("Generar .rad limpio"):
+            out_dir = Path(clean_dir).expanduser()
+            out_dir.mkdir(parents=True, exist_ok=True)
+            mesh_path = out_dir / "mesh.inc"
+
+            rad_path = out_dir / f"{clean_name}.rad"
+            if rad_path.exists() and not overwrite_clean:
+                st.error("El archivo RAD ya existe. Cambie el nombre o directorio")
+
+            else:
+                write_mesh_inc(all_nodes, elements, str(mesh_path), node_sets=all_node_sets)
+                from cdb2rad.writer_rad import write_minimal_rad
+
+                write_minimal_rad(
+                    str(rad_path),
+                    mesh_inc=mesh_path.name,
+                    include_inc=include_inc,
+                )
+
+                st.success("Archivo RAD limpio generado")
+                with st.expander("Ver .rad completo"):
+                    st.text_area(
+                        "minimal.rad", rad_path.read_text(), height=400
+                    )
+>>>>>>> main
 
 
     with rigid_tab:

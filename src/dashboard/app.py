@@ -14,6 +14,9 @@ if root_path not in sys.path:
 import streamlit as st
 from cdb2rad.mesh_convert import convert_to_vtk, mesh_to_temp_vtk
 
+from cdb2rad.vtk_writer import write_vtk, write_vtp
+
+
 def _rerun():
     """Compatibility wrapper for streamlit rerun."""
     if hasattr(st, "rerun"):
@@ -410,11 +413,13 @@ if file_path:
     if "parts" not in st.session_state:
         st.session_state["parts"] = []
     nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
-    info_tab, preview_tab, settings_tab, inp_tab, rad_tab, help_tab = st.tabs(
+
+    info_tab, preview_tab, vtk_tab, inp_tab, rad_tab, help_tab = st.tabs(
         [
             "Información",
             "Vista 3D",
-            "Settings",
+            "Generar VTK",
+
             "Generar INC",
             "Generar RAD",
             "Ayuda",
@@ -476,6 +481,29 @@ if file_path:
                 'style="width:100%;height:600px;border:none;"></iframe>',
                 height=620,
             )
+
+    with vtk_tab:
+        st.subheader("Exportar VTK")
+        vtk_dir = st.text_input(
+            "Directorio de salida",
+            value=st.session_state.get("work_dir", str(Path.cwd())),
+            key="vtk_dir",
+        )
+        vtk_name = st.text_input("Nombre de archivo", value="mesh", key="vtk_name")
+        vtk_format = st.selectbox("Formato", [".vtk", ".vtp"], key="vtk_format")
+        overwrite_vtk = st.checkbox("Sobrescribir si existe", value=False, key="overwrite_vtk")
+        if st.button("Generar VTK"):
+            out_dir = Path(vtk_dir).expanduser()
+            out_dir.mkdir(parents=True, exist_ok=True)
+            vtk_path = out_dir / f"{vtk_name}{vtk_format}"
+            if vtk_path.exists() and not overwrite_vtk:
+                st.error("El archivo ya existe. Elija otro nombre o active sobrescribir")
+            else:
+                if vtk_format == ".vtp":
+                    write_vtp(nodes, elements, str(vtk_path))
+                else:
+                    write_vtk(nodes, elements, str(vtk_path))
+                st.success(f"Archivo guardado en: {vtk_path}")
 
 
     with settings_tab:

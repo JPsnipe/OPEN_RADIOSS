@@ -397,14 +397,15 @@ if file_path:
     )
     st.session_state["work_dir"] = work_dir
     nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
-    info_tab, preview_tab, inp_tab, rad_tab, rigid_tab, help_tab = st.tabs([
-        "Información",
-        "Vista 3D",
-        "Generar INC",
-        "Generar RAD",
-        "Rigid Connectors",
-        "Ayuda",
-    ])
+    info_tab, preview_tab, inp_tab, rad_tab, help_tab = st.tabs(
+        [
+            "Información",
+            "Vista 3D",
+            "Generar INC",
+            "Generar RAD",
+            "Ayuda",
+        ]
+    )
 
     with info_tab:
         st.write("Nodos:", len(nodes))
@@ -735,6 +736,36 @@ if file_path:
                         st.session_state["bcs"].pop(i)
                         _rerun()
 
+        with st.expander("Puntos remotos"):
+            colx, coly, colz = st.columns(3)
+            with colx:
+                rx = st.number_input("X", 0.0, key="rp_x")
+            with coly:
+                ry = st.number_input("Y", 0.0, key="rp_y")
+            with colz:
+                rz = st.number_input("Z", 0.0, key="rp_z")
+            auto = st.checkbox("ID automático", value=True, key="rp_auto")
+            next_id = next_free_node_id(all_nodes)
+            rid = st.number_input("ID", value=next_id, key="rp_id", disabled=auto)
+            if st.button("Añadir punto remoto"):
+                try:
+                    if auto:
+                        _, nid = add_remote_point(all_nodes, (rx, ry, rz))
+                    else:
+                        _, nid = add_remote_point(all_nodes, (rx, ry, rz), int(rid))
+                    st.session_state["remote_points"].append({"id": nid, "coords": (rx, ry, rz)})
+                    _rerun()
+                except ValueError as e:
+                    st.error(str(e))
+            for i, rp in enumerate(st.session_state.get("remote_points", [])):
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.write(f"ID {rp['id']} → {rp['coords']}")
+                with cols[1]:
+                    if st.button("Eliminar", key=f"del_rp_{i}"):
+                        st.session_state["remote_points"].pop(i)
+                        _rerun()
+
         with st.expander("Interacciones (INTER)"):
             int_type = st.selectbox(
                 "Tipo",
@@ -790,6 +821,60 @@ if file_path:
                         st.session_state["interfaces"].pop(i)
                         _rerun()
 
+        with st.expander("Rigid Connectors"):
+            with st.expander("/RBODY"):
+                rb_id = st.number_input("RBID", 1)
+                master = st.selectbox("Nodo maestro", list(all_nodes.keys()))
+                slaves = st.multiselect("Nodos secundarios", list(all_nodes.keys()))
+                if st.button("Añadir RBODY"):
+                    st.session_state["rbodies"].append({
+                        "RBID": int(rb_id),
+                        "Gnod_id": int(master),
+                        "nodes": [int(n) for n in slaves],
+                    })
+            for i, rb in enumerate(st.session_state.get("rbodies", [])):
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.json(rb)
+                with cols[1]:
+                    if st.button("Eliminar", key=f"del_rb_{i}"):
+                        st.session_state["rbodies"].pop(i)
+                        _rerun()
+
+            with st.expander("/RBE2"):
+                m = st.selectbox("Master", list(all_nodes.keys()), key="rbe2m")
+                slaves2 = st.multiselect("Slaves", list(all_nodes.keys()), key="rbe2s")
+                if st.button("Añadir RBE2"):
+                    st.session_state["rbe2"].append({
+                        "N_master": int(m),
+                        "N_slave_list": [int(n) for n in slaves2],
+                    })
+            for i, rb in enumerate(st.session_state.get("rbe2", [])):
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.json(rb)
+                with cols[1]:
+                    if st.button("Eliminar", key=f"del_rbe2_{i}"):
+                        st.session_state["rbe2"].pop(i)
+                        _rerun()
+
+            with st.expander("/RBE3"):
+                dep = st.selectbox("Dependiente", list(all_nodes.keys()), key="rbe3d")
+                indep_nodes = st.multiselect("Independientes", list(all_nodes.keys()), key="rbe3i")
+                if st.button("Añadir RBE3"):
+                    st.session_state["rbe3"].append({
+                        "N_dependent": int(dep),
+                        "independent": [(int(n), 1.0) for n in indep_nodes],
+                    })
+            for i, rb in enumerate(st.session_state.get("rbe3", [])):
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.json(rb)
+                with cols[1]:
+                    if st.button("Eliminar", key=f"del_rbe3_{i}"):
+                        st.session_state["rbe3"].pop(i)
+                        _rerun()
+
         with st.expander("Velocidad inicial (IMPVEL)"):
             vel_set = st.selectbox(
                 "Conjunto de nodos",
@@ -840,35 +925,6 @@ if file_path:
                         st.session_state["gravity"] = None
                         _rerun()
 
-        with st.expander("Puntos remotos"):
-            colx, coly, colz = st.columns(3)
-            with colx:
-                rx = st.number_input("X", 0.0, key="rp_x")
-            with coly:
-                ry = st.number_input("Y", 0.0, key="rp_y")
-            with colz:
-                rz = st.number_input("Z", 0.0, key="rp_z")
-            auto = st.checkbox("ID automático", value=True, key="rp_auto")
-            next_id = next_free_node_id(all_nodes)
-            rid = st.number_input("ID", value=next_id, key="rp_id", disabled=auto)
-            if st.button("Añadir punto remoto"):
-                try:
-                    if auto:
-                        _, nid = add_remote_point(all_nodes, (rx, ry, rz))
-                    else:
-                        _, nid = add_remote_point(all_nodes, (rx, ry, rz), int(rid))
-                    st.session_state["remote_points"].append({"id": nid, "coords": (rx, ry, rz)})
-                    _rerun()
-                except ValueError as e:
-                    st.error(str(e))
-            for i, rp in enumerate(st.session_state.get("remote_points", [])):
-                cols = st.columns([4, 1])
-                with cols[0]:
-                    st.write(f"ID {rp['id']} → {rp['coords']}")
-                with cols[1]:
-                    if st.button("Eliminar", key=f"del_rp_{i}"):
-                        st.session_state["remote_points"].pop(i)
-                        _rerun()
 
         rad_dir = st.text_input(
             "Directorio de salida",
@@ -1039,53 +1095,6 @@ if file_path:
                     st.text_area(
                         "minimal.rad", rad_path.read_text(), height=400
                     )
-
-
-    with rigid_tab:
-        st.subheader("Rigid Connectors")
-        with st.expander("/RBODY"):
-            rb_id = st.number_input("RBID", 1)
-            master = st.selectbox("Nodo maestro", list(all_nodes.keys()))
-            slaves = st.multiselect("Nodos secundarios", list(all_nodes.keys()))
-            if st.button("Añadir RBODY"):
-                st.session_state["rbodies"].append({
-                    "RBID": int(rb_id),
-                    "Gnod_id": int(master),
-                    "nodes": [int(n) for n in slaves],
-                })
-        for i, rb in enumerate(st.session_state.get("rbodies", [])):
-            st.json(rb)
-            if st.button("Eliminar", key=f"del_rb_{i}"):
-                st.session_state["rbodies"].pop(i)
-                st.experimental_rerun()
-
-        with st.expander("/RBE2"):
-            m = st.selectbox("Master", list(all_nodes.keys()), key="rbe2m")
-            slaves2 = st.multiselect("Slaves", list(all_nodes.keys()), key="rbe2s")
-            if st.button("Añadir RBE2"):
-                st.session_state["rbe2"].append({
-                    "N_master": int(m),
-                    "N_slave_list": [int(n) for n in slaves2],
-                })
-        for i, rb in enumerate(st.session_state.get("rbe2", [])):
-            st.json(rb)
-            if st.button("Eliminar", key=f"del_rbe2_{i}"):
-                st.session_state["rbe2"].pop(i)
-                st.experimental_rerun()
-
-        with st.expander("/RBE3"):
-            dep = st.selectbox("Dependiente", list(all_nodes.keys()), key="rbe3d")
-            indep_nodes = st.multiselect("Independientes", list(all_nodes.keys()), key="rbe3i")
-            if st.button("Añadir RBE3"):
-                st.session_state["rbe3"].append({
-                    "N_dependent": int(dep),
-                    "independent": [(int(n), 1.0) for n in indep_nodes],
-                })
-        for i, rb in enumerate(st.session_state.get("rbe3", [])):
-            st.json(rb)
-            if st.button("Eliminar", key=f"del_rbe3_{i}"):
-                st.session_state["rbe3"].pop(i)
-                st.experimental_rerun()
 
     # Documentation search with dynamic manual selection
 

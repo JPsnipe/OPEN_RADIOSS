@@ -701,65 +701,34 @@ if file_path:
                                     st.session_state["impact_materials"].pop(i)
                                     _rerun()
 
-        with st.expander("Bloques (/PART y /SUBSET)"):
-            with st.expander("/SUBSET"):
-                sub_name = st.text_input("Nombre subset", key="sub_name")
-                base_sets = st.multiselect(
-                    "Conjuntos base", list(all_elem_sets.keys()), key="sub_sets"
-                )
-                manual = st.text_area("IDs manuales", key="sub_ids")
-                if st.button("Añadir subset") and sub_name:
-                    ids = set()
-                    for s in base_sets:
-                        ids.update(all_elem_sets.get(s, []))
-                    for tok in manual.replace(',', ' ').split():
-                        try:
-                            ids.add(int(tok))
-                        except ValueError:
-                            pass
-                    if ids:
-                        st.session_state["subsets"][sub_name] = sorted(ids)
-                        _rerun()
-            for name, ids in st.session_state["subsets"].items():
-                cols = st.columns([4, 1])
-                with cols[0]:
-                    st.write(f"{name}: {len(ids)} elementos")
-                with cols[1]:
-                    if st.button("Eliminar", key=f"del_subset_{name}"):
-                        del st.session_state["subsets"][name]
-                        _rerun()
-
-            with st.expander("/PART"):
-                pid = st.number_input("ID", 1, key="rad_part_id")
-                pname = st.text_input("Nombre part", key="rad_part_name")
-                sel_set = st.selectbox(
-                    "Subset o conjunto", list(all_elem_sets.keys()), key="part_set", disabled=not all_elem_sets
-                )
-                mat_pid = st.number_input("Material ID", 1, key="part_mat")
-                if st.button("Añadir part") and pname and sel_set:
-                    st.session_state["parts"].append({
-                        "id": int(pid),
-                        "name": pname,
-                        "set": sel_set,
-                        "mat": int(mat_pid),
-                    })
+        with st.expander("Subsets (/SUBSET)"):
+            sub_name = st.text_input("Nombre subset", key="sub_name")
+            base_sets = st.multiselect(
+                "Conjuntos base", list(all_elem_sets.keys()), key="sub_sets"
+            )
+            manual = st.text_area("IDs manuales", key="sub_ids")
+            if st.button("Añadir subset") and sub_name:
+                ids = set()
+                for s in base_sets:
+                    ids.update(all_elem_sets.get(s, []))
+                for tok in manual.replace(',', ' ').split():
+                    try:
+                        ids.add(int(tok))
+                    except ValueError:
+                        pass
+                if ids:
+                    st.session_state["subsets"][sub_name] = sorted(ids)
                     _rerun()
-            for i, part in enumerate(st.session_state["parts"]):
-                cols = st.columns([4, 1])
-                with cols[0]:
-                    if "set" in part:
-                        st.write(
-                            f"{part['name']} → {part['set']} (ID {part['id']})"
-                        )
-                    else:
-                        st.write(f"{part['name']} (ID {part['id']})")
-                with cols[1]:
-                    if st.button("Eliminar", key=f"del_part_set_{i}"):
-                        st.session_state["parts"].pop(i)
-                        _rerun()
+        for name, ids in st.session_state["subsets"].items():
+            cols = st.columns([4, 1])
+            with cols[0]:
+                st.write(f"{name}: {len(ids)} elementos")
+            with cols[1]:
+                if st.button("Eliminar", key=f"del_subset_{name}"):
+                    del st.session_state["subsets"][name]
+                    _rerun()
 
-
-        with st.expander("Propiedades"):
+        with st.expander("Propiedades (/PROP)"):
             st.subheader("Configuración de propiedades")
             with st.expander("Definir propiedad"):
                 pid = st.number_input(
@@ -790,34 +759,43 @@ if file_path:
                             st.session_state["properties"].pop(i)
                             _rerun()
 
-            with st.expander("Definir parte"):
-                part_id = st.number_input(
-                    "ID parte",
-                    value=len(st.session_state["parts"]) + 1,
-                    key="part_id",
-                )
-                part_name = st.text_input("Nombre parte", value=f"PART_{part_id}", key="part_name")
-                prop_opts = [p["id"] for p in st.session_state["properties"]]
-                pid_sel = st.selectbox("Propiedad", prop_opts, disabled=not prop_opts, key="part_pid")
-                mid_sel = st.number_input("Material ID", value=1, key="part_mid")
-                if st.button("Añadir parte"):
-                    st.session_state["parts"].append(
-                        {
-                            "id": int(part_id),
-                            "name": part_name,
-                            "pid": int(pid_sel) if prop_opts else 1,
-                            "mid": int(mid_sel),
-                        }
-                    )
 
-            if st.session_state["parts"]:
-                st.write("Partes definidas:")
-                for i, pt in enumerate(st.session_state["parts"]):
-                    cols = st.columns([4, 1])
-                    with cols[0]:
-                        st.json(pt)
+        with st.expander("Partes (/PART)"):
+            part_id = st.number_input(
+                "ID parte",
+                value=len(st.session_state["parts"]) + 1,
+                key="part_id",
+            )
+            part_name = st.text_input("Nombre parte", value=f"PART_{part_id}", key="part_name")
+            prop_opts = [p["id"] for p in st.session_state["properties"]]
+            pid_sel = st.selectbox("Propiedad", prop_opts, disabled=not prop_opts, key="part_pid")
+            sel_set = st.selectbox(
+                "Subset o conjunto", list(all_elem_sets.keys()), key="part_set", disabled=not all_elem_sets
+            )
+            mid_sel = st.number_input("Material ID", value=1, key="part_mid")
+            if st.button("Añadir parte") and part_name and sel_set:
+                st.session_state["parts"].append(
+                    {
+                        "id": int(part_id),
+                        "name": part_name,
+                        "pid": int(pid_sel) if prop_opts else 1,
+                        "mid": int(mid_sel),
+                        "set": sel_set,
+                    }
+                )
+                _rerun()
+
+        if st.session_state["parts"]:
+            st.write("Partes definidas:")
+            for i, part in enumerate(st.session_state["parts"]):
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    if "set" in part:
+                        st.write(f"{part['name']} → {part['set']} (ID {part['id']})")
+                    else:
+                        st.write(f"{part['name']} (ID {part['id']})")
                 with cols[1]:
-                    if st.button("Eliminar", key=f"del_part_conf_{i}"):
+                    if st.button("Eliminar", key=f"del_part_{i}"):
                         st.session_state["parts"].pop(i)
                         _rerun()
 

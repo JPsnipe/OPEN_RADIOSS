@@ -902,60 +902,38 @@ if file_path:
             rad_path = out_dir / f"{rad_name}.rad"
             mesh_path = out_dir / "mesh.inc"
             impact_defined = use_impact and st.session_state.get("impact_materials")
-            no_opts = (
-                not use_cdb_mats
-                and not impact_defined
-                and not st.session_state.get("bcs")
-                and not st.session_state.get("interfaces")
-                and not st.session_state.get("rbodies")
-                and not st.session_state.get("rbe2")
-                and not st.session_state.get("rbe3")
-                and not st.session_state.get("init_vel")
-                and not st.session_state.get("gravity")
-                and not st.session_state.get("control_settings")
-            )
             if (rad_path.exists() or mesh_path.exists()) and not overwrite_rad:
                 st.error("El archivo ya existe. Elija otro nombre o directorio")
             else:
-                if no_opts:
-                    write_mesh_inc(all_nodes, elements, str(mesh_path), node_sets=all_node_sets)
-                    from cdb2rad.writer_rad import write_minimal_rad
-                    write_minimal_rad(
-                        str(rad_path),
-                        mesh_inc=mesh_path.name,
-                        runname=runname,
-                        include_inc=include_inc,
-                    )
-                else:
-                    extra = None
-                    if use_impact and st.session_state["impact_materials"]:
+                extra = None
+                if use_impact and st.session_state["impact_materials"]:
                         extra = {
                             m["id"]: {k: v for k, v in m.items() if k != "id"}
                             for m in st.session_state["impact_materials"]
                         }
-                    ctrl = st.session_state.get("control_settings")
-                    if ctrl:
-                        runname = ctrl.get("runname", runname)
-                        t_end = ctrl.get("t_end", t_end)
-                        anim_dt = ctrl.get("anim_dt", anim_dt)
-                        tfile_dt = ctrl.get("tfile_dt", tfile_dt)
-                        dt_ratio = ctrl.get("dt_ratio", dt_ratio)
-                        print_n = ctrl.get("print_n", print_n)
-                        print_line = ctrl.get("print_line", print_line)
-                        rfile_cycle = ctrl.get("rfile_cycle", rfile_cycle)
-                        rfile_n = ctrl.get("rfile_n", rfile_n)
-                        h3d_dt = ctrl.get("h3d_dt", h3d_dt)
-                        stop_emax = ctrl.get("stop_emax", stop_emax)
-                        stop_mmax = ctrl.get("stop_mmax", stop_mmax)
-                        stop_nmax = ctrl.get("stop_nmax", stop_nmax)
-                        stop_nth = ctrl.get("stop_nth", stop_nth)
-                        stop_nanim = ctrl.get("stop_nanim", stop_nanim)
-                        stop_nerr = ctrl.get("stop_nerr", stop_nerr)
-                        adyrel_start = ctrl.get("adyrel_start", adyrel_start)
-                        adyrel_stop = ctrl.get("adyrel_stop", adyrel_stop)
-                    if not include_inc:
-                        write_mesh_inc(all_nodes, elements, str(mesh_path), node_sets=all_node_sets)
-                    write_rad(
+                ctrl = st.session_state.get("control_settings")
+                if ctrl:
+                    runname = ctrl.get("runname", runname)
+                    t_end = ctrl.get("t_end", t_end)
+                    anim_dt = ctrl.get("anim_dt", anim_dt)
+                    tfile_dt = ctrl.get("tfile_dt", tfile_dt)
+                    dt_ratio = ctrl.get("dt_ratio", dt_ratio)
+                    print_n = ctrl.get("print_n", print_n)
+                    print_line = ctrl.get("print_line", print_line)
+                    rfile_cycle = ctrl.get("rfile_cycle", rfile_cycle)
+                    rfile_n = ctrl.get("rfile_n", rfile_n)
+                    h3d_dt = ctrl.get("h3d_dt", h3d_dt)
+                    stop_emax = ctrl.get("stop_emax", stop_emax)
+                    stop_mmax = ctrl.get("stop_mmax", stop_mmax)
+                    stop_nmax = ctrl.get("stop_nmax", stop_nmax)
+                    stop_nth = ctrl.get("stop_nth", stop_nth)
+                    stop_nanim = ctrl.get("stop_nanim", stop_nanim)
+                    stop_nerr = ctrl.get("stop_nerr", stop_nerr)
+                    adyrel_start = ctrl.get("adyrel_start", adyrel_start)
+                    adyrel_stop = ctrl.get("adyrel_stop", adyrel_stop)
+                if not include_inc:
+                    write_mesh_inc(all_nodes, elements, str(mesh_path), node_sets=all_node_sets)
+                write_rad(
                         all_nodes,
                         elements,
                         str(rad_path),
@@ -1002,6 +980,9 @@ if file_path:
                     st.text_area(
                         "model.rad", rad_path.read_text(), height=400
                     )
+<<<<<<< g7k7zz-codex/añadir-opción-de-scroll-en-visor-de-archivo
+
+=======
 
         clean_dir = st.text_input(
             "Directorio RAD limpio",
@@ -1039,6 +1020,7 @@ if file_path:
                     st.text_area(
                         "minimal.rad", rad_path.read_text(), height=400
                     )
+>>>>>>> main
 
 
     with rigid_tab:

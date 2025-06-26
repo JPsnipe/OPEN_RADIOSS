@@ -185,17 +185,17 @@ La pestaña **Ayuda** ofrece enlaces directos a la documentación principal de R
 ### Vista 3D con ParaView Web
 
 Para una visualización más completa de la malla se puede utilizar un servidor
-**ParaView Web**. Con ``scripts/start_paraview_web.py`` se genera un fichero
-``.vtk`` temporal a partir del ``.cdb`` y se lanza el visualizador de ParaView
+**ParaView Web**. Con ``scripts/pv_visualizer.py`` se genera un fichero
+``.vtk`` temporal a partir del archivo de entrada y se lanza un servidor wslink
 en el puerto 12345 por defecto:
 
 ```bash
-python scripts/start_paraview_web.py data_files/model.cdb
+python scripts/pv_visualizer.py --data data_files/model.cdb --port 12345
 ```
 
 Al ejecutar el comando se mostrará la URL del visualizador. Desde la pestaña
-xfy9un-codex/añadir-servidor-web-paraview-para-visualización-3d
 **Vista 3D** del dashboard se puede iniciar el servidor y el visor quedará
-embebido directamente en la aplicación para inspeccionar la malla con todas
-las herramientas de ParaView.
+embebido directamente en la aplicación usando ``static/vtk_viewer.html`` para
+conectarse vía WebSocket y visualizar la malla con todas las herramientas de
+ParaView.
 

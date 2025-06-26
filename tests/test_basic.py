@@ -342,8 +342,17 @@ def test_write_rad_with_solid_prop(tmp_path):
             'id': 1,
             'name': 'solid_p',
             'type': 'SOLID',
-            'Isolid': 24,
-            'Ismstr': 4,
+
+            'Isolid': 22,
+            'Ismstr': 5,
+            'Icpre': 2,
+            'Iframe': 3,
+            'Inpts': 111,
+            'qa': 1.5,
+            'qb': 0.1,
+            'dn': 0.2,
+            'h': 0.3,
+
         }
     ]
     parts = [{
@@ -357,7 +366,12 @@ def test_write_rad_with_solid_prop(tmp_path):
     idx = lines.index('/PROP/SOLID/1')
     assert 'Isolid' in lines[idx + 2]
     nums = lines[idx + 3].split()
-    assert nums[0] == '24'
+
+    nums2 = lines[idx + 5].split()
+    assert nums[0] == '22'
+    assert nums2[0] == '111'
+    assert nums2[1] == '1.5'
+
 
 
 

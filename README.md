@@ -199,7 +199,7 @@ Para una visualización más completa de la malla se puede utilizar un servidor
 
 **ParaView Web**. El script ``scripts/pv_visualizer.py`` convierte
 cualquier malla soportada a ``.vtk`` o ``.vtp`` de forma temporal y lanza un
-servidor wslink (host 127.0.0.1 y puerto 12345 por defecto). Ahora también es
+servidor wslink (host 127.0.0.1 y puerto 8080 por defecto). Ahora también es
 posible generar el fichero VTK en memoria desde la propia aplicación:
 
 
@@ -208,7 +208,7 @@ especificando la ruta y el nombre deseado.
 
 
 ```bash
-python scripts/pv_visualizer.py --data data_files/model.cdb --port 12345 --verbose
+python scripts/pv_visualizer.py --data data_files/model.cdb --port 8080 --verbose
 
 ```
 

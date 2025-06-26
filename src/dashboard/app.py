@@ -22,15 +22,35 @@ def _rerun():
         st.experimental_rerun()
 
 
-def launch_paraview_server(mesh_path: str, port: int = 12345) -> str:
+
+def launch_paraview_server(
+    mesh_path: str,
+    port: int = 12345,
+    host: str = "127.0.0.1",
+    verbose: bool = False,
+) -> str:
+
     """Spawn ParaViewWeb server for the given mesh file."""
     script = Path(__file__).resolve().parents[2] / "scripts" / "pv_visualizer.py"
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".vtk")
     tmp.close()
     convert_to_vtk(mesh_path, tmp.name)
-    cmd = ["python", str(script), "--data", tmp.name, "--port", str(port)]
+
+    cmd = [
+        "python",
+        str(script),
+        "--data",
+        tmp.name,
+        "--port",
+        str(port),
+        "--host",
+        host,
+    ]
+    if verbose:
+        cmd.append("--verbose")
     subprocess.Popen(cmd)
-    return f"http://localhost:{port}/"
+    return f"http://{host}:{port}/"
+
 
 SDEA_LOGO_URL = (
     "https://sdeasolutions.com/wp-content/uploads/2021/11/"
@@ -420,8 +440,9 @@ if file_path:
         html = viewer_html(nodes, elements, selected_eids=sel_eids if sel_eids else None)
         st.components.v1.html(html, height=420)
 
+        port = st.number_input("Puerto ParaView Web", value=12345, step=1)
         if st.button("Visualizar con ParaView Web"):
-            url = launch_paraview_server(file_path)
+            url = launch_paraview_server(file_path, port=int(port), verbose=True)
             st.session_state["pvw_url"] = url
         if "pvw_url" in st.session_state:
             st.components.v1.html(

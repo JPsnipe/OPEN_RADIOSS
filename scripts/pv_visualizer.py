@@ -4,8 +4,9 @@
 import argparse
 
 import tempfile
-
 from pathlib import Path
+import logging
+
 
 from wslink import server
 from vtkmodules.web import protocols as vtkprotocols
@@ -14,7 +15,6 @@ from vtkmodules.web import wslink as vtk_wslink
 import vtkmodules.all as vtk
 
 from cdb2rad.mesh_convert import convert_to_vtk
-
 
 
 def build_view(path: str) -> vtk.vtkRenderWindow:
@@ -75,8 +75,22 @@ if __name__ == "__main__":
         default=12345,
         help="WebSocket port",
     )
+
+    parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Hostname for the server",
+    )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Enable debug logging",
+    )
     server.add_arguments(parser)
     args = parser.parse_args()
+
+    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
+
 
     data_path = args.data
     ext = Path(data_path).suffix.lower()
@@ -87,5 +101,9 @@ if __name__ == "__main__":
         data_path = tmp.name
 
     PVWServer.view = build_view(data_path)
+
+    logging.info(
+        "Starting server at ws://%s:%d/ws", args.host, args.port
+    )
 
     server.start_webserver(options=args, protocol=PVWServer)

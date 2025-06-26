@@ -283,19 +283,6 @@ def write_rad(
             f.write(f"#include {mesh_inc}\n")
 
 
-        # Basic engine control cards
-        f.write("/STOP\n")
-        f.write(f"{t_end}\n")
-        f.write("0 0 0 1 1 0\n")
-        f.write("/TFILE/0\n")
-        f.write(f"{tfile_dt}\n")
-        f.write("/VERS/2024\n")
-        f.write("/DT/NODA/CST/0\n")
-        f.write(f"{dt_ratio} 0 0\n")
-        f.write("/ANIM/DT\n")
-        f.write(f"0 {anim_dt}\n")
-
-
         # 4. BOUNDARY CONDITIONS
 
         if boundary_conditions:

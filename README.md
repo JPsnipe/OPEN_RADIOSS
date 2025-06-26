@@ -23,7 +23,16 @@ ejemplos de la documentación.
 ## Salida generada
 
  - ``mesh.inc``: definición de nodos y elementos.
-- ``model_0000.rad``: fichero de inicio con propiedades, material y BCs.
+ - ``model_0000.rad``: fichero de inicio con propiedades, material y BCs.
+
+## Instalación de dependencias
+
+Instala las librerías necesarias (``streamlit``, ``meshio``, ``vtk`` y
+``wslink``) con ``pip`` antes de ejecutar cualquier script:
+
+```bash
+pip install -r requirements.txt
+```
 
 ## Configuración del ``.rad``
 

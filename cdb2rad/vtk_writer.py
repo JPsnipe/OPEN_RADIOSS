@@ -1,5 +1,10 @@
-"""Simple VTK writer for the web viewer."""
+"""Simple VTK writers for the web viewer."""
 from typing import Dict, List, Tuple
+
+try:  # optional dependency for XML output
+    import vtk  # type: ignore
+except Exception:  # pragma: no cover - optional
+    vtk = None
 
 
 def write_vtk(
@@ -41,4 +46,46 @@ def write_vtk(
             else:
                 ctype = 7  # POLYGON
             f.write(f"{ctype}\n")
+
+
+def write_vtp(
+    nodes: Dict[int, List[float]],
+    elements: List[Tuple[int, int, List[int]]],
+    outfile: str,
+) -> None:
+    """Write a VTK PolyData ``.vtp`` file.
+
+    Requires :mod:`vtk`. Elements are exported as polygons so both surface and
+    solid meshes can be visualised. When ``vtk`` is not available a
+    :class:`ModuleNotFoundError` is raised.
+    """
+
+    if vtk is None:  # pragma: no cover - optional dependency
+        raise ModuleNotFoundError("vtk is required to write .vtp files")
+
+    id_map = {nid: i for i, nid in enumerate(sorted(nodes))}
+
+    points = vtk.vtkPoints()
+    for nid in sorted(nodes):
+        x, y, z = nodes[nid]
+        points.InsertNextPoint(x, y, z)
+
+    polys = vtk.vtkCellArray()
+    for _, _, nids in elements:
+        if len(nids) < 3:
+            continue
+        ids = vtk.vtkIdList()
+        for nid in nids:
+            if nid in id_map:
+                ids.InsertNextId(id_map[nid])
+        polys.InsertNextCell(ids)
+
+    poly = vtk.vtkPolyData()
+    poly.SetPoints(points)
+    poly.SetPolys(polys)
+
+    writer = vtk.vtkXMLPolyDataWriter()
+    writer.SetFileName(outfile)
+    writer.SetInputData(poly)
+    writer.Write()
 

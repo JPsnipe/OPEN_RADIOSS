@@ -174,6 +174,11 @@ desplegable. Estos campos se pueden editar, añadir o eliminar en el panel
 correspondiente antes de generar el archivo.
 El panel de gravedad está junto a **Velocidad inicial** y permite indicar la magnitud `g` y la dirección `(nx, ny, nz)`.
 
+Si no se añade un bloque de **Control del cálculo**, el ``.rad`` generado solo
+incluye las secciones seleccionadas (BCS, contactos, etc.). Las tarjetas de
+control como ``/RUN`` o ``/PRINT`` se escriben únicamente cuando se activan en
+ese panel.
+
 
 Tras pulsar *Generar .inc* o *Generar .rad* se muestran las primeras líneas de
 los ficheros generados.

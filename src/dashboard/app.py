@@ -12,6 +12,7 @@ if root_path not in sys.path:
     sys.path.insert(0, root_path)
 
 import streamlit as st
+from cdb2rad.mesh_convert import convert_to_vtk
 
 def _rerun():
     """Compatibility wrapper for streamlit rerun."""
@@ -21,11 +22,35 @@ def _rerun():
         st.experimental_rerun()
 
 
-def launch_paraview_server(cdb_path: str, port: int = 12345) -> str:
-    """Spawn ParaView Web server for the given CDB file."""
-    script = Path(__file__).resolve().parents[2] / "scripts" / "start_paraview_web.py"
-    subprocess.Popen(["python", str(script), cdb_path, "--port", str(port)])
-    return f"http://localhost:{port}/"
+
+def launch_paraview_server(
+    mesh_path: str,
+    port: int = 12345,
+    host: str = "127.0.0.1",
+    verbose: bool = False,
+) -> str:
+
+    """Spawn ParaViewWeb server for the given mesh file."""
+    script = Path(__file__).resolve().parents[2] / "scripts" / "pv_visualizer.py"
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".vtk")
+    tmp.close()
+    convert_to_vtk(mesh_path, tmp.name)
+
+    cmd = [
+        "python",
+        str(script),
+        "--data",
+        tmp.name,
+        "--port",
+        str(port),
+        "--host",
+        host,
+    ]
+    if verbose:
+        cmd.append("--verbose")
+    subprocess.Popen(cmd)
+    return f"http://{host}:{port}/"
+
 
 SDEA_LOGO_URL = (
     "https://sdeasolutions.com/wp-content/uploads/2021/11/"
@@ -57,6 +82,11 @@ from cdb2rad.writer_inc import write_mesh_inc
 from cdb2rad.rad_validator import validate_rad_format
 from cdb2rad.utils import check_rad_inputs
 from cdb2rad.remote import add_remote_point, next_free_node_id
+from cdb2rad.pdf_search import (
+    REFERENCE_GUIDE_URL,
+    THEORY_MANUAL_URL,
+    USER_GUIDE as USER_GUIDE_URL,
+)
 
 MAX_EDGES = 10000
 MAX_FACES = 15000
@@ -366,12 +396,13 @@ if file_path:
     )
     st.session_state["work_dir"] = work_dir
     nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
-    info_tab, preview_tab, inp_tab, rad_tab = st.tabs(
+    info_tab, preview_tab, inp_tab, rad_tab, help_tab = st.tabs(
         [
             "Información",
             "Vista 3D",
             "Generar INC",
             "Generar RAD",
+            "Ayuda",
         ]
     )
 
@@ -390,27 +421,34 @@ if file_path:
         st.write("Conjuntos de nodos:", len(node_sets))
         for name, nids in node_sets.items():
             st.write(f"- {name}: {len(nids)} nodos")
-        st.write("Conjuntos de elementos:", len(elem_sets))
-        for name, eids in elem_sets.items():
+        all_elem_sets = {**elem_sets, **st.session_state.get("subsets", {})}
+        st.write("Conjuntos de elementos:", len(all_elem_sets))
+        for name, eids in all_elem_sets.items():
             st.write(f"- {name}: {len(eids)} elementos")
+        if st.session_state["parts"]:
+            st.write("Partes definidas:")
+            for part in st.session_state["parts"]:
+                st.write(f"- {part['name']} (ID {part['id']}) → {part['set']}")
         st.write("Materiales:")
         for mid, props in materials.items():
             st.write(f"- ID {mid}: {props}")
 
     with preview_tab:
         st.write("Selecciona conjuntos de elementos para visualizar:")
+        all_elem_sets = {**elem_sets, **st.session_state.get("subsets", {})}
         selected_sets = st.multiselect(
-            "Conjuntos", list(elem_sets.keys()), default=list(elem_sets.keys())
+            "Conjuntos", list(all_elem_sets.keys()), default=list(all_elem_sets.keys())
         )
         sel_eids = set()
         for name in selected_sets:
-            sel_eids.update(elem_sets.get(name, []))
+            sel_eids.update(all_elem_sets.get(name, []))
 
         html = viewer_html(nodes, elements, selected_eids=sel_eids if sel_eids else None)
         st.components.v1.html(html, height=420)
 
+        port = st.number_input("Puerto ParaView Web", value=12345, step=1)
         if st.button("Visualizar con ParaView Web"):
-            url = launch_paraview_server(file_path)
+            url = launch_paraview_server(file_path, port=int(port), verbose=True)
             st.session_state["pvw_url"] = url
         if "pvw_url" in st.session_state:
             st.components.v1.html(
@@ -442,12 +480,13 @@ if file_path:
             if inp_path.exists() and not overwrite_inc:
                 st.error("El archivo ya existe. Elija otro nombre o directorio")
             else:
+                all_elem_sets = {**elem_sets, **st.session_state.get("subsets", {})}
                 write_mesh_inc(
                     nodes,
                     elements,
                     str(inp_path),
                     node_sets=node_sets if use_sets else None,
-                    elem_sets=elem_sets if use_sets else None,
+                    elem_sets=all_elem_sets if use_sets else None,
                     materials=materials if use_mats else None,
                 )
                 st.success(f"Fichero generado en: {inp_path}")
@@ -470,6 +509,8 @@ if file_path:
             st.session_state["bcs"] = []
         if "interfaces" not in st.session_state:
             st.session_state["interfaces"] = []
+        if "next_inter_idx" not in st.session_state:
+            st.session_state["next_inter_idx"] = 1
         if "init_vel" not in st.session_state:
             st.session_state["init_vel"] = None
         if "gravity" not in st.session_state:
@@ -484,6 +525,10 @@ if file_path:
             st.session_state["rbe3"] = []
         if "remote_points" not in st.session_state:
             st.session_state["remote_points"] = []
+        if "parts" not in st.session_state:
+            st.session_state["parts"] = []
+        if "subsets" not in st.session_state:
+            st.session_state["subsets"] = {}
 
         extra_nodes = {
             rp["id"]: list(rp["coords"])
@@ -494,6 +539,17 @@ if file_path:
             f"REMOTE_{rp['id']}": [rp['id']] for rp in st.session_state["remote_points"]
         }
         all_node_sets = {**node_sets, **extra_sets}
+        all_elem_sets = {**elem_sets, **st.session_state["subsets"]}
+
+        part_node_sets = {}
+        for part in st.session_state["parts"]:
+            set_name = part.get("set")
+            eids = all_elem_sets.get(set_name, [])
+            nodes_in_part = {nid for eid, _et, ns in elements if eid in eids for nid in ns}
+            if nodes_in_part:
+                part_node_sets[part["name"]] = sorted(nodes_in_part)
+
+        all_node_sets.update(part_node_sets)
 
         with st.expander("Definición de materiales"):
             use_cdb_mats = st.checkbox("Incluir materiales del CDB", value=False)
@@ -581,6 +637,58 @@ if file_path:
                                 if st.button("Eliminar", key=f"del_mat_{i}"):
                                     st.session_state["impact_materials"].pop(i)
                                     _rerun()
+
+        with st.expander("Bloques (/PART y /SUBSET)"):
+            with st.expander("/SUBSET"):
+                sub_name = st.text_input("Nombre subset", key="sub_name")
+                base_sets = st.multiselect(
+                    "Conjuntos base", list(all_elem_sets.keys()), key="sub_sets"
+                )
+                manual = st.text_area("IDs manuales", key="sub_ids")
+                if st.button("Añadir subset") and sub_name:
+                    ids = set()
+                    for s in base_sets:
+                        ids.update(all_elem_sets.get(s, []))
+                    for tok in manual.replace(',', ' ').split():
+                        try:
+                            ids.add(int(tok))
+                        except ValueError:
+                            pass
+                    if ids:
+                        st.session_state["subsets"][sub_name] = sorted(ids)
+                        _rerun()
+            for name, ids in st.session_state["subsets"].items():
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.write(f"{name}: {len(ids)} elementos")
+                with cols[1]:
+                    if st.button("Eliminar", key=f"del_subset_{name}"):
+                        del st.session_state["subsets"][name]
+                        _rerun()
+
+            with st.expander("/PART"):
+                pid = st.number_input("ID", 1, key="part_id")
+                pname = st.text_input("Nombre part", key="part_name")
+                sel_set = st.selectbox(
+                    "Subset o conjunto", list(all_elem_sets.keys()), key="part_set", disabled=not all_elem_sets
+                )
+                mat_pid = st.number_input("Material ID", 1, key="part_mat")
+                if st.button("Añadir part") and pname and sel_set:
+                    st.session_state["parts"].append({
+                        "id": int(pid),
+                        "name": pname,
+                        "set": sel_set,
+                        "mat": int(mat_pid),
+                    })
+                    _rerun()
+            for i, part in enumerate(st.session_state["parts"]):
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.write(f"{part['name']} → {part['set']} (ID {part['id']})")
+                with cols[1]:
+                    if st.button("Eliminar", key=f"del_part_{i}"):
+                        st.session_state["parts"].pop(i)
+                        _rerun()
 
 
         with st.expander("Control del cálculo"):
@@ -756,7 +864,13 @@ if file_path:
                 key="itf_type",
                 format_func=lambda k: f"{k} - {INT_DESCRIPTIONS[k]}",
             )
-            int_name = st.text_input("Nombre interfaz", value=f"{int_type}_1")
+            idx = st.session_state.get("next_inter_idx", 1)
+            def_name = f"{int_type}_{idx}"
+            int_name = st.text_input(
+                "Nombre interfaz",
+                value=st.session_state.get("int_name", def_name),
+                key="int_name",
+            )
             slave_set = st.selectbox(
                 "Conjunto esclavo",
                 list(all_node_sets.keys()),
@@ -780,20 +894,24 @@ if file_path:
             if st.button("Añadir interfaz") and slave_set and master_set:
                 s_list = all_node_sets.get(slave_set, [])
                 m_list = all_node_sets.get(master_set, [])
-                itf = {
-                    "type": int_type,
-                    "name": int_name,
-                    "slave": s_list,
-                    "master": m_list,
-                    "fric": fric,
-                }
-                if int_type == "TYPE7":
-                    itf.update({
-                        "gap": gap,
-                        "stiff": stiff,
-                        "igap": int(igap),
-                    })
-                st.session_state["interfaces"].append(itf)
+                if s_list and m_list:
+                    itf = {
+                        "type": int_type,
+                        "name": int_name,
+                        "slave": s_list,
+                        "master": m_list,
+                        "fric": float(fric),
+                    }
+                    if int_type == "TYPE7":
+                        itf.update({
+                            "gap": gap,
+                            "stiff": stiff,
+                            "igap": int(igap),
+                        })
+                    st.session_state["interfaces"].append(itf)
+                    st.session_state["next_inter_idx"] += 1
+                    st.session_state["int_name"] = f"{int_type}_{st.session_state['next_inter_idx']}"
+                    _rerun()
             for i, itf in enumerate(st.session_state["interfaces"]):
                 cols = st.columns([4, 1])
                 with cols[0]:
@@ -820,6 +938,7 @@ if file_path:
 
             with st.expander("/RBODY"):
                 rb_id = st.number_input("RBID", 1)
+<<<<<<< m13n7b-codex/revisar-rigid-bodies-en-dashboard
                 master_sel = st.selectbox(
                     "Maestro (nodo o set)", node_options, key="rbody_master"
                 )
@@ -839,6 +958,22 @@ if file_path:
                             "Gnod_id": m_nodes[0],
                             "nodes": sorted(nodes_union),
                         })
+=======
+                master = st.selectbox("Nodo maestro", list(all_nodes.keys()), key="rbody_master")
+                slaves = st.multiselect("Nodos secundarios", list(all_nodes.keys()), key="rb_slaves")
+                slave_sets = st.multiselect(
+                    "Name selections", list(all_node_sets.keys()), key="rb_sets", disabled=not all_node_sets
+                )
+                if st.button("Añadir RBODY"):
+                    nodes_union = {int(n) for n in slaves}
+                    for s in slave_sets:
+                        nodes_union.update(all_node_sets.get(s, []))
+                    st.session_state["rbodies"].append({
+                        "RBID": int(rb_id),
+                        "Gnod_id": int(master),
+                        "nodes": sorted(nodes_union),
+                    })
+>>>>>>> main
             for i, rb in enumerate(st.session_state.get("rbodies", [])):
                 cols = st.columns([4, 1])
                 with cols[0]:
@@ -849,6 +984,7 @@ if file_path:
                         _rerun()
 
             with st.expander("/RBE2"):
+<<<<<<< m13n7b-codex/revisar-rigid-bodies-en-dashboard
                 m_sel = st.selectbox(
                     "Master (nodo o set)", node_options, key="rbe2m"
                 )
@@ -867,6 +1003,21 @@ if file_path:
                             "N_master": m_nodes[0],
                             "N_slave_list": sorted(nodes_union),
                         })
+=======
+                m = st.selectbox("Master", list(all_nodes.keys()), key="rbe2m")
+                slaves2 = st.multiselect("Slaves", list(all_nodes.keys()), key="rbe2s")
+                slave_sets2 = st.multiselect(
+                    "Name selections", list(all_node_sets.keys()), key="rbe2_sets", disabled=not all_node_sets
+                )
+                if st.button("Añadir RBE2"):
+                    nodes_union = {int(n) for n in slaves2}
+                    for s in slave_sets2:
+                        nodes_union.update(all_node_sets.get(s, []))
+                    st.session_state["rbe2"].append({
+                        "N_master": int(m),
+                        "N_slave_list": sorted(nodes_union),
+                    })
+>>>>>>> main
             for i, rb in enumerate(st.session_state.get("rbe2", [])):
                 cols = st.columns([4, 1])
                 with cols[0]:
@@ -877,6 +1028,7 @@ if file_path:
                         _rerun()
 
             with st.expander("/RBE3"):
+<<<<<<< m13n7b-codex/revisar-rigid-bodies-en-dashboard
                 dep_sel = st.selectbox(
                     "Dependiente (nodo o set)", node_options, key="rbe3d"
                 )
@@ -895,6 +1047,21 @@ if file_path:
                             "N_dependent": dep_nodes[0],
                             "independent": [(nid, 1.0) for nid in sorted(nodes_union)],
                         })
+=======
+                dep = st.selectbox("Dependiente", list(all_nodes.keys()), key="rbe3d")
+                indep_nodes = st.multiselect("Independientes", list(all_nodes.keys()), key="rbe3i")
+                indep_sets = st.multiselect(
+                    "Name selections", list(all_node_sets.keys()), key="rbe3_sets", disabled=not all_node_sets
+                )
+                if st.button("Añadir RBE3"):
+                    nodes_union = {int(n) for n in indep_nodes}
+                    for s in indep_sets:
+                        nodes_union.update(all_node_sets.get(s, []))
+                    st.session_state["rbe3"].append({
+                        "N_dependent": int(dep),
+                        "independent": [(nid, 1.0) for nid in sorted(nodes_union)],
+                    })
+>>>>>>> main
             for i, rb in enumerate(st.session_state.get("rbe3", [])):
                 cols = st.columns([4, 1])
                 with cols[0]:
@@ -1018,6 +1185,7 @@ if file_path:
                     adyrel_stop = ctrl.get("adyrel_stop", adyrel_stop)
                 if not include_inc:
                     write_mesh_inc(all_nodes, elements, str(mesh_path), node_sets=all_node_sets)
+                all_elem_sets = {**elem_sets, **st.session_state.get("subsets", {})}
                 write_rad(
                         all_nodes,
                         elements,
@@ -1025,7 +1193,7 @@ if file_path:
                         mesh_inc=str(mesh_path),
                         include_inc=include_inc,
                         node_sets=all_node_sets,
-                        elem_sets=elem_sets,
+                        elem_sets=all_elem_sets,
                         materials=materials if use_cdb_mats else None,
                         extra_materials=extra,
 
@@ -1065,6 +1233,14 @@ if file_path:
                     st.text_area(
                         "model.rad", rad_path.read_text(), height=400
                     )
+
+    with help_tab:
+        st.subheader("Documentación")
+        st.markdown(
+            f"[Reference Guide]({REFERENCE_GUIDE_URL}) | "
+            f"[User Guide]({USER_GUIDE_URL}) | "
+            f"[Theory Manual]({THEORY_MANUAL_URL})"
+        )
 
 else:
     st.info("Sube un archivo .cdb")

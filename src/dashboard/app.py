@@ -587,68 +587,6 @@ if file_path:
         if "subsets" not in st.session_state:
             st.session_state["subsets"] = {}
 
-        with st.expander("Propiedades"):
-            st.subheader("Configuración de propiedades")
-            with st.expander("Definir propiedad"):
-                pid = st.number_input(
-                    "ID propiedad",
-                    value=len(st.session_state["properties"]) + 1,
-                    key="prop_id",
-                )
-                pname = st.text_input("Nombre", value=f"PROP_{pid}", key="prop_name")
-                ptype = st.selectbox("Tipo", ["SHELL", "SOLID"], key="prop_type")
-                if ptype == "SHELL":
-                    thick = st.number_input("Espesor", value=DEFAULT_THICKNESS, key="prop_thick")
-                else:
-                    thick = None
-                if st.button("Añadir propiedad"):
-                    data = {"id": int(pid), "name": pname, "type": ptype}
-                    if thick is not None:
-                        data["thickness"] = thick
-                    st.session_state["properties"].append(data)
-
-            if st.session_state["properties"]:
-                st.write("Propiedades definidas:")
-                for i, pr in enumerate(st.session_state["properties"]):
-                    cols = st.columns([4, 1])
-                    with cols[0]:
-                        st.json(pr)
-                    with cols[1]:
-                        if st.button("Eliminar", key=f"del_prop_{i}"):
-                            st.session_state["properties"].pop(i)
-                            _rerun()
-
-            with st.expander("Definir parte"):
-                part_id = st.number_input(
-                    "ID parte",
-                    value=len(st.session_state["parts"]) + 1,
-                    key="part_id",
-                )
-                part_name = st.text_input("Nombre parte", value=f"PART_{part_id}", key="part_name")
-                prop_opts = [p["id"] for p in st.session_state["properties"]]
-                pid_sel = st.selectbox("Propiedad", prop_opts, disabled=not prop_opts, key="part_pid")
-                mid_sel = st.number_input("Material ID", value=1, key="part_mid")
-                if st.button("Añadir parte"):
-                    st.session_state["parts"].append(
-                        {
-                            "id": int(part_id),
-                            "name": part_name,
-                            "pid": int(pid_sel) if prop_opts else 1,
-                            "mid": int(mid_sel),
-                        }
-                    )
-
-            if st.session_state["parts"]:
-                st.write("Partes definidas:")
-                for i, pt in enumerate(st.session_state["parts"]):
-                    cols = st.columns([4, 1])
-                    with cols[0]:
-                        st.json(pt)
-                    with cols[1]:
-                        if st.button("Eliminar", key=f"del_part_{i}"):
-                            st.session_state["parts"].pop(i)
-                            _rerun()
-
         if "properties" not in st.session_state:
             st.session_state["properties"] = []
         if "parts" not in st.session_state:
@@ -821,6 +759,324 @@ if file_path:
                         _rerun()
 
 
+        with st.expander("Propiedades"):
+            st.subheader("Configuración de propiedades")
+            with st.expander("Definir propiedad"):
+                pid = st.number_input(
+                    "ID propiedad",
+                    value=len(st.session_state["properties"]) + 1,
+                    key="prop_id",
+                )
+                pname = st.text_input("Nombre", value=f"PROP_{pid}", key="prop_name")
+                ptype = st.selectbox("Tipo", ["SHELL", "SOLID"], key="prop_type")
+                if ptype == "SHELL":
+                    thick = st.number_input("Espesor", value=DEFAULT_THICKNESS, key="prop_thick")
+                else:
+                    thick = None
+                if st.button("Añadir propiedad"):
+                    data = {"id": int(pid), "name": pname, "type": ptype}
+                    if thick is not None:
+                        data["thickness"] = thick
+                    st.session_state["properties"].append(data)
+
+            if st.session_state["properties"]:
+                st.write("Propiedades definidas:")
+                for i, pr in enumerate(st.session_state["properties"]):
+                    cols = st.columns([4, 1])
+                    with cols[0]:
+                        st.json(pr)
+                    with cols[1]:
+                        if st.button("Eliminar", key=f"del_prop_{i}"):
+                            st.session_state["properties"].pop(i)
+                            _rerun()
+
+            with st.expander("Definir parte"):
+                part_id = st.number_input(
+                    "ID parte",
+                    value=len(st.session_state["parts"]) + 1,
+                    key="part_id",
+                )
+                part_name = st.text_input("Nombre parte", value=f"PART_{part_id}", key="part_name")
+                prop_opts = [p["id"] for p in st.session_state["properties"]]
+                pid_sel = st.selectbox("Propiedad", prop_opts, disabled=not prop_opts, key="part_pid")
+                mid_sel = st.number_input("Material ID", value=1, key="part_mid")
+                if st.button("Añadir parte"):
+                    st.session_state["parts"].append(
+                        {
+                            "id": int(part_id),
+                            "name": part_name,
+                            "pid": int(pid_sel) if prop_opts else 1,
+                            "mid": int(mid_sel),
+                        }
+                    )
+
+            if st.session_state["parts"]:
+                st.write("Partes definidas:")
+                for i, pt in enumerate(st.session_state["parts"]):
+                    cols = st.columns([4, 1])
+                    with cols[0]:
+                        st.json(pt)
+                    with cols[1]:
+                        if st.button("Eliminar", key=f"del_part_{i}"):
+                            st.session_state["parts"].pop(i)
+                            _rerun()
+
+        with st.expander("Condiciones de contorno (BCS)"):
+            bc_name = st.text_input("Nombre BC", value="Fixed")
+            bc_type = st.selectbox(
+                "Tipo BC",
+                list(BC_DESCRIPTIONS.keys()),
+                format_func=lambda k: f"{k} - {BC_DESCRIPTIONS[k]}",
+            )
+            bc_set = st.selectbox(
+                "Conjunto de nodos",
+                list(all_node_sets.keys()),
+                disabled=not all_node_sets,
+            )
+            bc_data = {}
+            if bc_type == "BCS":
+                bc_tra = st.text_input("Traslación (111/000)", value="111")
+                bc_rot = st.text_input("Rotación (111/000)", value="111")
+                bc_data.update({"tra": bc_tra, "rot": bc_rot})
+            else:
+                bc_dir = input_with_help("Dirección", 1, "bc_dir")
+                bc_val = input_with_help("Valor", 0.0, "bc_val")
+                bc_data.update({"dir": int(bc_dir), "value": float(bc_val)})
+
+            if st.button("Añadir BC") and bc_set:
+                node_list = all_node_sets.get(bc_set, [])
+                entry = {
+                    "name": bc_name,
+                    "type": bc_type,
+                    "nodes": node_list,
+                }
+                entry.update(bc_data)
+                st.session_state["bcs"].append(entry)
+
+            for i, bc in enumerate(st.session_state["bcs"]):
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.json(bc)
+                with cols[1]:
+                    if st.button("Eliminar", key=f"del_bc_{i}"):
+                        st.session_state["bcs"].pop(i)
+                        _rerun()
+
+        with st.expander("Puntos remotos"):
+            colx, coly, colz = st.columns(3)
+            with colx:
+                rx = st.number_input("X", 0.0, key="rp_x")
+            with coly:
+                ry = st.number_input("Y", 0.0, key="rp_y")
+            with colz:
+                rz = st.number_input("Z", 0.0, key="rp_z")
+            auto = st.checkbox("ID automático", value=True, key="rp_auto")
+            next_id = next_free_node_id(all_nodes)
+            rid = st.number_input("ID", value=next_id, key="rp_id", disabled=auto)
+            if st.button("Añadir punto remoto"):
+                try:
+                    if auto:
+                        _, nid = add_remote_point(all_nodes, (rx, ry, rz))
+                    else:
+                        _, nid = add_remote_point(all_nodes, (rx, ry, rz), int(rid))
+                    st.session_state["remote_points"].append({"id": nid, "coords": (rx, ry, rz)})
+                    _rerun()
+                except ValueError as e:
+                    st.error(str(e))
+            for i, rp in enumerate(st.session_state.get("remote_points", [])):
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.write(f"ID {rp['id']} → {rp['coords']}")
+                with cols[1]:
+                    if st.button("Eliminar", key=f"del_rp_{i}"):
+                        st.session_state["remote_points"].pop(i)
+                        _rerun()
+
+        with st.expander("Rigid Connectors"):
+            with st.expander("/RBODY"):
+                rb_id = st.number_input("RBID", 1)
+                master = st.selectbox("Nodo maestro", list(all_nodes.keys()), key="rbody_master")
+                slaves = st.multiselect("Nodos secundarios", list(all_nodes.keys()), key="rb_slaves")
+                slave_sets = st.multiselect(
+                    "Name selections", list(all_node_sets.keys()), key="rb_sets", disabled=not all_node_sets
+                )
+                if st.button("Añadir RBODY"):
+                    nodes_union = {int(n) for n in slaves}
+                    for s in slave_sets:
+                        nodes_union.update(all_node_sets.get(s, []))
+                    st.session_state["rbodies"].append({
+                        "RBID": int(rb_id),
+                        "Gnod_id": int(master),
+                        "nodes": sorted(nodes_union),
+                    })
+            for i, rb in enumerate(st.session_state.get("rbodies", [])):
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.json(rb)
+                with cols[1]:
+                    if st.button("Eliminar", key=f"del_rb_{i}"):
+                        st.session_state["rbodies"].pop(i)
+                        _rerun()
+
+            with st.expander("/RBE2"):
+                m = st.selectbox("Master", list(all_nodes.keys()), key="rbe2m")
+                slaves2 = st.multiselect("Slaves", list(all_nodes.keys()), key="rbe2s")
+                slave_sets2 = st.multiselect(
+                    "Name selections", list(all_node_sets.keys()), key="rbe2_sets", disabled=not all_node_sets
+                )
+                if st.button("Añadir RBE2"):
+                    nodes_union = {int(n) for n in slaves2}
+                    for s in slave_sets2:
+                        nodes_union.update(all_node_sets.get(s, []))
+                    st.session_state["rbe2"].append({
+                        "N_master": int(m),
+                        "N_slave_list": sorted(nodes_union),
+                    })
+            for i, rb in enumerate(st.session_state.get("rbe2", [])):
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.json(rb)
+                with cols[1]:
+                    if st.button("Eliminar", key=f"del_rbe2_{i}"):
+                        st.session_state["rbe2"].pop(i)
+                        _rerun()
+
+            with st.expander("/RBE3"):
+                dep = st.selectbox("Dependiente", list(all_nodes.keys()), key="rbe3d")
+                indep_nodes = st.multiselect("Independientes", list(all_nodes.keys()), key="rbe3i")
+                indep_sets = st.multiselect(
+                    "Name selections", list(all_node_sets.keys()), key="rbe3_sets", disabled=not all_node_sets
+                )
+                if st.button("Añadir RBE3"):
+                    nodes_union = {int(n) for n in indep_nodes}
+                    for s in indep_sets:
+                        nodes_union.update(all_node_sets.get(s, []))
+                    st.session_state["rbe3"].append({
+                        "N_dependent": int(dep),
+                        "independent": [(nid, 1.0) for nid in sorted(nodes_union)],
+                    })
+            for i, rb in enumerate(st.session_state.get("rbe3", [])):
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.json(rb)
+                with cols[1]:
+                    if st.button("Eliminar", key=f"del_rbe3_{i}"):
+                        st.session_state["rbe3"].pop(i)
+                        _rerun()
+        with st.expander("Contactos (INTER)"):
+            int_type = st.selectbox(
+                "Tipo",
+                list(INT_DESCRIPTIONS.keys()),
+                key="itf_type",
+                format_func=lambda k: f"{k} - {INT_DESCRIPTIONS[k]}",
+            )
+            idx = st.session_state.get("next_inter_idx", 1)
+            def_name = f"{int_type}_{idx}"
+            int_name = st.text_input(
+                "Nombre interfaz",
+                value=st.session_state.get("int_name", def_name),
+                key="int_name",
+            )
+            slave_set = st.selectbox(
+                "Conjunto esclavo",
+                list(all_node_sets.keys()),
+                key="slave_set",
+                disabled=not all_node_sets,
+            )
+            master_set = st.selectbox(
+                "Conjunto maestro",
+                list(all_node_sets.keys()),
+                key="master_set",
+                disabled=not all_node_sets,
+            )
+            fric = input_with_help("Fricción", 0.0, "fric")
+
+            gap = stiff = igap = None
+            if int_type == "TYPE7":
+                gap = input_with_help("Gap", 0.0, "gap")
+                stiff = input_with_help("Stiffness", 0.0, "stiff")
+                igap = input_with_help("Igap", 0, "igap")
+
+            if st.button("Añadir interfaz") and slave_set and master_set:
+                s_list = all_node_sets.get(slave_set, [])
+                m_list = all_node_sets.get(master_set, [])
+                if s_list and m_list:
+                    itf = {
+                        "type": int_type,
+                        "name": int_name,
+                        "slave": s_list,
+                        "master": m_list,
+                        "fric": float(fric),
+                    }
+                    if int_type == "TYPE7":
+                        itf.update({
+                            "gap": gap,
+                            "stiff": stiff,
+                            "igap": int(igap),
+                        })
+                    st.session_state["interfaces"].append(itf)
+                    st.session_state["next_inter_idx"] += 1
+                    st.session_state["int_name"] = f"{int_type}_{st.session_state['next_inter_idx']}"
+                    _rerun()
+            for i, itf in enumerate(st.session_state["interfaces"]):
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.json(itf)
+                with cols[1]:
+                    if st.button("Eliminar", key=f"del_itf_{i}"):
+                        st.session_state["interfaces"].pop(i)
+                        _rerun()
+
+
+        with st.expander("Velocidad inicial (IMPVEL)"):
+            vel_set = st.selectbox(
+                "Conjunto de nodos",
+                list(all_node_sets.keys()),
+                key="vel_set",
+                disabled=not all_node_sets,
+            )
+            vx = input_with_help("Vx", 0.0, "vx")
+            vy = input_with_help("Vy", 0.0, "vy")
+            vz = input_with_help("Vz", 0.0, "vz")
+            if st.button("Asignar velocidad") and vel_set:
+                n_list = all_node_sets.get(vel_set, [])
+                st.session_state["init_vel"] = {
+                    "nodes": n_list,
+                    "vx": vx,
+                    "vy": vy,
+                    "vz": vz,
+                }
+            if st.session_state["init_vel"]:
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.json(st.session_state["init_vel"])
+                with cols[1]:
+                    if st.button("Eliminar", key="del_initvel"):
+                        st.session_state["init_vel"] = None
+                        _rerun()
+
+        with st.expander("Carga de gravedad (GRAVITY)"):
+            g = input_with_help("g", 9.81, "grav_g")
+            nx = input_with_help("nx", 0.0, "grav_nx")
+            ny = input_with_help("ny", 0.0, "grav_ny")
+            nz = input_with_help("nz", -1.0, "grav_nz")
+            comp = input_with_help("Componente", 3, "grav_comp")
+            if st.button("Asignar gravedad"):
+                st.session_state["gravity"] = {
+                    "g": g,
+                    "nx": nx,
+                    "ny": ny,
+                    "nz": nz,
+                    "comp": int(comp),
+                }
+            if st.session_state["gravity"]:
+                cols = st.columns([4, 1])
+                with cols[0]:
+                    st.json(st.session_state["gravity"])
+                with cols[1]:
+                    if st.button("Eliminar", key="del_gravity"):
+                        st.session_state["gravity"] = None
+                        _rerun()
         with st.expander("Control del cálculo"):
             runname = st.text_input(
                 "Nombre de la simulación", value=DEFAULT_RUNNAME
@@ -916,262 +1172,6 @@ if file_path:
                         st.session_state["control_settings"] = None
                         _rerun()
 
-        with st.expander("Condiciones de contorno (BCS)"):
-            bc_name = st.text_input("Nombre BC", value="Fixed")
-            bc_type = st.selectbox(
-                "Tipo BC",
-                list(BC_DESCRIPTIONS.keys()),
-                format_func=lambda k: f"{k} - {BC_DESCRIPTIONS[k]}",
-            )
-            bc_set = st.selectbox(
-                "Conjunto de nodos",
-                list(all_node_sets.keys()),
-                disabled=not all_node_sets,
-            )
-            bc_data = {}
-            if bc_type == "BCS":
-                bc_tra = st.text_input("Traslación (111/000)", value="111")
-                bc_rot = st.text_input("Rotación (111/000)", value="111")
-                bc_data.update({"tra": bc_tra, "rot": bc_rot})
-            else:
-                bc_dir = input_with_help("Dirección", 1, "bc_dir")
-                bc_val = input_with_help("Valor", 0.0, "bc_val")
-                bc_data.update({"dir": int(bc_dir), "value": float(bc_val)})
-
-            if st.button("Añadir BC") and bc_set:
-                node_list = all_node_sets.get(bc_set, [])
-                entry = {
-                    "name": bc_name,
-                    "type": bc_type,
-                    "nodes": node_list,
-                }
-                entry.update(bc_data)
-                st.session_state["bcs"].append(entry)
-
-            for i, bc in enumerate(st.session_state["bcs"]):
-                cols = st.columns([4, 1])
-                with cols[0]:
-                    st.json(bc)
-                with cols[1]:
-                    if st.button("Eliminar", key=f"del_bc_{i}"):
-                        st.session_state["bcs"].pop(i)
-                        _rerun()
-
-        with st.expander("Puntos remotos"):
-            colx, coly, colz = st.columns(3)
-            with colx:
-                rx = st.number_input("X", 0.0, key="rp_x")
-            with coly:
-                ry = st.number_input("Y", 0.0, key="rp_y")
-            with colz:
-                rz = st.number_input("Z", 0.0, key="rp_z")
-            auto = st.checkbox("ID automático", value=True, key="rp_auto")
-            next_id = next_free_node_id(all_nodes)
-            rid = st.number_input("ID", value=next_id, key="rp_id", disabled=auto)
-            if st.button("Añadir punto remoto"):
-                try:
-                    if auto:
-                        _, nid = add_remote_point(all_nodes, (rx, ry, rz))
-                    else:
-                        _, nid = add_remote_point(all_nodes, (rx, ry, rz), int(rid))
-                    st.session_state["remote_points"].append({"id": nid, "coords": (rx, ry, rz)})
-                    _rerun()
-                except ValueError as e:
-                    st.error(str(e))
-            for i, rp in enumerate(st.session_state.get("remote_points", [])):
-                cols = st.columns([4, 1])
-                with cols[0]:
-                    st.write(f"ID {rp['id']} → {rp['coords']}")
-                with cols[1]:
-                    if st.button("Eliminar", key=f"del_rp_{i}"):
-                        st.session_state["remote_points"].pop(i)
-                        _rerun()
-
-        with st.expander("Interacciones (INTER)"):
-            int_type = st.selectbox(
-                "Tipo",
-                list(INT_DESCRIPTIONS.keys()),
-                key="itf_type",
-                format_func=lambda k: f"{k} - {INT_DESCRIPTIONS[k]}",
-            )
-            idx = st.session_state.get("next_inter_idx", 1)
-            def_name = f"{int_type}_{idx}"
-            int_name = st.text_input(
-                "Nombre interfaz",
-                value=st.session_state.get("int_name", def_name),
-                key="int_name",
-            )
-            slave_set = st.selectbox(
-                "Conjunto esclavo",
-                list(all_node_sets.keys()),
-                key="slave_set",
-                disabled=not all_node_sets,
-            )
-            master_set = st.selectbox(
-                "Conjunto maestro",
-                list(all_node_sets.keys()),
-                key="master_set",
-                disabled=not all_node_sets,
-            )
-            fric = input_with_help("Fricción", 0.0, "fric")
-
-            gap = stiff = igap = None
-            if int_type == "TYPE7":
-                gap = input_with_help("Gap", 0.0, "gap")
-                stiff = input_with_help("Stiffness", 0.0, "stiff")
-                igap = input_with_help("Igap", 0, "igap")
-
-            if st.button("Añadir interfaz") and slave_set and master_set:
-                s_list = all_node_sets.get(slave_set, [])
-                m_list = all_node_sets.get(master_set, [])
-                if s_list and m_list:
-                    itf = {
-                        "type": int_type,
-                        "name": int_name,
-                        "slave": s_list,
-                        "master": m_list,
-                        "fric": float(fric),
-                    }
-                    if int_type == "TYPE7":
-                        itf.update({
-                            "gap": gap,
-                            "stiff": stiff,
-                            "igap": int(igap),
-                        })
-                    st.session_state["interfaces"].append(itf)
-                    st.session_state["next_inter_idx"] += 1
-                    st.session_state["int_name"] = f"{int_type}_{st.session_state['next_inter_idx']}"
-                    _rerun()
-            for i, itf in enumerate(st.session_state["interfaces"]):
-                cols = st.columns([4, 1])
-                with cols[0]:
-                    st.json(itf)
-                with cols[1]:
-                    if st.button("Eliminar", key=f"del_itf_{i}"):
-                        st.session_state["interfaces"].pop(i)
-                        _rerun()
-
-        with st.expander("Rigid Connectors"):
-            with st.expander("/RBODY"):
-                rb_id = st.number_input("RBID", 1)
-                master = st.selectbox("Nodo maestro", list(all_nodes.keys()), key="rbody_master")
-                slaves = st.multiselect("Nodos secundarios", list(all_nodes.keys()), key="rb_slaves")
-                slave_sets = st.multiselect(
-                    "Name selections", list(all_node_sets.keys()), key="rb_sets", disabled=not all_node_sets
-                )
-                if st.button("Añadir RBODY"):
-                    nodes_union = {int(n) for n in slaves}
-                    for s in slave_sets:
-                        nodes_union.update(all_node_sets.get(s, []))
-                    st.session_state["rbodies"].append({
-                        "RBID": int(rb_id),
-                        "Gnod_id": int(master),
-                        "nodes": sorted(nodes_union),
-                    })
-            for i, rb in enumerate(st.session_state.get("rbodies", [])):
-                cols = st.columns([4, 1])
-                with cols[0]:
-                    st.json(rb)
-                with cols[1]:
-                    if st.button("Eliminar", key=f"del_rb_{i}"):
-                        st.session_state["rbodies"].pop(i)
-                        _rerun()
-
-            with st.expander("/RBE2"):
-                m = st.selectbox("Master", list(all_nodes.keys()), key="rbe2m")
-                slaves2 = st.multiselect("Slaves", list(all_nodes.keys()), key="rbe2s")
-                slave_sets2 = st.multiselect(
-                    "Name selections", list(all_node_sets.keys()), key="rbe2_sets", disabled=not all_node_sets
-                )
-                if st.button("Añadir RBE2"):
-                    nodes_union = {int(n) for n in slaves2}
-                    for s in slave_sets2:
-                        nodes_union.update(all_node_sets.get(s, []))
-                    st.session_state["rbe2"].append({
-                        "N_master": int(m),
-                        "N_slave_list": sorted(nodes_union),
-                    })
-            for i, rb in enumerate(st.session_state.get("rbe2", [])):
-                cols = st.columns([4, 1])
-                with cols[0]:
-                    st.json(rb)
-                with cols[1]:
-                    if st.button("Eliminar", key=f"del_rbe2_{i}"):
-                        st.session_state["rbe2"].pop(i)
-                        _rerun()
-
-            with st.expander("/RBE3"):
-                dep = st.selectbox("Dependiente", list(all_nodes.keys()), key="rbe3d")
-                indep_nodes = st.multiselect("Independientes", list(all_nodes.keys()), key="rbe3i")
-                indep_sets = st.multiselect(
-                    "Name selections", list(all_node_sets.keys()), key="rbe3_sets", disabled=not all_node_sets
-                )
-                if st.button("Añadir RBE3"):
-                    nodes_union = {int(n) for n in indep_nodes}
-                    for s in indep_sets:
-                        nodes_union.update(all_node_sets.get(s, []))
-                    st.session_state["rbe3"].append({
-                        "N_dependent": int(dep),
-                        "independent": [(nid, 1.0) for nid in sorted(nodes_union)],
-                    })
-            for i, rb in enumerate(st.session_state.get("rbe3", [])):
-                cols = st.columns([4, 1])
-                with cols[0]:
-                    st.json(rb)
-                with cols[1]:
-                    if st.button("Eliminar", key=f"del_rbe3_{i}"):
-                        st.session_state["rbe3"].pop(i)
-                        _rerun()
-
-        with st.expander("Velocidad inicial (IMPVEL)"):
-            vel_set = st.selectbox(
-                "Conjunto de nodos",
-                list(all_node_sets.keys()),
-                key="vel_set",
-                disabled=not all_node_sets,
-            )
-            vx = input_with_help("Vx", 0.0, "vx")
-            vy = input_with_help("Vy", 0.0, "vy")
-            vz = input_with_help("Vz", 0.0, "vz")
-            if st.button("Asignar velocidad") and vel_set:
-                n_list = all_node_sets.get(vel_set, [])
-                st.session_state["init_vel"] = {
-                    "nodes": n_list,
-                    "vx": vx,
-                    "vy": vy,
-                    "vz": vz,
-                }
-            if st.session_state["init_vel"]:
-                cols = st.columns([4, 1])
-                with cols[0]:
-                    st.json(st.session_state["init_vel"])
-                with cols[1]:
-                    if st.button("Eliminar", key="del_initvel"):
-                        st.session_state["init_vel"] = None
-                        _rerun()
-
-        with st.expander("Carga de gravedad (GRAVITY)"):
-            g = input_with_help("g", 9.81, "grav_g")
-            nx = input_with_help("nx", 0.0, "grav_nx")
-            ny = input_with_help("ny", 0.0, "grav_ny")
-            nz = input_with_help("nz", -1.0, "grav_nz")
-            comp = input_with_help("Componente", 3, "grav_comp")
-            if st.button("Asignar gravedad"):
-                st.session_state["gravity"] = {
-                    "g": g,
-                    "nx": nx,
-                    "ny": ny,
-                    "nz": nz,
-                    "comp": int(comp),
-                }
-            if st.session_state["gravity"]:
-                cols = st.columns([4, 1])
-                with cols[0]:
-                    st.json(st.session_state["gravity"])
-                with cols[1]:
-                    if st.button("Eliminar", key="del_gravity"):
-                        st.session_state["gravity"] = None
-                        _rerun()
 
 
         rad_dir = st.text_input(

@@ -77,6 +77,8 @@ def write_rad(
     gravity: Dict[str, float] | None = None,
     properties: List[Dict[str, Any]] | None = None,
     parts: List[Dict[str, Any]] | None = None,
+    include_run: bool = True,
+    default_material: bool = True,
 ) -> None:
     """Generate ``model_0000.rad`` with optional solver controls.
 
@@ -86,7 +88,10 @@ def write_rad(
     ``print_n`` or ``print_line`` to omit the corresponding block in
     the generated file. Gravity loading can be specified via the
     ``gravity`` parameter. Set ``include_inc`` to ``False`` to omit the
-    ``#include`` line referencing the mesh.
+    ``#include`` line referencing the mesh. Use ``include_run=False`` to
+    skip control cards like ``/RUN`` and ``/STOP``. Set ``default_material``
+    to ``False`` to avoid inserting a placeholder material when none are
+    provided.
     """
 
     all_mats: Dict[int, Dict[str, float]] = {}
@@ -152,39 +157,40 @@ def write_rad(
         f.write("                  kg                  mm                   s\n")
         f.write("                  kg                  mm                   s\n")
 
-        # General printout frequency
-        if print_n is not None and print_line is not None:
-            f.write(f"/PRINT/{print_n}/{print_line}\n")
-        f.write(f"/RUN/{runname}/1/\n")
-        f.write(f"                {t_end}\n")
-        f.write("/STOP\n")
-        f.write(
-            f"{stop_emax} {stop_mmax} {stop_nmax} {stop_nth} {stop_nanim} {stop_nerr}\n"
-        )
-        if tfile_dt is not None:
-            f.write("/TFILE/0\n")
-            f.write(f"{tfile_dt}\n")
-        f.write("/VERS/2024\n")
-        if dt_ratio is not None:
-            f.write("/DT/NODA/CST/0\n")
-            f.write(f"{dt_ratio} 0 0\n")
-        if anim_dt is not None:
-            f.write("/ANIM/DT\n")
-            f.write(f"0 {anim_dt}\n")
-        if h3d_dt is not None:
-            f.write("/H3D/DT\n")
-            f.write(f"0 {h3d_dt}\n")
-        if rfile_cycle is not None:
-            if rfile_n is not None:
-                f.write(f"/RFILE/{rfile_n}\n")
-            else:
-                f.write("/RFILE\n")
-            f.write(f"{rfile_cycle}\n")
-        if adyrel is not None and (adyrel[0] is not None or adyrel[1] is not None):
-            f.write("/ADYREL\n")
-            tstart = 0.0 if adyrel[0] is None else adyrel[0]
-            tstop = t_end if adyrel[1] is None else adyrel[1]
-            f.write(f"{tstart} {tstop}\n")
+        if include_run:
+            # General printout frequency
+            if print_n is not None and print_line is not None:
+                f.write(f"/PRINT/{print_n}/{print_line}\n")
+            f.write(f"/RUN/{runname}/1/\n")
+            f.write(f"                {t_end}\n")
+            f.write("/STOP\n")
+            f.write(
+                f"{stop_emax} {stop_mmax} {stop_nmax} {stop_nth} {stop_nanim} {stop_nerr}\n"
+            )
+            if tfile_dt is not None:
+                f.write("/TFILE/0\n")
+                f.write(f"{tfile_dt}\n")
+            f.write("/VERS/2024\n")
+            if dt_ratio is not None:
+                f.write("/DT/NODA/CST/0\n")
+                f.write(f"{dt_ratio} 0 0\n")
+            if anim_dt is not None:
+                f.write("/ANIM/DT\n")
+                f.write(f"0 {anim_dt}\n")
+            if h3d_dt is not None:
+                f.write("/H3D/DT\n")
+                f.write(f"0 {h3d_dt}\n")
+            if rfile_cycle is not None:
+                if rfile_n is not None:
+                    f.write(f"/RFILE/{rfile_n}\n")
+                else:
+                    f.write("/RFILE\n")
+                f.write(f"{rfile_cycle}\n")
+            if adyrel is not None and (adyrel[0] is not None or adyrel[1] is not None):
+                f.write("/ADYREL\n")
+                tstart = 0.0 if adyrel[0] is None else adyrel[0]
+                tstop = t_end if adyrel[1] is None else adyrel[1]
+                f.write(f"{tstart} {tstop}\n")
 
         # 2. MATERIALS
         def write_law1(mid: int, name: str, rho: float, e: float, nu: float) -> None:
@@ -245,7 +251,8 @@ def write_rad(
             f.write(f"{a} {b} {n_val} {c_val}\n")
 
         if not all_mats:
-            write_law1(1, "Default_Mat", density, young, poisson)
+            if default_material:
+                write_law1(1, "Default_Mat", density, young, poisson)
         else:
             for mid, props in all_mats.items():
                 law = props.get("LAW", "LAW1").upper()

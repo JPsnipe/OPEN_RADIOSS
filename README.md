@@ -160,6 +160,8 @@ pestañas principales:
 - **Vista 3D** previsualización ligera de la malla con opción de seleccionar
   los *name selections* que se quieran mostrar.
 
+- **Settings** permite crear propiedades y asignarlas a partes.
+
 -- **Generar INC** permite crear ``mesh.inc`` y muestra sus primeras líneas. \
   Incluye casillas para decidir si exportar las selecciones nombradas y los
   materiales.

@@ -285,3 +285,18 @@ def test_write_rad_with_connectors(tmp_path):
     assert '/RBE3/1' in text
 
 
+def test_write_rad_with_properties(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'prop.rad'
+    props = [
+        {'id': 1, 'name': 'shell_prop', 'type': 'SHELL', 'thickness': 1.2}
+    ]
+    parts = [
+        {'id': 1, 'name': 'part1', 'pid': 1, 'mid': 1}
+    ]
+    write_rad(nodes, elements, str(rad), properties=props, parts=parts)
+    txt = rad.read_text()
+    assert '/PROP/SHELL/1' in txt
+    assert '/PART/1' in txt
+
+

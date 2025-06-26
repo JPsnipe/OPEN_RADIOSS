@@ -806,13 +806,19 @@ if file_path:
         with st.expander("Rigid Connectors"):
             with st.expander("/RBODY"):
                 rb_id = st.number_input("RBID", 1)
-                master = st.selectbox("Nodo maestro", list(all_nodes.keys()))
-                slaves = st.multiselect("Nodos secundarios", list(all_nodes.keys()))
+                master = st.selectbox("Nodo maestro", list(all_nodes.keys()), key="rbody_master")
+                slaves = st.multiselect("Nodos secundarios", list(all_nodes.keys()), key="rb_slaves")
+                slave_sets = st.multiselect(
+                    "Name selections", list(all_node_sets.keys()), key="rb_sets", disabled=not all_node_sets
+                )
                 if st.button("Añadir RBODY"):
+                    nodes_union = {int(n) for n in slaves}
+                    for s in slave_sets:
+                        nodes_union.update(all_node_sets.get(s, []))
                     st.session_state["rbodies"].append({
                         "RBID": int(rb_id),
                         "Gnod_id": int(master),
-                        "nodes": [int(n) for n in slaves],
+                        "nodes": sorted(nodes_union),
                     })
             for i, rb in enumerate(st.session_state.get("rbodies", [])):
                 cols = st.columns([4, 1])
@@ -826,10 +832,16 @@ if file_path:
             with st.expander("/RBE2"):
                 m = st.selectbox("Master", list(all_nodes.keys()), key="rbe2m")
                 slaves2 = st.multiselect("Slaves", list(all_nodes.keys()), key="rbe2s")
+                slave_sets2 = st.multiselect(
+                    "Name selections", list(all_node_sets.keys()), key="rbe2_sets", disabled=not all_node_sets
+                )
                 if st.button("Añadir RBE2"):
+                    nodes_union = {int(n) for n in slaves2}
+                    for s in slave_sets2:
+                        nodes_union.update(all_node_sets.get(s, []))
                     st.session_state["rbe2"].append({
                         "N_master": int(m),
-                        "N_slave_list": [int(n) for n in slaves2],
+                        "N_slave_list": sorted(nodes_union),
                     })
             for i, rb in enumerate(st.session_state.get("rbe2", [])):
                 cols = st.columns([4, 1])
@@ -843,10 +855,16 @@ if file_path:
             with st.expander("/RBE3"):
                 dep = st.selectbox("Dependiente", list(all_nodes.keys()), key="rbe3d")
                 indep_nodes = st.multiselect("Independientes", list(all_nodes.keys()), key="rbe3i")
+                indep_sets = st.multiselect(
+                    "Name selections", list(all_node_sets.keys()), key="rbe3_sets", disabled=not all_node_sets
+                )
                 if st.button("Añadir RBE3"):
+                    nodes_union = {int(n) for n in indep_nodes}
+                    for s in indep_sets:
+                        nodes_union.update(all_node_sets.get(s, []))
                     st.session_state["rbe3"].append({
                         "N_dependent": int(dep),
-                        "independent": [(int(n), 1.0) for n in indep_nodes],
+                        "independent": [(nid, 1.0) for nid in sorted(nodes_union)],
                     })
             for i, rb in enumerate(st.session_state.get("rbe3", [])):
                 cols = st.columns([4, 1])

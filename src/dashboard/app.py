@@ -57,11 +57,6 @@ from cdb2rad.writer_inc import write_mesh_inc
 from cdb2rad.rad_validator import validate_rad_format
 from cdb2rad.utils import check_rad_inputs
 from cdb2rad.remote import add_remote_point, next_free_node_id
-from cdb2rad.pdf_search import (
-    REFERENCE_GUIDE_URL,
-    THEORY_MANUAL_URL,
-    USER_GUIDE as USER_GUIDE_URL,
-)
 
 MAX_EDGES = 10000
 MAX_FACES = 15000
@@ -92,14 +87,6 @@ INT_DESCRIPTIONS = {
     "TYPE7": "Superficie-superficie",
 }
 
-# Basic help strings for material parameters
-PARAM_INFO = {
-    "A": "Par\u00e1metro A del modelo Johnson-Cook. Representa la resistencia a la deformaci\u00f3n inicial.",
-    "B": "Par\u00e1metro B del modelo Johnson-Cook. Controla el endurecimiento por deformaci\u00f3n.",
-    "N": "Exponente n del modelo Johnson-Cook. Define la curva de endurecimiento.",
-    "C": "Coeficiente de sensibilidad a la velocidad en Johnson-Cook.",
-    "EPS0": "Referencia de velocidad de deformaci\u00f3n en Johnson-Cook.",
-}
 
 # Units to display for each parameter depending on the selected system
 UNIT_OPTIONS = ["SI", "Imperial"]
@@ -128,34 +115,9 @@ def label_with_unit(base: str) -> str:
     unit = PARAM_UNITS.get(base, {}).get(unit_sys)
     return f"{base} ({unit})" if unit else base
 
-def johnson_cook_curve(A: float, B: float, N: float):
-    import numpy as np
-    import matplotlib.pyplot as plt
-
-    eps = np.linspace(0, 0.3, 100)
-    stress = A + B * eps ** N
-    fig, ax = plt.subplots(figsize=(4, 3))
-    ax.plot(eps, stress)
-    ax.set_xlabel("Deformaci\u00f3n pl\u00e1stica")
-    ax.set_ylabel("Tensi\u00f3n equivalente")
-    ax.grid(True)
-    return fig
-
 def input_with_help(label: str, value: float, key: str):
-    col1, col2 = st.columns([1, 1])
-    with col1:
-        val = st.number_input(label_with_unit(label), value=value, key=key)
-    with col2:
-        info = PARAM_INFO.get(label)
-        if info:
-            with st.expander(f"Info {label}"):
-                st.write(info)
-                A = st.session_state.get("a_i", 200.0)
-                B = st.session_state.get("b_i", 400.0)
-                N = st.session_state.get("n_i", 0.5)
-                fig = johnson_cook_curve(A, B, N)
-                st.pyplot(fig)
-    return val
+    """Simplified numeric input without additional help."""
+    return st.number_input(label_with_unit(label), value=value, key=key)
 
 
 def viewer_html(
@@ -386,7 +348,6 @@ unit_sel = st.selectbox(
     "Sistema de unidades",
     UNIT_OPTIONS,
     key="unit_sys",
-    help="Afecta a las etiquetas de los par\u00e1metros",
 )
 
 uploaded = st.file_uploader("Subir archivo .cdb", type="cdb")
@@ -405,13 +366,12 @@ if file_path:
     )
     st.session_state["work_dir"] = work_dir
     nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
-    info_tab, preview_tab, inp_tab, rad_tab, help_tab = st.tabs(
+    info_tab, preview_tab, inp_tab, rad_tab = st.tabs(
         [
             "Información",
             "Vista 3D",
             "Generar INC",
             "Generar RAD",
-            "Ayuda",
         ]
     )
 
@@ -447,11 +407,6 @@ if file_path:
             sel_eids.update(elem_sets.get(name, []))
 
         html = viewer_html(nodes, elements, selected_eids=sel_eids if sel_eids else None)
-        if len(elements) > MAX_EDGES:
-            st.caption(
-                f"Mostrando un subconjunto de {MAX_EDGES} de {len(elements)} "
-                "elementos para agilizar la vista"
-            )
         st.components.v1.html(html, height=420)
 
         if st.button("Visualizar con ParaView Web"):
@@ -559,7 +514,6 @@ if file_path:
                         list(LAW_DESCRIPTIONS.keys()),
                         format_func=lambda k: f"{k} - {LAW_DESCRIPTIONS[k]}",
                     )
-                    st.caption(LAW_DESCRIPTIONS[law])
                     dens_i = input_with_help("Densidad", 7800.0, "dens_i")
                     e_i = input_with_help("E", 210000.0, "e_i")
                     nu_i = input_with_help("Poisson", 0.3, "nu_i")
@@ -591,7 +545,6 @@ if file_path:
                     )
                     fail_params: Dict[str, float] = {}
                     if fail_type:
-                        st.caption(FAIL_DESCRIPTIONS[fail_type])
                         if fail_type == "JOHNSON":
                             fail_params["D1"] = input_with_help("D1", 0.0, "d1")
                             fail_params["D2"] = input_with_help("D2", 0.0, "d2")
@@ -732,7 +685,6 @@ if file_path:
                 list(BC_DESCRIPTIONS.keys()),
                 format_func=lambda k: f"{k} - {BC_DESCRIPTIONS[k]}",
             )
-            st.caption(BC_DESCRIPTIONS[bc_type])
             bc_set = st.selectbox(
                 "Conjunto de nodos",
                 list(all_node_sets.keys()),
@@ -804,7 +756,6 @@ if file_path:
                 key="itf_type",
                 format_func=lambda k: f"{k} - {INT_DESCRIPTIONS[k]}",
             )
-            st.caption(INT_DESCRIPTIONS[int_type])
             int_name = st.text_input("Nombre interfaz", value=f"{int_type}_1")
             slave_set = st.selectbox(
                 "Conjunto esclavo",
@@ -1107,14 +1058,5 @@ if file_path:
                     )
 
 
-    # Documentation search with dynamic manual selection
-
-    with help_tab:
-        st.subheader("Documentación")
-        st.markdown(
-            f"[Reference Guide]({REFERENCE_GUIDE_URL}) | "
-            f"[User Guide]({USER_GUIDE_URL}) | "
-            f"[Theory Manual]({THEORY_MANUAL_URL})"
-        )
 else:
     st.info("Sube un archivo .cdb")

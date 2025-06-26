@@ -396,6 +396,10 @@ unit_sel = st.selectbox(
 
 uploaded = st.file_uploader("Subir archivo .cdb", type="cdb")
 
+# Ensure session state has expected keys even before loading a CDB
+if "subsets" not in st.session_state:
+    st.session_state["subsets"] = {}
+
 file_path = None
 if uploaded is not None:
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".cdb")
@@ -416,12 +420,12 @@ if file_path:
         st.session_state["subsets"] = {}
     nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
 
-    info_tab, preview_tab, vtk_tab, inp_tab, rad_tab, help_tab = st.tabs(
+    info_tab, preview_tab, vtk_tab, settings_tab, inp_tab, rad_tab, help_tab = st.tabs(
         [
             "Información",
             "Vista 3D",
             "Generar VTK",
-
+            "Settings",
             "Generar INC",
             "Generar RAD",
             "Ayuda",

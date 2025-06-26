@@ -314,7 +314,7 @@ def write_rad(
                         m = fail.get("M", 0.0)
                         n_fail = fail.get("N", 0.0)
                         f.write(f"/FAIL/BIQUAD/{mid}\n")
-                        f.write("#    \u03b1      \u03b2      m      n\n")
+                        f.write("#    alpha      beta      m      n\n")
                         f.write(f"  {alpha}   {beta}   {m}   {n_fail}\n")
                     elif ftype:
                         f.write(f"/FAIL/{ftype}/{mid}\n")

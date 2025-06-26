@@ -453,7 +453,12 @@ if file_path:
         if st.session_state["parts"]:
             st.write("Partes definidas:")
             for part in st.session_state["parts"]:
-                st.write(f"- {part['name']} (ID {part['id']}) → {part['set']}")
+                if "set" in part:
+                    st.write(
+                        f"- {part['name']} (ID {part['id']}) → {part['set']}"
+                    )
+                else:
+                    st.write(f"- {part['name']} (ID {part['id']})")
         st.write("Materiales:")
         for mid, props in materials.items():
             st.write(f"- ID {mid}: {props}")
@@ -797,7 +802,12 @@ if file_path:
             for i, part in enumerate(st.session_state["parts"]):
                 cols = st.columns([4, 1])
                 with cols[0]:
-                    st.write(f"{part['name']} → {part['set']} (ID {part['id']})")
+                    if "set" in part:
+                        st.write(
+                            f"{part['name']} → {part['set']} (ID {part['id']})"
+                        )
+                    else:
+                        st.write(f"{part['name']} (ID {part['id']})")
                 with cols[1]:
                     if st.button("Eliminar", key=f"del_part_{i}"):
                         st.session_state["parts"].pop(i)

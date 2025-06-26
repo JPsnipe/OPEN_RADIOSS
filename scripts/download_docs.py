@@ -13,10 +13,15 @@ THEORY_MANUAL_URL = (
     "https://2022.help.altair.com/2022/simulation/pdfs/radopen/"
     "AltairRadioss_2022_TheoryManual.pdf"
 )
+USER_GUIDE_URL = (
+    "https://2022.help.altair.com/2022/simulation/pdfs/radopen/"
+    "AltairRadioss_2022_UserGuide.pdf"
+)
 
 PDFS = {
     REFERENCE_GUIDE_URL: "AltairRadioss_2022_ReferenceGuide.pdf",
     THEORY_MANUAL_URL: "AltairRadioss_2022_TheoryManual.pdf",
+    USER_GUIDE_URL: "AltairRadioss_2022_UserGuide.pdf",
 }
 
 

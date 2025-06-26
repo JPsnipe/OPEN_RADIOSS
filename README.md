@@ -149,7 +149,7 @@ el número y tipo de elementos y generar los ficheros ``mesh.inc`` y
 streamlit run src/dashboard/app.py
 ```
 
-Se puede subir un archivo ``.cdb`` propio. La interfaz cuenta con cuatro
+Se puede subir un archivo ``.cdb`` propio. La interfaz cuenta con varias
 pestañas principales:
 
 - En la parte superior se puede elegir el **sistema de unidades** (``SI`` o
@@ -158,9 +158,10 @@ pestañas principales:
 
 - **Información** resumen de nodos y elementos.
 - **Vista 3D** previsualización ligera de la malla con opción de seleccionar
-  los *name selections* que se quieran mostrar.
-
-- **Generar VTK** exporta la malla a ``.vtk`` o ``.vtp`` indicando ruta y nombre.
+  los *name selections* que se quieran mostrar. Desde esta pestaña también es
+  posible **exportar VTK** indicando directorio y formato.
+- **Propiedades** permite definir propiedades y partes que luego se incluirán en
+  el ``starter``.
 - **Generar INC** permite crear ``mesh.inc`` y muestra sus primeras líneas. \
 
   Incluye casillas para decidir si exportar las selecciones nombradas y los
@@ -203,8 +204,8 @@ servidor wslink (host 127.0.0.1 y puerto 8080 por defecto). Ahora también es
 posible generar el fichero VTK en memoria desde la propia aplicación:
 
 
-Además, la pestaña permite guardar el archivo con el botón **Generar VTK**,
-especificando la ruta y el nombre deseado.
+Además, desde la pestaña *Vista 3D* se puede guardar el archivo con el botón
+**Generar VTK**, especificando la ruta y el nombre deseado.
 
 
 ```bash

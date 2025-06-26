@@ -922,8 +922,43 @@ if file_path:
                         _rerun()
 
         with st.expander("Rigid Connectors"):
+            def option_label(nid: int) -> str:
+                return f"Nodo {nid}"
+
+            def set_label(name: str) -> str:
+                return f"Set {name}"
+
+            def parse_selection(sel: str) -> List[int]:
+                if sel.startswith("Set "):
+                    return all_node_sets.get(sel[4:], [])
+                return [int(sel.split()[1])]
+
+            node_options = [option_label(n) for n in all_nodes.keys()]
+            node_options += [set_label(s) for s in all_node_sets.keys()]
+
             with st.expander("/RBODY"):
                 rb_id = st.number_input("RBID", 1)
+<<<<<<< m13n7b-codex/revisar-rigid-bodies-en-dashboard
+                master_sel = st.selectbox(
+                    "Maestro (nodo o set)", node_options, key="rbody_master"
+                )
+                slave_sel = st.multiselect(
+                    "Esclavos (nodos o sets)", node_options, key="rb_slaves"
+                )
+                if st.button("Añadir RBODY"):
+                    m_nodes = parse_selection(master_sel)
+                    if len(m_nodes) != 1:
+                        st.error("El maestro debe ser un único nodo")
+                    else:
+                        nodes_union: Set[int] = set()
+                        for s in slave_sel:
+                            nodes_union.update(parse_selection(s))
+                        st.session_state["rbodies"].append({
+                            "RBID": int(rb_id),
+                            "Gnod_id": m_nodes[0],
+                            "nodes": sorted(nodes_union),
+                        })
+=======
                 master = st.selectbox("Nodo maestro", list(all_nodes.keys()), key="rbody_master")
                 slaves = st.multiselect("Nodos secundarios", list(all_nodes.keys()), key="rb_slaves")
                 slave_sets = st.multiselect(
@@ -938,6 +973,7 @@ if file_path:
                         "Gnod_id": int(master),
                         "nodes": sorted(nodes_union),
                     })
+>>>>>>> main
             for i, rb in enumerate(st.session_state.get("rbodies", [])):
                 cols = st.columns([4, 1])
                 with cols[0]:
@@ -948,6 +984,26 @@ if file_path:
                         _rerun()
 
             with st.expander("/RBE2"):
+<<<<<<< m13n7b-codex/revisar-rigid-bodies-en-dashboard
+                m_sel = st.selectbox(
+                    "Master (nodo o set)", node_options, key="rbe2m"
+                )
+                slave2_sel = st.multiselect(
+                    "Slaves (nodos o sets)", node_options, key="rbe2s"
+                )
+                if st.button("Añadir RBE2"):
+                    m_nodes = parse_selection(m_sel)
+                    if len(m_nodes) != 1:
+                        st.error("El master debe ser un único nodo")
+                    else:
+                        nodes_union: Set[int] = set()
+                        for s in slave2_sel:
+                            nodes_union.update(parse_selection(s))
+                        st.session_state["rbe2"].append({
+                            "N_master": m_nodes[0],
+                            "N_slave_list": sorted(nodes_union),
+                        })
+=======
                 m = st.selectbox("Master", list(all_nodes.keys()), key="rbe2m")
                 slaves2 = st.multiselect("Slaves", list(all_nodes.keys()), key="rbe2s")
                 slave_sets2 = st.multiselect(
@@ -961,6 +1017,7 @@ if file_path:
                         "N_master": int(m),
                         "N_slave_list": sorted(nodes_union),
                     })
+>>>>>>> main
             for i, rb in enumerate(st.session_state.get("rbe2", [])):
                 cols = st.columns([4, 1])
                 with cols[0]:
@@ -971,6 +1028,26 @@ if file_path:
                         _rerun()
 
             with st.expander("/RBE3"):
+<<<<<<< m13n7b-codex/revisar-rigid-bodies-en-dashboard
+                dep_sel = st.selectbox(
+                    "Dependiente (nodo o set)", node_options, key="rbe3d"
+                )
+                indep_sel = st.multiselect(
+                    "Independientes (nodos o sets)", node_options, key="rbe3i"
+                )
+                if st.button("Añadir RBE3"):
+                    dep_nodes = parse_selection(dep_sel)
+                    if len(dep_nodes) != 1:
+                        st.error("El dependiente debe ser un único nodo")
+                    else:
+                        nodes_union: Set[int] = set()
+                        for s in indep_sel:
+                            nodes_union.update(parse_selection(s))
+                        st.session_state["rbe3"].append({
+                            "N_dependent": dep_nodes[0],
+                            "independent": [(nid, 1.0) for nid in sorted(nodes_union)],
+                        })
+=======
                 dep = st.selectbox("Dependiente", list(all_nodes.keys()), key="rbe3d")
                 indep_nodes = st.multiselect("Independientes", list(all_nodes.keys()), key="rbe3i")
                 indep_sets = st.multiselect(
@@ -984,6 +1061,7 @@ if file_path:
                         "N_dependent": int(dep),
                         "independent": [(nid, 1.0) for nid in sorted(nodes_union)],
                     })
+>>>>>>> main
             for i, rb in enumerate(st.session_state.get("rbe3", [])):
                 cols = st.columns([4, 1])
                 with cols[0]:

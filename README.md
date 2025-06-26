@@ -194,22 +194,26 @@ La pestaña **Ayuda** ofrece enlaces directos a la documentación principal de R
 ### Vista 3D con ParaView Web
 
 Para una visualización más completa de la malla se puede utilizar un servidor
+
 **ParaView Web**. El script ``scripts/pv_visualizer.py`` convierte
 cualquier malla soportada a ``.vtk`` de forma temporal y lanza un
 servidor wslink (host 127.0.0.1 y puerto 12345 por defecto):
 
 ```bash
 python scripts/pv_visualizer.py --data data_files/model.cdb --port 12345 --verbose
+
 ```
 
 Al ejecutar el comando se mostrará la URL del visualizador. Desde la pestaña
 **Vista 3D** del dashboard se puede iniciar el servidor y el visor quedará
 embebido directamente en la aplicación usando ``static/vtk_viewer.html`` para
 conectarse vía WebSocket y visualizar la malla con todas las herramientas de
+
 ParaView. Si se desea convertir un archivo sin lanzar el servidor puede
 utilizarse ``scripts/convert_to_vtk.py``:
 
 ```bash
 python scripts/convert_to_vtk.py model.cdb mesh.vtk
 ```
+
 

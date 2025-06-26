@@ -39,9 +39,9 @@ from cdb2rad.writer_rad import (
 )
 from cdb2rad.writer_inc import write_mesh_inc
 from cdb2rad.pdf_search import (
-    REFERENCE_GUIDE,
-    THEORY_MANUAL,
-    search_pdf,
+    REFERENCE_GUIDE_URL,
+    THEORY_MANUAL_URL,
+    USER_GUIDE_URL,
 )
 
 
@@ -791,25 +791,12 @@ if file_path:
                 st.code("\n".join(lines))
 
     with help_tab:
-        st.subheader("Buscar en documentación")
-        doc_choice = st.selectbox("Documento", ["Reference Guide", "Theory Manual"])
-        query = st.text_input("Término de búsqueda")
-        if st.button("Buscar", key="search_docs") and query:
-            url = REFERENCE_GUIDE if doc_choice == "Reference Guide" else THEORY_MANUAL
-            try:
-                results = search_pdf(url, query)
-            except ImportError:
-                st.error("PyPDF2 no está instalado. Instala la dependencia para habilitar la búsqueda.")
-                results = []
-            except Exception as e:  # pragma: no cover - network errors
-                st.error(f"No se pudo buscar en el PDF: {e}")
-                results = []
-            if results:
-                for r in results:
-                    st.write(r)
-            elif results == []:
-                st.warning("Sin coincidencias")
-        link = REFERENCE_GUIDE if doc_choice == "Reference Guide" else THEORY_MANUAL
-        st.markdown(f"[Abrir {doc_choice}]({link})")
+        st.subheader("Documentación")
+        st.markdown(
+            "- [Reference Guide](%s)\n"
+            "- [Theory Manual](%s)\n"
+            "- [User Guide](%s)"
+            % (REFERENCE_GUIDE_URL, THEORY_MANUAL_URL, USER_GUIDE_URL)
+        )
 else:
     st.info("Sube un archivo .cdb")

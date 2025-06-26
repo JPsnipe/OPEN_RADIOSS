@@ -171,6 +171,10 @@ del archivo para guardar fácilmente los resultados.
 
 ### Ayuda interactiva
 
-La pestaña **Ayuda** permite buscar texto en la [Reference Guide](https://2022.help.altair.com/2022/simulation/pdfs/radopen/AltairRadioss_2022_ReferenceGuide.pdf) y el [Theory Manual](https://2022.help.altair.com/2022/simulation/pdfs/radopen/AltairRadioss_2022_TheoryManual.pdf). Introduce una palabra clave y se muestran las primeras coincidencias encontradas. También se incluye un enlace directo para abrir el documento completo.
+La pestaña **Ayuda** contiene enlaces directos a la documentación oficial de Altair Radioss:
 
-> **Nota**: la búsqueda en PDF requiere la librería `PyPDF2`. Si no está instalada, la pestaña seguirá funcionando, pero la búsqueda mostrará un mensaje de aviso.
+- [Reference Guide](https://2022.help.altair.com/2022/simulation/pdfs/radopen/AltairRadioss_2022_ReferenceGuide.pdf)
+- [Theory Manual](https://2022.help.altair.com/2022/simulation/pdfs/radopen/AltairRadioss_2022_TheoryManual.pdf)
+- [User Guide](https://2022.help.altair.com/2022/simulation/pdfs/radopen/AltairRadioss_2022_UserGuide.pdf)
+
+Si copias estos PDF en la carpeta ``docs/`` (o los descargas con ``scripts/download_docs.py``) podrás consultarlos sin conexión.

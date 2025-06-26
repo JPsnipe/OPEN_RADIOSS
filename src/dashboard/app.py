@@ -476,8 +476,10 @@ if file_path:
                     materials=materials if use_mats else None,
                 )
                 st.success(f"Fichero generado en: {inp_path}")
-                lines = inp_path.read_text().splitlines()[:20]
-                st.code("\n".join(lines))
+                with st.expander("Ver .inc completo"):
+                    st.text_area(
+                        "mesh.inc", inp_path.read_text(), height=400
+                    )
 
     with rad_tab:
         st.subheader("Generar RAD")
@@ -900,60 +902,38 @@ if file_path:
             rad_path = out_dir / f"{rad_name}.rad"
             mesh_path = out_dir / "mesh.inc"
             impact_defined = use_impact and st.session_state.get("impact_materials")
-            no_opts = (
-                not use_cdb_mats
-                and not impact_defined
-                and not st.session_state.get("bcs")
-                and not st.session_state.get("interfaces")
-                and not st.session_state.get("rbodies")
-                and not st.session_state.get("rbe2")
-                and not st.session_state.get("rbe3")
-                and not st.session_state.get("init_vel")
-                and not st.session_state.get("gravity")
-                and not st.session_state.get("control_settings")
-            )
             if (rad_path.exists() or mesh_path.exists()) and not overwrite_rad:
                 st.error("El archivo ya existe. Elija otro nombre o directorio")
             else:
-                if no_opts:
-                    write_mesh_inc(all_nodes, elements, str(mesh_path), node_sets=all_node_sets)
-                    from cdb2rad.writer_rad import write_minimal_rad
-                    write_minimal_rad(
-                        str(rad_path),
-                        mesh_inc=mesh_path.name,
-                        runname=runname,
-                        include_inc=include_inc,
-                    )
-                else:
-                    extra = None
-                    if use_impact and st.session_state["impact_materials"]:
+                extra = None
+                if use_impact and st.session_state["impact_materials"]:
                         extra = {
                             m["id"]: {k: v for k, v in m.items() if k != "id"}
                             for m in st.session_state["impact_materials"]
                         }
-                    ctrl = st.session_state.get("control_settings")
-                    if ctrl:
-                        runname = ctrl.get("runname", runname)
-                        t_end = ctrl.get("t_end", t_end)
-                        anim_dt = ctrl.get("anim_dt", anim_dt)
-                        tfile_dt = ctrl.get("tfile_dt", tfile_dt)
-                        dt_ratio = ctrl.get("dt_ratio", dt_ratio)
-                        print_n = ctrl.get("print_n", print_n)
-                        print_line = ctrl.get("print_line", print_line)
-                        rfile_cycle = ctrl.get("rfile_cycle", rfile_cycle)
-                        rfile_n = ctrl.get("rfile_n", rfile_n)
-                        h3d_dt = ctrl.get("h3d_dt", h3d_dt)
-                        stop_emax = ctrl.get("stop_emax", stop_emax)
-                        stop_mmax = ctrl.get("stop_mmax", stop_mmax)
-                        stop_nmax = ctrl.get("stop_nmax", stop_nmax)
-                        stop_nth = ctrl.get("stop_nth", stop_nth)
-                        stop_nanim = ctrl.get("stop_nanim", stop_nanim)
-                        stop_nerr = ctrl.get("stop_nerr", stop_nerr)
-                        adyrel_start = ctrl.get("adyrel_start", adyrel_start)
-                        adyrel_stop = ctrl.get("adyrel_stop", adyrel_stop)
-                    if not include_inc:
-                        write_mesh_inc(all_nodes, elements, str(mesh_path), node_sets=all_node_sets)
-                    write_rad(
+                ctrl = st.session_state.get("control_settings")
+                if ctrl:
+                    runname = ctrl.get("runname", runname)
+                    t_end = ctrl.get("t_end", t_end)
+                    anim_dt = ctrl.get("anim_dt", anim_dt)
+                    tfile_dt = ctrl.get("tfile_dt", tfile_dt)
+                    dt_ratio = ctrl.get("dt_ratio", dt_ratio)
+                    print_n = ctrl.get("print_n", print_n)
+                    print_line = ctrl.get("print_line", print_line)
+                    rfile_cycle = ctrl.get("rfile_cycle", rfile_cycle)
+                    rfile_n = ctrl.get("rfile_n", rfile_n)
+                    h3d_dt = ctrl.get("h3d_dt", h3d_dt)
+                    stop_emax = ctrl.get("stop_emax", stop_emax)
+                    stop_mmax = ctrl.get("stop_mmax", stop_mmax)
+                    stop_nmax = ctrl.get("stop_nmax", stop_nmax)
+                    stop_nth = ctrl.get("stop_nth", stop_nth)
+                    stop_nanim = ctrl.get("stop_nanim", stop_nanim)
+                    stop_nerr = ctrl.get("stop_nerr", stop_nerr)
+                    adyrel_start = ctrl.get("adyrel_start", adyrel_start)
+                    adyrel_stop = ctrl.get("adyrel_stop", adyrel_stop)
+                if not include_inc:
+                    write_mesh_inc(all_nodes, elements, str(mesh_path), node_sets=all_node_sets)
+                write_rad(
                         all_nodes,
                         elements,
                         str(rad_path),
@@ -996,43 +976,11 @@ if file_path:
                 except ValueError as e:
                     st.error(f"Error formato: {e}")
                 st.success(f"Ficheros generados en: {rad_path}")
-                lines = rad_path.read_text().splitlines()[:20]
-                st.code("\n".join(lines))
+                with st.expander("Ver .rad completo"):
+                    st.text_area(
+                        "model.rad", rad_path.read_text(), height=400
+                    )
 
-        clean_dir = st.text_input(
-            "Directorio RAD limpio",
-            value=st.session_state.get("work_dir", str(Path.cwd())),
-            key="clean_dir",
-        )
-        clean_name = st.text_input(
-            "Nombre archivo RAD limpio", value="minimal", key="clean_name"
-        )
-        overwrite_clean = st.checkbox(
-            "Sobrescribir si existe", value=False, key="overwrite_clean"
-        )
-
-        if st.button("Generar .rad limpio"):
-            out_dir = Path(clean_dir).expanduser()
-            out_dir.mkdir(parents=True, exist_ok=True)
-            mesh_path = out_dir / "mesh.inc"
-
-            rad_path = out_dir / f"{clean_name}.rad"
-            if rad_path.exists() and not overwrite_clean:
-                st.error("El archivo RAD ya existe. Cambie el nombre o directorio")
-
-            else:
-                write_mesh_inc(all_nodes, elements, str(mesh_path), node_sets=all_node_sets)
-                from cdb2rad.writer_rad import write_minimal_rad
-
-                write_minimal_rad(
-                    str(rad_path),
-                    mesh_inc=mesh_path.name,
-                    include_inc=include_inc,
-                )
-
-                st.success("Archivo RAD limpio generado")
-                lines = rad_path.read_text().splitlines()[:20]
-                st.code("\n".join(lines))
 
 
     with rigid_tab:

@@ -118,3 +118,5 @@ If Codex is asked to:
 This project serves as a bridge between the Ansys modeling world and open-source Radioss simulation. Codex should support the user in maintaining this pipeline and expanding it into a full Radioss preprocessor.
 
 Para evitar errores con GitHub, revisar frecuentemente los "merge conflicts" antes de hacer commit. Si aparece cualquier bloque de conflicto (<<<<< o >>>>>), resolverlo manualmente y verificar que no queden restos en el código.
+
+Antes de abrir una pull request, verifica que tu rama está actualizada con `main` y que no existen conflictos en las mismas líneas con otras ramas. Ejecuta `git fetch` y revisa con un merge de prueba para detectarlos.

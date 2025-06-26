@@ -1,3 +1,4 @@
+
 """Utility functions to convert various mesh formats to VTK."""
 from __future__ import annotations
 
@@ -7,6 +8,7 @@ try:  # Optional dependency
     import meshio
 except ImportError:  # pragma: no cover - graceful handling
     meshio = None  # type: ignore
+
 
 from .parser import parse_cdb
 from .vtk_writer import write_vtk
@@ -26,9 +28,11 @@ def convert_to_vtk(infile: str, outfile: str) -> None:
         nodes, elements, *_ = parse_cdb(infile)
         write_vtk(nodes, elements, outfile)
         return
+
     if meshio is None:
         raise ModuleNotFoundError(
             "meshio is required to convert meshes in formats other than .cdb"
         )
+
     mesh = meshio.read(infile)
     meshio.write(outfile, mesh)

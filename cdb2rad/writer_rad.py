@@ -70,6 +70,9 @@ def write_rad(
     adyrel: Tuple[float | None, float | None] | None = None,
     boundary_conditions: List[Dict[str, object]] | None = None,
     interfaces: List[Dict[str, object]] | None = None,
+    rbody: List[Dict[str, object]] | None = None,
+    rbe2: List[Dict[str, object]] | None = None,
+    rbe3: List[Dict[str, object]] | None = None,
     init_velocity: Dict[str, object] | None = None,
     gravity: Dict[str, float] | None = None,
 
@@ -100,6 +103,43 @@ def write_rad(
             elem_sets=elem_sets,
             materials=all_mats if all_mats else None,
         )
+
+    # Basic validation of connector definitions
+    if rbody:
+        seen = set()
+        for rb in rbody:
+            rbid = rb.get("RBID")
+            if rbid in seen:
+                raise ValueError("Duplicate RBODY ID")
+            seen.add(rbid)
+            master = rb.get("Gnod_id")
+            if master not in nodes:
+                raise ValueError("RBODY master node missing")
+            for nid in rb.get("nodes", []):
+                if nid not in nodes:
+                    raise ValueError("RBODY node not found")
+
+    if rbe2:
+        seen = set()
+        for rb in rbe2:
+            mid = rb.get("N_master")
+            if mid not in nodes:
+                raise ValueError("RBE2 master node missing")
+            if mid in seen:
+                raise ValueError("Duplicate RBE2 master")
+            seen.add(mid)
+            for nid in rb.get("N_slave_list", []):
+                if nid not in nodes:
+                    raise ValueError("RBE2 slave node missing")
+
+    if rbe3:
+        for rb in rbe3:
+            dep = rb.get("N_dependent")
+            if dep not in nodes:
+                raise ValueError("RBE3 dependent node missing")
+            for nid, _ in rb.get("independent", []):
+                if nid not in nodes:
+                    raise ValueError("RBE3 independent node missing")
 
     with open(outfile, "w") as f:
         f.write("#RADIOSS STARTER\n")
@@ -350,6 +390,55 @@ def write_rad(
                 f.write(f"{name}_master\n")
                 for nid in m_nodes:
                     f.write(f"{nid:10d}\n")
+
+        if rbody:
+            for idx, rb in enumerate(rbody, start=1):
+                title = rb.get("title", "")
+                f.write(f"/RBODY/{idx}\n")
+                f.write(f"{title}\n")
+                f.write("#     RBID  ISENS  NSKEW  ISPHER   MASS  Gnod_id  IKREM  ICOG  Surf_id\n")
+                f.write(
+                    f"     {rb.get('RBID',0)}     {rb.get('ISENS',0)}      {rb.get('NSKEW',0)}       {rb.get('ISPHER',0)}      {rb.get('MASS',0)}    {rb.get('Gnod_id',0)}     {rb.get('IKREM',0)}     {rb.get('ICOG',0)}       {rb.get('SURF_ID',0)}\n"
+                )
+                f.write("#     Jxx     Jyy     Jzz\n")
+                f.write(
+                    f"        {rb.get('Jxx',0)}       {rb.get('Jyy',0)}       {rb.get('Jzz',0)}\n"
+                )
+                f.write("#     Jxy     Jyz     Jxz\n")
+                f.write(
+                    f"        {rb.get('Jxy',0)}       {rb.get('Jyz',0)}       {rb.get('Jxz',0)}\n"
+                )
+                f.write("#     Ioptoff  Ifail\n")
+                f.write(
+                    f"     {rb.get('Ioptoff',0)}     {rb.get('Ifail',0)}\n"
+                )
+
+        if rbe2:
+            for idx, rb in enumerate(rbe2, start=1):
+                name = rb.get("name", f"RBE2_{idx}")
+                f.write(f"/RBE2/{idx}\n")
+                f.write(f"{name}\n")
+                f.write("#  N_master   DOF_flags   MSELECT\n")
+                f.write(
+                    f"   {rb.get('N_master',0)}     {rb.get('DOF_flags','123456')}       {rb.get('MSELECT',1)}\n"
+                )
+                f.write("#  N_slave_list\n")
+                slaves = rb.get('N_slave_list', [])
+                if slaves:
+                    f.write("   " + "   ".join(str(n) for n in slaves) + "\n")
+
+        if rbe3:
+            for idx, rb in enumerate(rbe3, start=1):
+                name = rb.get("name", f"RBE3_{idx}")
+                f.write(f"/RBE3/{idx}\n")
+                f.write(f"{name}\n")
+                f.write("#  N_dependent  DOF_flags   MSELECT\n")
+                f.write(
+                    f"   {rb.get('N_dependent',0)}        {rb.get('DOF_flags','123456')}        {rb.get('MSELECT',0)}\n"
+                )
+                f.write("#  N_indep  Weight\n")
+                for nid, wt in rb.get('independent', []):
+                    f.write(f"   {nid}     {wt}\n")
 
         # 5. PARTS
         f.write(f"/PART/1/1/1\n")

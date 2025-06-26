@@ -224,6 +224,29 @@ def test_write_rad_advanced_options(tmp_path):
     assert '/ADYREL' in text
 
 
+def test_write_rad_extra_outputs(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'extra_outputs.rad'
+    write_rad(
+        nodes,
+        elements,
+        str(rad),
+        shell_anim_dt=0.003,
+        brick_anim_dt=0.002,
+        hisnoda_dt=0.004,
+        rfile_dt=0.005,
+        out_ascii=True,
+        t_init=0.1,
+    )
+    txt = rad.read_text()
+    assert '/ANIM/SHELL/DT' in txt
+    assert '/ANIM/BRICK/DT' in txt
+    assert '/HISNODA/DT' in txt
+    assert '/RFILE/DT' in txt
+    assert '/OUTP/ASCII' in txt
+    assert '0.1' in txt
+
+
 def test_write_rad_adyrel_none(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
     rad = tmp_path / 'adyrel_none.rad'

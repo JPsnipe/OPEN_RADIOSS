@@ -160,6 +160,7 @@ pestañas principales:
 - **Vista 3D** previsualización ligera de la malla con opción de seleccionar
   los *name selections* que se quieran mostrar.
 
+- **Generar VTK** exporta la malla a ``.vtk`` o ``.vtp`` indicando ruta y nombre.
 -- **Generar INC** permite crear ``mesh.inc`` y muestra sus primeras líneas. \
   Incluye casillas para decidir si exportar las selecciones nombradas y los
   materiales.
@@ -196,8 +197,12 @@ La pestaña **Ayuda** ofrece enlaces directos a la documentación principal de R
 Para una visualización más completa de la malla se puede utilizar un servidor
 
 **ParaView Web**. El script ``scripts/pv_visualizer.py`` convierte
-cualquier malla soportada a ``.vtk`` de forma temporal y lanza un
-servidor wslink (host 127.0.0.1 y puerto 12345 por defecto):
+cualquier malla soportada a ``.vtk`` o ``.vtp`` de forma temporal y lanza un
+servidor wslink (host 127.0.0.1 y puerto 12345 por defecto). Ahora también es
+posible generar el fichero VTK en memoria desde la propia aplicación:
+
+Además, la pestaña permite guardar el archivo con el botón **Generar VTK**,
+especificando la ruta y el nombre deseado.
 
 ```bash
 python scripts/pv_visualizer.py --data data_files/model.cdb --port 12345 --verbose
@@ -208,8 +213,9 @@ Al ejecutar el comando se mostrará la URL del visualizador. Desde la pestaña
 **Vista 3D** del dashboard se puede iniciar el servidor y el visor quedará
 embebido directamente en la aplicación usando ``static/vtk_viewer.html`` para
 conectarse vía WebSocket y visualizar la malla con todas las herramientas de
-
-ParaView. Si se desea convertir un archivo sin lanzar el servidor puede
+ParaView. La función ``launch_paraview_server`` acepta ahora ``nodes`` y
+``elements`` para exportar el VTK de forma dinámica. Si se desea convertir un
+archivo sin lanzar el servidor puede
 utilizarse ``scripts/convert_to_vtk.py``:
 
 ```bash

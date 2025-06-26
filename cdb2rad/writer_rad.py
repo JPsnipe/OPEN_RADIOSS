@@ -149,7 +149,6 @@ def write_rad(
         f.write("                  kg                  mm                   s\n")
         f.write("                  kg                  mm                   s\n")
 
-        f.write("/PART/1/1/1\n")
         # General printout frequency
         f.write(f"/PRINT/{print_n}/{print_line}\n")
         f.write(f"/RUN/{runname}/1/\n")
@@ -439,9 +438,7 @@ def write_rad(
                 for nid, wt in rb.get('independent', []):
                     f.write(f"   {nid}     {wt}\n")
 
-        # 5. PARTS
-        f.write(f"/PART/1/1/1\n")
-        f.write(f"/PROP/SHELL/1 {thickness} 0\n")
+        # 5. PARTS -- explicit part definitions are omitted by default
 
         if init_velocity:
             nodes_v = init_velocity.get("nodes", [])

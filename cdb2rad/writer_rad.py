@@ -77,8 +77,8 @@ def write_rad(
     gravity: Dict[str, float] | None = None,
     properties: List[Dict[str, Any]] | None = None,
     parts: List[Dict[str, Any]] | None = None,
-    include_run: bool = True,
-    default_material: bool = True,
+    include_run: bool = False,
+    default_material: bool = False,
 ) -> None:
     """Generate ``model_0000.rad`` with optional solver controls.
 
@@ -88,9 +88,9 @@ def write_rad(
     ``print_n`` or ``print_line`` to omit the corresponding block in
     the generated file. Gravity loading can be specified via the
     ``gravity`` parameter. Set ``include_inc`` to ``False`` to omit the
-    ``#include`` line referencing the mesh. Use ``include_run=False`` to
-    skip control cards like ``/RUN`` and ``/STOP``. Set ``default_material``
-    to ``False`` to avoid inserting a placeholder material when none are
+    ``#include`` line referencing the mesh. Set ``include_run=True`` to
+    write control cards like ``/RUN`` and ``/STOP``. Set ``default_material``
+    to ``True`` to insert a placeholder material when none are
     provided.
     """
 

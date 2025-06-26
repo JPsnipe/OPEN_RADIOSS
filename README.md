@@ -88,11 +88,12 @@ opción ``--skip-include`` se genera el ``.rad`` sin esa referencia:
 python scripts/run_all.py data_files/model.cdb --rad model.rad --skip-include
 ```
 
-Para generar un ``.rad`` limpio sin tarjetas de control ni material por defecto
-pueden emplearse las opciones ``--no-run-cards`` y ``--no-default-material``:
+Por defecto ``model_0000.rad`` no incluye tarjetas de control ``/RUN`` ni un
+material inicial. Estas se pueden añadir con las opciones ``--run-cards`` y
+``--default-material``:
 
 ```bash
-python scripts/run_all.py data_files/model.cdb --rad vacio.rad --no-run-cards --no-default-material
+python scripts/run_all.py data_files/model.cdb --rad completo.rad --run-cards --default-material
 ```
 
 ### Entorno virtual y OpenRadioss

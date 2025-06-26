@@ -26,14 +26,14 @@ def main() -> None:
         help="Do not include the mesh.inc file inside the generated .rad",
     )
     parser.add_argument(
-        "--no-run-cards",
+        "--run-cards",
         action="store_true",
-        help="Omit /RUN and related control cards from the .rad file",
+        help="Include /RUN and related control cards in the .rad file",
     )
     parser.add_argument(
-        "--no-default-material",
+        "--default-material",
         action="store_true",
-        help="Do not insert a default material when none are provided",
+        help="Insert a default material when none are provided",
     )
 
     args = parser.parse_args()
@@ -61,8 +61,8 @@ def main() -> None:
             args.rad,
             mesh_inc=args.inc or "mesh.inc",
             include_inc=not args.skip_include,
-            include_run=not args.no_run_cards,
-            default_material=not args.no_default_material,
+            include_run=args.run_cards,
+            default_material=args.default_material,
             node_sets=node_sets,
             elem_sets=elem_sets,
             materials=materials,

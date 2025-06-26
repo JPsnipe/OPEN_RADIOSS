@@ -2,3 +2,6 @@ streamlit
 PyPDF2
 matplotlib
 numpy
+meshio
+vtk
+wslink

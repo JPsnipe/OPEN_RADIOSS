@@ -23,7 +23,16 @@ ejemplos de la documentación.
 ## Salida generada
 
  - ``mesh.inc``: definición de nodos y elementos.
-- ``model_0000.rad``: fichero de inicio con propiedades, material y BCs.
+ - ``model_0000.rad``: fichero de inicio con propiedades, material y BCs.
+
+## Instalación de dependencias
+
+Instala las librerías necesarias (``streamlit``, ``meshio``, ``vtk`` y
+``wslink``) con ``pip`` antes de ejecutar cualquier script:
+
+```bash
+pip install -r requirements.txt
+```
 
 ## Configuración del ``.rad``
 
@@ -185,17 +194,22 @@ La pestaña **Ayuda** ofrece enlaces directos a la documentación principal de R
 ### Vista 3D con ParaView Web
 
 Para una visualización más completa de la malla se puede utilizar un servidor
-**ParaView Web**. Con ``scripts/start_paraview_web.py`` se genera un fichero
-``.vtk`` temporal a partir del ``.cdb`` y se lanza el visualizador de ParaView
-en el puerto 12345 por defecto:
+**ParaView Web**. El script ``scripts/pv_visualizer.py`` convierte
+cualquier malla soportada a ``.vtk`` de forma temporal y lanza un
+servidor wslink (host 127.0.0.1 y puerto 12345 por defecto):
 
 ```bash
-python scripts/start_paraview_web.py data_files/model.cdb
+python scripts/pv_visualizer.py --data data_files/model.cdb --port 12345 --verbose
 ```
 
 Al ejecutar el comando se mostrará la URL del visualizador. Desde la pestaña
-xfy9un-codex/añadir-servidor-web-paraview-para-visualización-3d
 **Vista 3D** del dashboard se puede iniciar el servidor y el visor quedará
-embebido directamente en la aplicación para inspeccionar la malla con todas
-las herramientas de ParaView.
+embebido directamente en la aplicación usando ``static/vtk_viewer.html`` para
+conectarse vía WebSocket y visualizar la malla con todas las herramientas de
+ParaView. Si se desea convertir un archivo sin lanzar el servidor puede
+utilizarse ``scripts/convert_to_vtk.py``:
+
+```bash
+python scripts/convert_to_vtk.py model.cdb mesh.vtk
+```
 

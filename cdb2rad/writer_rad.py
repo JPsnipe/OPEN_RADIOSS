@@ -109,7 +109,7 @@ def write_rad(
         f.write("                  kg                  mm                   s\n")
         f.write("                  kg                  mm                   s\n")
 
-        f.write("/PART/1/1/1\n")
+        # 1. CONTROL CARDS
         # General printout frequency
         f.write(f"/PRINT/{print_n}/{print_line}\n")
         f.write(f"/RUN/{runname}/1/\n")

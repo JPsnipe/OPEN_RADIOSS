@@ -117,6 +117,14 @@ def test_write_mesh_without_sets_materials(tmp_path):
     assert '/MAT/LAW1' not in content
 
 
+def test_write_rad_no_duplicate_part(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'dup_part.rad'
+    write_rad(nodes, elements, str(rad))
+    content = rad.read_text()
+    assert content.count('/PART/1/1/1') == 1
+
+
 def test_write_minimal_rad(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
     rad = tmp_path / 'min.rad'

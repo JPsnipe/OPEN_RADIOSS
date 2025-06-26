@@ -70,6 +70,7 @@ def write_rad(
     adyrel: Tuple[float | None, float | None] | None = None,
     boundary_conditions: List[Dict[str, object]] | None = None,
     interfaces: List[Dict[str, object]] | None = None,
+    connectors: List[Dict[str, object]] | None = None,
     init_velocity: Dict[str, object] | None = None,
     gravity: Dict[str, float] | None = None,
 
@@ -100,6 +101,37 @@ def write_rad(
             elem_sets=elem_sets,
             materials=all_mats if all_mats else None,
         )
+
+    # Basic validation of connector definitions
+    if connectors:
+        seen_rb = set()
+        for conn in connectors:
+            ctype = str(conn.get("type", "")).upper()
+            if ctype == "RBODY":
+                rbid = conn.get("RBID")
+                if rbid in seen_rb:
+                    raise ValueError("Duplicate RBODY ID")
+                seen_rb.add(rbid)
+                master = conn.get("Gnod_id")
+                if master not in nodes:
+                    raise ValueError("RBODY master node missing")
+                for nid in conn.get("nodes", []):
+                    if nid not in nodes:
+                        raise ValueError("RBODY node not found")
+            elif ctype == "RBE2":
+                mid = conn.get("N_master")
+                if mid not in nodes:
+                    raise ValueError("RBE2 master node missing")
+                for nid in conn.get("N_slave_list", []):
+                    if nid not in nodes:
+                        raise ValueError("RBE2 slave node missing")
+            elif ctype == "RBE3":
+                dep = conn.get("N_dependent")
+                if dep not in nodes:
+                    raise ValueError("RBE3 dependent node missing")
+                for nid, _ in conn.get("independent", []):
+                    if nid not in nodes:
+                        raise ValueError("RBE3 independent node missing")
 
     with open(outfile, "w") as f:
         f.write("#RADIOSS STARTER\n")
@@ -350,6 +382,57 @@ def write_rad(
                 f.write(f"{name}_master\n")
                 for nid in m_nodes:
                     f.write(f"{nid:10d}\n")
+
+        if connectors:
+            idx_rb = idx_rbe2 = idx_rbe3 = 1
+            for conn in connectors:
+                ctype = str(conn.get("type", "")).upper()
+                if ctype == "RBODY":
+                    title = conn.get("title", "")
+                    f.write(f"/RBODY/{idx_rb}\n")
+                    f.write(f"{title}\n")
+                    f.write("#     RBID  ISENS  NSKEW  ISPHER   MASS  Gnod_id  IKREM  ICOG  Surf_id\n")
+                    f.write(
+                        f"     {conn.get('RBID',0)}     {conn.get('ISENS',0)}      {conn.get('NSKEW',0)}       {conn.get('ISPHER',0)}      {conn.get('MASS',0)}    {conn.get('Gnod_id',0)}     {conn.get('IKREM',0)}     {conn.get('ICOG',0)}       {conn.get('SURF_ID',0)}\n"
+                    )
+                    f.write("#     Jxx     Jyy     Jzz\n")
+                    f.write(
+                        f"        {conn.get('Jxx',0)}       {conn.get('Jyy',0)}       {conn.get('Jzz',0)}\n"
+                    )
+                    f.write("#     Jxy     Jyz     Jxz\n")
+                    f.write(
+                        f"        {conn.get('Jxy',0)}       {conn.get('Jyz',0)}       {conn.get('Jxz',0)}\n"
+                    )
+                    f.write("#     Ioptoff  Ifail\n")
+                    f.write(
+                        f"     {conn.get('Ioptoff',0)}     {conn.get('Ifail',0)}\n"
+                    )
+                    idx_rb += 1
+                elif ctype == "RBE2":
+                    name = conn.get("name", f"RBE2_{idx_rbe2}")
+                    f.write(f"/RBE2/{idx_rbe2}\n")
+                    f.write(f"{name}\n")
+                    f.write("#  N_master   DOF_flags   MSELECT\n")
+                    f.write(
+                        f"   {conn.get('N_master',0)}     {conn.get('DOF_flags','123456')}       {conn.get('MSELECT',1)}\n"
+                    )
+                    f.write("#  N_slave_list\n")
+                    slaves = conn.get('N_slave_list', [])
+                    if slaves:
+                        f.write("   " + "   ".join(str(n) for n in slaves) + "\n")
+                    idx_rbe2 += 1
+                elif ctype == "RBE3":
+                    name = conn.get("name", f"RBE3_{idx_rbe3}")
+                    f.write(f"/RBE3/{idx_rbe3}\n")
+                    f.write(f"{name}\n")
+                    f.write("#  N_dependent  DOF_flags   MSELECT\n")
+                    f.write(
+                        f"   {conn.get('N_dependent',0)}        {conn.get('DOF_flags','123456')}        {conn.get('MSELECT',0)}\n"
+                    )
+                    f.write("#  N_indep  Weight\n")
+                    for nid, wt in conn.get('independent', []):
+                        f.write(f"   {nid}     {wt}\n")
+                    idx_rbe3 += 1
 
         # 5. PARTS
         f.write(f"/PART/1/1/1\n")

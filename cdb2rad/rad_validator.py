@@ -48,6 +48,8 @@ KEYWORDS = (
     "/GRNOD/BOX/",
     "/BOX/RECTA/",
     "/RBODY/",
+    "/RBE2/",
+    "/RBE3/",
     "/TH/",
     "/FUNCT/",
 )
@@ -149,6 +151,24 @@ def validate_rad_format(filepath: str) -> None:
             if not lines[i + 2].startswith("/FRICTION"):
                 raise ValueError("TYPE2 missing /FRICTION")
             i += 4
+            continue
+
+        if line.startswith("/RBODY/"):
+            if i + 7 >= len(lines):
+                raise ValueError("Incomplete /RBODY block")
+            i += 8
+            continue
+
+        if line.startswith("/RBE2/"):
+            if i + 4 >= len(lines):
+                raise ValueError("Incomplete /RBE2 block")
+            i += 5
+            continue
+
+        if line.startswith("/RBE3/"):
+            if i + 5 >= len(lines):
+                raise ValueError("Incomplete /RBE3 block")
+            i += 6
             continue
 
 

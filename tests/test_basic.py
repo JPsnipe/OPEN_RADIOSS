@@ -244,3 +244,33 @@ def test_write_rad_without_include(tmp_path):
     assert '#include' not in content
 
 
+def test_write_rad_with_connectors(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'conn.rad'
+    cons = [
+        {
+            'type': 'RBODY',
+            'RBID': 1,
+            'Gnod_id': list(nodes.keys())[0],
+            'nodes': [list(nodes.keys())[1]],
+        },
+        {
+            'type': 'RBE2',
+            'name': 'c2',
+            'N_master': list(nodes.keys())[0],
+            'N_slave_list': [list(nodes.keys())[1]],
+        },
+        {
+            'type': 'RBE3',
+            'name': 'c3',
+            'N_dependent': list(nodes.keys())[0],
+            'independent': [(list(nodes.keys())[1], 1.0)],
+        },
+    ]
+    write_rad(nodes, elements, str(rad), connectors=cons)
+    text = rad.read_text()
+    assert '/RBODY/1' in text
+    assert '/RBE2/1' in text
+    assert '/RBE3/1' in text
+
+

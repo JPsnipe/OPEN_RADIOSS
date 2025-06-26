@@ -774,7 +774,8 @@ if file_path:
             rad_path = out_dir / f"{rad_name}.rad"
             mesh_path = out_dir / "mesh.inc"
             no_opts = (
-                not use_cdb_mats and not use_impact
+                not use_cdb_mats
+                and (not use_impact or not st.session_state.get("impact_materials"))
                 and not st.session_state.get("bcs")
                 and not st.session_state.get("interfaces")
                 and not st.session_state.get("init_vel")

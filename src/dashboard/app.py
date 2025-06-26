@@ -476,8 +476,10 @@ if file_path:
                     materials=materials if use_mats else None,
                 )
                 st.success(f"Fichero generado en: {inp_path}")
-                lines = inp_path.read_text().splitlines()[:20]
-                st.code("\n".join(lines))
+                with st.expander("Ver .inc completo"):
+                    st.text_area(
+                        "mesh.inc", inp_path.read_text(), height=400
+                    )
 
     with rad_tab:
         st.subheader("Generar RAD")
@@ -996,8 +998,10 @@ if file_path:
                 except ValueError as e:
                     st.error(f"Error formato: {e}")
                 st.success(f"Ficheros generados en: {rad_path}")
-                lines = rad_path.read_text().splitlines()[:20]
-                st.code("\n".join(lines))
+                with st.expander("Ver .rad completo"):
+                    st.text_area(
+                        "model.rad", rad_path.read_text(), height=400
+                    )
 
         clean_dir = st.text_input(
             "Directorio RAD limpio",
@@ -1031,8 +1035,10 @@ if file_path:
                 )
 
                 st.success("Archivo RAD limpio generado")
-                lines = rad_path.read_text().splitlines()[:20]
-                st.code("\n".join(lines))
+                with st.expander("Ver .rad completo"):
+                    st.text_area(
+                        "minimal.rad", rad_path.read_text(), height=400
+                    )
 
 
     with rigid_tab:

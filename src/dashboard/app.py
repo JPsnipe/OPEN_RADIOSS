@@ -910,6 +910,7 @@ if file_path:
                         adyrel_stop = ctrl.get("adyrel_stop", adyrel_stop)
                     if not include_inc:
                         write_mesh_inc(nodes, elements, str(mesh_path))
+                    ctrl_kwargs = st.session_state.get("control_settings") or {}
                     write_rad(
                         nodes,
                         elements,
@@ -920,25 +921,7 @@ if file_path:
                         elem_sets=elem_sets,
                         materials=materials if use_cdb_mats else None,
                         extra_materials=extra,
-
-                        runname=runname,
-                        t_end=t_end,
-                        anim_dt=anim_dt,
-                        tfile_dt=tfile_dt,
-                        dt_ratio=dt_ratio,
-                        print_n=int(print_n),
-                        print_line=int(print_line),
-                        rfile_cycle=int(rfile_cycle) if rfile_cycle else None,
-                        rfile_n=int(rfile_n) if rfile_n else None,
-                        h3d_dt=h3d_dt if h3d_dt > 0 else None,
-                        stop_emax=stop_emax,
-                        stop_mmax=stop_mmax,
-                        stop_nmax=stop_nmax,
-                        stop_nth=int(stop_nth),
-                        stop_nanim=int(stop_nanim),
-                        stop_nerr=int(stop_nerr),
-                        adyrel=(adyrel_start, adyrel_stop),
-
+                        **ctrl_kwargs,
                         boundary_conditions=st.session_state.get("bcs"),
                         interfaces=st.session_state.get("interfaces"),
                         rbody=st.session_state.get("rbodies"),

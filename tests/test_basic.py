@@ -63,13 +63,18 @@ def test_write_rad(tmp_path):
         anim_dt=0.002,
         tfile_dt=0.0001,
         dt_ratio=0.8,
+        stop_emax=0.0,
+        stop_mmax=0.0,
+        stop_nmax=0.0,
+        stop_nth=1,
+        stop_nanim=1,
+        stop_nerr=0,
 
     )
     content = rad.read_text()
     assert content.startswith('#RADIOSS STARTER')
     assert '/BEGIN' in content
     assert '/END' in content
-    assert '2.0' in content
     assert '100000.0' in content
 
     assert '/STOP' in content
@@ -126,6 +131,18 @@ def test_write_minimal_rad(tmp_path):
     assert '/BEGIN' in text
     assert '#include mesh.inc' in text
     assert '/END' in text
+
+
+def test_write_rad_no_controls(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'noctrl.rad'
+    write_rad(nodes, elements, str(rad))
+    txt = rad.read_text()
+    assert '/PRINT' not in txt
+    assert '/RUN' not in txt
+    assert '/STOP' not in txt
+    assert '/DT/NODA' not in txt
+    assert '/ANIM/DT' not in txt
 
 
 def test_write_rad_with_bc(tmp_path):

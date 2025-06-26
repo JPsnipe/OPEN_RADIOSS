@@ -51,22 +51,22 @@ def write_rad(
     density: float = DEFAULT_RHO,
 
     runname: str = DEFAULT_RUNNAME,
-    t_end: float = DEFAULT_FINAL_TIME,
-    anim_dt: float = DEFAULT_ANIM_DT,
-    tfile_dt: float = DEFAULT_HISTORY_DT,
-    dt_ratio: float = DEFAULT_DT_RATIO,
+    t_end: float | None = None,
+    anim_dt: float | None = None,
+    tfile_dt: float | None = None,
+    dt_ratio: float | None = None,
     # Additional engine control options
-    print_n: int = DEFAULT_PRINT_N,
-    print_line: int = DEFAULT_PRINT_LINE,
+    print_n: int | None = None,
+    print_line: int | None = None,
     rfile_cycle: int | None = None,
     rfile_n: int | None = None,
     h3d_dt: float | None = None,
-    stop_emax: float = DEFAULT_STOP_EMAX,
-    stop_mmax: float = DEFAULT_STOP_MMAX,
-    stop_nmax: float = DEFAULT_STOP_NMAX,
-    stop_nth: int = DEFAULT_STOP_NTH,
-    stop_nanim: int = DEFAULT_STOP_NANIM,
-    stop_nerr: int = DEFAULT_STOP_NERR,
+    stop_emax: float | None = None,
+    stop_mmax: float | None = None,
+    stop_nmax: float | None = None,
+    stop_nth: int | None = None,
+    stop_nanim: int | None = None,
+    stop_nerr: int | None = None,
     adyrel: Tuple[float | None, float | None] | None = None,
     boundary_conditions: List[Dict[str, object]] | None = None,
     interfaces: List[Dict[str, object]] | None = None,
@@ -149,22 +149,28 @@ def write_rad(
         f.write("                  kg                  mm                   s\n")
         f.write("                  kg                  mm                   s\n")
 
-        f.write("/PART/1/1/1\n")
-        # General printout frequency
-        f.write(f"/PRINT/{print_n}/{print_line}\n")
-        f.write(f"/RUN/{runname}/1/\n")
-        f.write(f"                {t_end}\n")
-        f.write("/STOP\n")
-        f.write(
-            f"{stop_emax} {stop_mmax} {stop_nmax} {stop_nth} {stop_nanim} {stop_nerr}\n"
-        )
-        f.write("/TFILE/0\n")
-        f.write(f"{tfile_dt}\n")
-        f.write("/VERS/2024\n")
-        f.write("/DT/NODA/CST/0\n")
-        f.write(f"{dt_ratio} 0 0\n")
-        f.write("/ANIM/DT\n")
-        f.write(f"0 {anim_dt}\n")
+        if print_n is not None and print_line is not None:
+            f.write(f"/PRINT/{print_n}/{print_line}\n")
+        if t_end is not None:
+            f.write(f"/RUN/{runname}/1/\n")
+            f.write(f"                {t_end}\n")
+            if any(
+                v is not None
+                for v in (stop_emax, stop_mmax, stop_nmax, stop_nth, stop_nanim, stop_nerr)
+            ):
+                f.write("/STOP\n")
+                f.write(
+                    f"{stop_emax or 0.0} {stop_mmax or 0.0} {stop_nmax or 0.0} {stop_nth or 0} {stop_nanim or 0} {stop_nerr or 0}\n"
+                )
+        if tfile_dt is not None:
+            f.write("/TFILE/0\n")
+            f.write(f"{tfile_dt}\n")
+        if dt_ratio is not None:
+            f.write("/DT/NODA/CST/0\n")
+            f.write(f"{dt_ratio} 0 0\n")
+        if anim_dt is not None:
+            f.write("/ANIM/DT\n")
+            f.write(f"0 {anim_dt}\n")
         if h3d_dt is not None:
             f.write("/H3D/DT\n")
             f.write(f"0 {h3d_dt}\n")
@@ -439,9 +445,7 @@ def write_rad(
                 for nid, wt in rb.get('independent', []):
                     f.write(f"   {nid}     {wt}\n")
 
-        # 5. PARTS
-        f.write(f"/PART/1/1/1\n")
-        f.write(f"/PROP/SHELL/1 {thickness} 0\n")
+        # 5. PARTS -- explicit part definitions are omitted by default
 
         if init_velocity:
             nodes_v = init_velocity.get("nodes", [])

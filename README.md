@@ -38,6 +38,8 @@ fichero mínimo contiene:
 ...   # definición de propiedades y materiales
 /END
 ```
+La seccion `/PART` no se crea por defecto; definala en el panel si se desean propiedades.
+
 
 El ``starter`` se organiza siguiendo un orden similar al de los ejemplos de
 OpenRadioss. Primero se colocan las tarjetas de control (``/RUN`` y
@@ -173,6 +175,11 @@ gravedad (``/GRAVITY``) seleccionando las *name selections* de nodos en un
 desplegable. Estos campos se pueden editar, añadir o eliminar en el panel
 correspondiente antes de generar el archivo.
 El panel de gravedad está junto a **Velocidad inicial** y permite indicar la magnitud `g` y la dirección `(nx, ny, nz)`.
+
+Si no se añade un bloque de **Control del cálculo**, el ``.rad`` generado solo
+incluye las secciones seleccionadas (BCS, contactos, etc.). Las tarjetas de
+control como ``/RUN`` o ``/PRINT`` se escriben únicamente cuando se activan en
+ese panel.
 
 
 Tras pulsar *Generar .inc* o *Generar .rad* se muestran las primeras líneas de

@@ -2,6 +2,17 @@
 
 from typing import Dict, Any
 
+# Typical Johnson-Cook failure parameters found in the Radioss documentation
+DEFAULT_FAILURE_PARAMS: Dict[str, Dict[str, float]] = {
+    "JOHNSON": {
+        "D1": -0.77,
+        "D2": 1.45,
+        "D3": -0.47,
+        "D4": 0.0,
+        "D5": 1.6,
+    }
+}
+
 DEFAULT_STEEL_MATERIALS: Dict[str, Dict[str, float]] = {
     "LAW1": {
         "EX": 210000.0,
@@ -46,18 +57,31 @@ DEFAULT_STEEL_MATERIALS: Dict[str, Dict[str, float]] = {
 }
 
 
-def apply_default_materials(materials: Dict[int, Dict[str, float]]) -> Dict[int, Dict[str, float]]:
-    """Fill missing properties using :data:`DEFAULT_STEEL_MATERIALS`."""
-    result: Dict[int, Dict[str, float]] = {}
+def apply_default_materials(materials: Dict[int, Dict[str, Any]]) -> Dict[int, Dict[str, Any]]:
+    """Fill missing properties using :data:`DEFAULT_STEEL_MATERIALS`.
+
+    Also complete failure parameters using :data:`DEFAULT_FAILURE_PARAMS`.
+    """
+    result: Dict[int, Dict[str, Any]] = {}
     for mid, props in materials.items():
         law = props.get("LAW", "LAW1").upper()
         defaults = DEFAULT_STEEL_MATERIALS.get(law, DEFAULT_STEEL_MATERIALS["LAW1"])
-        merged = {k: v for k, v in props.items() if v is not None}
+        merged: Dict[str, Any] = {k: v for k, v in props.items() if v is not None}
         for key, val in defaults.items():
             if key in ("EX", "NUXY", "DENS") and key not in merged:
                 # defer to global parameters if provided in writers
                 continue
             merged.setdefault(key, val)
         merged["LAW"] = law
+        fail = merged.get("FAIL")
+        if isinstance(fail, dict):
+            ftype = str(fail.get("TYPE", "")).upper()
+            defaults_fail = DEFAULT_FAILURE_PARAMS.get(ftype)
+            if defaults_fail:
+                for key, val in defaults_fail.items():
+                    fail.setdefault(key, val)
+                fail["TYPE"] = ftype
+                merged["FAIL"] = fail
+
         result[mid] = merged
     return result

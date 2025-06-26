@@ -396,11 +396,12 @@ if file_path:
     )
     st.session_state["work_dir"] = work_dir
     nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
-    info_tab, preview_tab, inp_tab, rad_tab, help_tab = st.tabs([
+    info_tab, preview_tab, inp_tab, rad_tab, rigid_tab, help_tab = st.tabs([
         "Información",
         "Vista 3D",
         "Generar INC",
         "Generar RAD",
+        "Rigid Connectors",
         "Ayuda",
     ])
 
@@ -497,6 +498,12 @@ if file_path:
             st.session_state["gravity"] = None
         if "control_settings" not in st.session_state:
             st.session_state["control_settings"] = None
+        if "rbodies" not in st.session_state:
+            st.session_state["rbodies"] = []
+        if "rbe2" not in st.session_state:
+            st.session_state["rbe2"] = []
+        if "rbe3" not in st.session_state:
+            st.session_state["rbe3"] = []
 
         with st.expander("Definición de materiales"):
             use_cdb_mats = st.checkbox("Incluir materiales del CDB", value=False)
@@ -855,6 +862,9 @@ if file_path:
                 and not impact_defined
                 and not st.session_state.get("bcs")
                 and not st.session_state.get("interfaces")
+                and not st.session_state.get("rbodies")
+                and not st.session_state.get("rbe2")
+                and not st.session_state.get("rbe3")
                 and not st.session_state.get("init_vel")
                 and not st.session_state.get("gravity")
                 and not st.session_state.get("control_settings")
@@ -931,6 +941,9 @@ if file_path:
 
                         boundary_conditions=st.session_state.get("bcs"),
                         interfaces=st.session_state.get("interfaces"),
+                        rbody=st.session_state.get("rbodies"),
+                        rbe2=st.session_state.get("rbe2"),
+                        rbe3=st.session_state.get("rbe3"),
                         init_velocity=st.session_state.get("init_vel"),
                         gravity=st.session_state.get("gravity"),
                     )
@@ -978,7 +991,55 @@ if file_path:
                 lines = rad_path.read_text().splitlines()[:20]
                 st.code("\n".join(lines))
 
-    # Documentation links
+
+    with rigid_tab:
+        st.subheader("Rigid Connectors")
+        with st.expander("/RBODY"):
+            rb_id = st.number_input("RBID", 1)
+            master = st.selectbox("Nodo maestro", list(nodes.keys()))
+            slaves = st.multiselect("Nodos secundarios", list(nodes.keys()))
+            if st.button("Añadir RBODY"):
+                st.session_state["rbodies"].append({
+                    "RBID": int(rb_id),
+                    "Gnod_id": int(master),
+                    "nodes": [int(n) for n in slaves],
+                })
+        for i, rb in enumerate(st.session_state.get("rbodies", [])):
+            st.json(rb)
+            if st.button("Eliminar", key=f"del_rb_{i}"):
+                st.session_state["rbodies"].pop(i)
+                st.experimental_rerun()
+
+        with st.expander("/RBE2"):
+            m = st.selectbox("Master", list(nodes.keys()), key="rbe2m")
+            slaves2 = st.multiselect("Slaves", list(nodes.keys()), key="rbe2s")
+            if st.button("Añadir RBE2"):
+                st.session_state["rbe2"].append({
+                    "N_master": int(m),
+                    "N_slave_list": [int(n) for n in slaves2],
+                })
+        for i, rb in enumerate(st.session_state.get("rbe2", [])):
+            st.json(rb)
+            if st.button("Eliminar", key=f"del_rbe2_{i}"):
+                st.session_state["rbe2"].pop(i)
+                st.experimental_rerun()
+
+        with st.expander("/RBE3"):
+            dep = st.selectbox("Dependiente", list(nodes.keys()), key="rbe3d")
+            indep_nodes = st.multiselect("Independientes", list(nodes.keys()), key="rbe3i")
+            if st.button("Añadir RBE3"):
+                st.session_state["rbe3"].append({
+                    "N_dependent": int(dep),
+                    "independent": [(int(n), 1.0) for n in indep_nodes],
+                })
+        for i, rb in enumerate(st.session_state.get("rbe3", [])):
+            st.json(rb)
+            if st.button("Eliminar", key=f"del_rbe3_{i}"):
+                st.session_state["rbe3"].pop(i)
+                st.experimental_rerun()
+
+    # Documentation search with dynamic manual selection
+
     with help_tab:
         st.subheader("Documentación")
         st.markdown(

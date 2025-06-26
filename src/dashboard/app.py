@@ -76,10 +76,10 @@ LAW_DESCRIPTIONS = {
 }
 
 FAIL_DESCRIPTIONS = {
-    "Ninguno": "Sin criterio de fallo",
-    "FAIL/JOHNSON": "Johnson-Cook failure",
-    "FAIL/BIQUAD": "Criterio Biquadrático",
-    "FAIL/TAB1": "Fallo tabulado",
+    "": "Sin criterio de fallo",
+    "JOHNSON": "Johnson-Cook failure",
+    "BIQUAD": "Criterio Biquadrático",
+    "TAB1": "Fallo tabulado",
 }
 
 BC_DESCRIPTIONS = {
@@ -581,23 +581,22 @@ if file_path:
                     fail_type = st.selectbox(
                         "Modo de fallo",
                         list(FAIL_DESCRIPTIONS.keys()),
-                        format_func=lambda k: f"{k} - {FAIL_DESCRIPTIONS[k]}",
+                        format_func=lambda k: "Ninguno" if k == "" else f"FAIL/{k} - {FAIL_DESCRIPTIONS[k]}",
                     )
                     fail_params: Dict[str, float] = {}
                     if fail_type:
                         st.caption(FAIL_DESCRIPTIONS[fail_type])
-                    if fail_type != "Ninguno":
-                        if fail_type == "FAIL/JOHNSON":
+                        if fail_type == "JOHNSON":
                             fail_params["D1"] = input_with_help("D1", 0.0, "d1")
                             fail_params["D2"] = input_with_help("D2", 0.0, "d2")
                             fail_params["D3"] = input_with_help("D3", 0.0, "d3")
                             fail_params["D4"] = input_with_help("D4", 0.0, "d4")
                             fail_params["D5"] = input_with_help("D5", 0.0, "d5")
-                        elif fail_type == "FAIL/BIQUAD":
+                        elif fail_type == "BIQUAD":
                             fail_params["C1"] = input_with_help("C1", 0.0, "c1")
                             fail_params["C2"] = input_with_help("C2", 0.0, "c2")
                             fail_params["C3"] = input_with_help("C3", 0.0, "c3")
-                        elif fail_type == "FAIL/TAB1":
+                        elif fail_type == "TAB1":
                             fail_params["Dcrit"] = input_with_help("Dcrit", 1.0, "dcrit")
 
                     if st.button("Añadir material"):
@@ -609,7 +608,7 @@ if file_path:
                             "DENS": dens_i,
                         }
                         data.update(extra)
-                        if fail_type != "Ninguno":
+                        if fail_type:
                             data["FAIL"] = {"TYPE": fail_type, **fail_params}
                         st.session_state["impact_materials"].append(data)
 

@@ -240,6 +240,26 @@ def test_write_rad_without_include(tmp_path):
     assert '#include' not in content
 
 
+def test_write_rad_skip_controls(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'skip.rad'
+    write_rad(
+        nodes,
+        elements,
+        str(rad),
+        anim_dt=None,
+        tfile_dt=None,
+        dt_ratio=None,
+        print_n=None,
+        print_line=None,
+    )
+    txt = rad.read_text()
+    assert '/ANIM/DT' not in txt
+    assert '/TFILE' not in txt
+    assert '/DT/NODA' not in txt
+    assert '/PRINT' not in txt
+
+
 def test_write_rad_with_connectors(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
     rad = tmp_path / 'conn.rad'

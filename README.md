@@ -194,6 +194,8 @@ python scripts/start_paraview_web.py data_files/model.cdb
 ```
 
 Al ejecutar el comando se mostrará la URL del visualizador. Desde la pestaña
+xfy9un-codex/añadir-servidor-web-paraview-para-visualización-3d
 **Vista 3D** del dashboard se puede iniciar el servidor y el visor quedará
 embebido directamente en la aplicación para inspeccionar la malla con todas
 las herramientas de ParaView.
+

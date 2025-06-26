@@ -4,11 +4,13 @@ import argparse
 import subprocess
 import tempfile
 from pathlib import Path
+
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+
 
 from cdb2rad.parser import parse_cdb
 from cdb2rad.vtk_writer import write_vtk
@@ -34,7 +36,9 @@ def main() -> None:
     cmd = [
         "pvpython",
         "-m",
+
         "paraview.apps.visualizer",
+
         "--data",
         str(vtk_path),
         "--port",

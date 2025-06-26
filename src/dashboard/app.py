@@ -76,10 +76,10 @@ LAW_DESCRIPTIONS = {
 }
 
 FAIL_DESCRIPTIONS = {
-    "Ninguno": "Sin criterio de fallo",
-    "FAIL/JOHNSON": "Johnson-Cook failure",
-    "FAIL/BIQUAD": "Criterio Biquadrático",
-    "FAIL/TAB1": "Fallo tabulado",
+    "": "Sin criterio de fallo",
+    "JOHNSON": "Johnson-Cook failure",
+    "BIQUAD": "Criterio Biquadrático",
+    "TAB1": "Fallo tabulado",
 }
 
 BC_DESCRIPTIONS = {
@@ -453,6 +453,7 @@ if file_path:
                 "elementos para agilizar la vista"
             )
         st.components.v1.html(html, height=420)
+
         if st.button("Visualizar con ParaView Web"):
             url = launch_paraview_server(file_path)
             st.session_state["pvw_url"] = url
@@ -462,6 +463,7 @@ if file_path:
                 'style="width:100%;height:600px;border:none;"></iframe>',
                 height=620,
             )
+
 
     with inp_tab:
         st.subheader("Generar mesh.inc")
@@ -585,23 +587,22 @@ if file_path:
                     fail_type = st.selectbox(
                         "Modo de fallo",
                         list(FAIL_DESCRIPTIONS.keys()),
-                        format_func=lambda k: f"{k} - {FAIL_DESCRIPTIONS[k]}",
+                        format_func=lambda k: "Ninguno" if k == "" else f"FAIL/{k} - {FAIL_DESCRIPTIONS[k]}",
                     )
                     fail_params: Dict[str, float] = {}
                     if fail_type:
                         st.caption(FAIL_DESCRIPTIONS[fail_type])
-                    if fail_type != "Ninguno":
-                        if fail_type == "FAIL/JOHNSON":
+                        if fail_type == "JOHNSON":
                             fail_params["D1"] = input_with_help("D1", 0.0, "d1")
                             fail_params["D2"] = input_with_help("D2", 0.0, "d2")
                             fail_params["D3"] = input_with_help("D3", 0.0, "d3")
                             fail_params["D4"] = input_with_help("D4", 0.0, "d4")
                             fail_params["D5"] = input_with_help("D5", 0.0, "d5")
-                        elif fail_type == "FAIL/BIQUAD":
+                        elif fail_type == "BIQUAD":
                             fail_params["C1"] = input_with_help("C1", 0.0, "c1")
                             fail_params["C2"] = input_with_help("C2", 0.0, "c2")
                             fail_params["C3"] = input_with_help("C3", 0.0, "c3")
-                        elif fail_type == "FAIL/TAB1":
+                        elif fail_type == "TAB1":
                             fail_params["Dcrit"] = input_with_help("Dcrit", 1.0, "dcrit")
 
                     if st.button("Añadir material"):
@@ -613,7 +614,7 @@ if file_path:
                             "DENS": dens_i,
                         }
                         data.update(extra)
-                        if fail_type != "Ninguno":
+                        if fail_type:
                             data["FAIL"] = {"TYPE": fail_type, **fail_params}
                         st.session_state["impact_materials"].append(data)
 
@@ -634,18 +635,31 @@ if file_path:
                 "Nombre de la simulación", value=DEFAULT_RUNNAME
             )
             t_end = input_with_help("Tiempo final", DEFAULT_FINAL_TIME, "t_end")
-            anim_dt = input_with_help("Paso animación", DEFAULT_ANIM_DT, "anim_dt")
-            tfile_dt = input_with_help("Intervalo historial", DEFAULT_HISTORY_DT, "tfile_dt")
-            dt_ratio = input_with_help(
-                "Factor seguridad DT",
-                DEFAULT_DT_RATIO,
-                "dt_ratio",
-            )
+            if st.checkbox("Definir paso animación", key="en_anim"):
+                anim_dt = input_with_help("Paso animación", DEFAULT_ANIM_DT, "anim_dt")
+            else:
+                anim_dt = None
+            if st.checkbox("Definir intervalo historial", key="en_tfile"):
+                tfile_dt = input_with_help("Intervalo historial", DEFAULT_HISTORY_DT, "tfile_dt")
+            else:
+                tfile_dt = None
+            if st.checkbox("Definir factor seguridad DT", key="en_dt"):
+                dt_ratio = input_with_help(
+                    "Factor seguridad DT",
+                    DEFAULT_DT_RATIO,
+                    "dt_ratio",
+                )
+            else:
+                dt_ratio = None
             adv_enabled = st.checkbox("Activar opciones avanzadas")
             if adv_enabled:
                 st.markdown("### Opciones avanzadas")
-                print_n = input_with_help("PRINT cada n ciclos", DEFAULT_PRINT_N, "print_n")
-                print_line = input_with_help("Línea cabecera", DEFAULT_PRINT_LINE, "print_line")
+                if st.checkbox("Definir /PRINT", key="en_print"):
+                    print_n = input_with_help("PRINT cada n ciclos", DEFAULT_PRINT_N, "print_n")
+                    print_line = input_with_help("Línea cabecera", DEFAULT_PRINT_LINE, "print_line")
+                else:
+                    print_n = None
+                    print_line = None
                 rfile_cycle = input_with_help("Ciclos entre RFILE", 0, "rfile_cycle")
                 rfile_n = input_with_help("Número de RFILE", 0, "rfile_n")
                 h3d_dt = input_with_help("Paso H3D", 0.0, "h3d_dt")
@@ -666,8 +680,8 @@ if file_path:
                 adyrel_start = input_with_help("ADYREL inicio", 0.0, "adyrel_start")
                 adyrel_stop = input_with_help("ADYREL fin", 0.0, "adyrel_stop")
             else:
-                print_n = DEFAULT_PRINT_N
-                print_line = DEFAULT_PRINT_LINE
+                print_n = None
+                print_line = None
                 rfile_cycle = 0
                 rfile_n = 0
                 h3d_dt = 0.0
@@ -687,8 +701,8 @@ if file_path:
                     "anim_dt": anim_dt,
                     "tfile_dt": tfile_dt,
                     "dt_ratio": dt_ratio,
-                    "print_n": int(print_n),
-                    "print_line": int(print_line),
+                    "print_n": int(print_n) if print_n is not None else None,
+                    "print_line": int(print_line) if print_line is not None else None,
                     "rfile_cycle": int(rfile_cycle) if rfile_cycle else None,
                     "rfile_n": int(rfile_n) if rfile_n else None,
                     "h3d_dt": h3d_dt if h3d_dt > 0 else None,
@@ -1022,8 +1036,8 @@ if file_path:
                         anim_dt=anim_dt,
                         tfile_dt=tfile_dt,
                         dt_ratio=dt_ratio,
-                        print_n=int(print_n),
-                        print_line=int(print_line),
+                        print_n=int(print_n) if print_n is not None else None,
+                        print_line=int(print_line) if print_line is not None else None,
                         rfile_cycle=int(rfile_cycle) if rfile_cycle else None,
                         rfile_n=int(rfile_n) if rfile_n else None,
                         h3d_dt=h3d_dt if h3d_dt > 0 else None,

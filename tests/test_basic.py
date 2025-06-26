@@ -300,3 +300,12 @@ def test_write_rad_with_properties(tmp_path):
     assert '/PART/1' in txt
 
 
+def test_apply_default_failure():
+    mats = {1: {"LAW": "LAW2", "FAIL": {"TYPE": "JOHNSON"}}}
+    result = apply_default_materials(mats)
+    fail = result[1]["FAIL"]
+    assert fail["TYPE"] == "JOHNSON"
+    assert fail["D1"] == -0.77
+    assert fail["D5"] == 1.6
+
+

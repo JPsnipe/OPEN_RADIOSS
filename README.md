@@ -75,6 +75,23 @@ Radioss. Para depurar y ampliar estos ficheros se recomienda consultar el
 En ella se explica el formato, las palabras clave disponibles y la estructura
 del ``starter`` y los ficheros ``engine``.
 
+## Criterios de fallo
+
+El dashboard permite añadir tarjetas ``/FAIL`` para distintos modelos.
+Para el criterio de daño **Johnson-Cook** se suelen emplear los siguientes
+coeficientes de referencia:
+
+```text
+D1 = -0.77
+D2 = 1.45
+D3 = -0.47
+D4 = 0.0
+D5 = 1.6
+```
+
+Si en el material solo se indica ``"FAIL": {"TYPE": "JOHNSON"}``, estos valores
+se completarán automáticamente.
+
 ## Ejemplo de uso
 
 ```bash

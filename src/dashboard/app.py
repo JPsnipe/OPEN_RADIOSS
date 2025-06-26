@@ -458,6 +458,8 @@ if file_path:
             st.session_state["init_vel"] = None
         if "gravity" not in st.session_state:
             st.session_state["gravity"] = None
+        if "control_settings" not in st.session_state:
+            st.session_state["control_settings"] = None
 
         with st.expander("Definición de materiales"):
             use_cdb_mats = st.checkbox("Incluir materiales del CDB", value=False)
@@ -591,6 +593,31 @@ if file_path:
                 stop_nerr = DEFAULT_STOP_NERR
                 adyrel_start = None
                 adyrel_stop = None
+
+            if st.button("Añadir control"):
+                st.session_state["control_settings"] = {
+                    "runname": runname,
+                    "t_end": t_end,
+                    "anim_dt": anim_dt,
+                    "tfile_dt": tfile_dt,
+                    "dt_ratio": dt_ratio,
+                    "print_n": int(print_n),
+                    "print_line": int(print_line),
+                    "rfile_cycle": int(rfile_cycle) if rfile_cycle else None,
+                    "rfile_n": int(rfile_n) if rfile_n else None,
+                    "h3d_dt": h3d_dt if h3d_dt > 0 else None,
+                    "stop_emax": stop_emax,
+                    "stop_mmax": stop_mmax,
+                    "stop_nmax": stop_nmax,
+                    "stop_nth": int(stop_nth),
+                    "stop_nanim": int(stop_nanim),
+                    "stop_nerr": int(stop_nerr),
+                    "adyrel_start": adyrel_start,
+                    "adyrel_stop": adyrel_stop,
+                }
+            if st.session_state["control_settings"]:
+                st.write("Control de cálculo definido:")
+                st.json(st.session_state["control_settings"])
 
         with st.expander("Condiciones de contorno (BCS)"):
             bc_name = st.text_input("Nombre BC", value="Fixed")
@@ -752,6 +779,7 @@ if file_path:
                 and not st.session_state.get("interfaces")
                 and not st.session_state.get("init_vel")
                 and not st.session_state.get("gravity")
+                and not st.session_state.get("control_settings")
             )
             if (rad_path.exists() or mesh_path.exists()) and not overwrite_rad:
                 st.error("El archivo ya existe. Elija otro nombre o directorio")
@@ -772,6 +800,26 @@ if file_path:
                             m["id"]: {k: v for k, v in m.items() if k != "id"}
                             for m in st.session_state["impact_materials"]
                         }
+                    ctrl = st.session_state.get("control_settings")
+                    if ctrl:
+                        runname = ctrl.get("runname", runname)
+                        t_end = ctrl.get("t_end", t_end)
+                        anim_dt = ctrl.get("anim_dt", anim_dt)
+                        tfile_dt = ctrl.get("tfile_dt", tfile_dt)
+                        dt_ratio = ctrl.get("dt_ratio", dt_ratio)
+                        print_n = ctrl.get("print_n", print_n)
+                        print_line = ctrl.get("print_line", print_line)
+                        rfile_cycle = ctrl.get("rfile_cycle", rfile_cycle)
+                        rfile_n = ctrl.get("rfile_n", rfile_n)
+                        h3d_dt = ctrl.get("h3d_dt", h3d_dt)
+                        stop_emax = ctrl.get("stop_emax", stop_emax)
+                        stop_mmax = ctrl.get("stop_mmax", stop_mmax)
+                        stop_nmax = ctrl.get("stop_nmax", stop_nmax)
+                        stop_nth = ctrl.get("stop_nth", stop_nth)
+                        stop_nanim = ctrl.get("stop_nanim", stop_nanim)
+                        stop_nerr = ctrl.get("stop_nerr", stop_nerr)
+                        adyrel_start = ctrl.get("adyrel_start", adyrel_start)
+                        adyrel_stop = ctrl.get("adyrel_stop", adyrel_stop)
                     if not include_inc:
                         write_mesh_inc(nodes, elements, str(mesh_path))
                     write_rad(

@@ -147,7 +147,12 @@ PARAM_UNITS = {
     "SU": {"SI": "MPa", "Imperial": "psi"},
     "Tiempo final": {"SI": "s", "Imperial": "s"},
     "Paso animación": {"SI": "s", "Imperial": "s"},
+    "Paso animación SHELL": {"SI": "s", "Imperial": "s"},
+    "Paso animación BRICK": {"SI": "s", "Imperial": "s"},
     "Intervalo historial": {"SI": "s", "Imperial": "s"},
+    "Paso HISNODA": {"SI": "s", "Imperial": "s"},
+    "Paso RFILE": {"SI": "s", "Imperial": "s"},
+    "Tiempo inicial": {"SI": "s", "Imperial": "s"},
     "Gap": {"SI": "mm", "Imperial": "in"},
     "Stiffness": {"SI": "N/mm", "Imperial": "lbf/in"},
     "Vx": {"SI": "m/s", "Imperial": "ft/s"},
@@ -1113,7 +1118,16 @@ if file_path:
                 "Nombre de la simulación", value=DEFAULT_RUNNAME
             )
             t_end = input_with_help("Tiempo final", DEFAULT_FINAL_TIME, "t_end")
-            if st.checkbox("Definir paso animación", key="en_anim"):
+            t_init = input_with_help("Tiempo inicial", 0.0, "t_init")
+            if st.checkbox("Paso animación SHELL", key="en_shell_anim"):
+                shell_anim_dt = input_with_help("Paso animación SHELL", DEFAULT_ANIM_DT, "shell_anim_dt")
+            else:
+                shell_anim_dt = None
+            if st.checkbox("Paso animación BRICK", key="en_brick_anim"):
+                brick_anim_dt = input_with_help("Paso animación BRICK", DEFAULT_ANIM_DT, "brick_anim_dt")
+            else:
+                brick_anim_dt = None
+            if st.checkbox("Definir paso animación global", key="en_anim"):
                 anim_dt = input_with_help("Paso animación", DEFAULT_ANIM_DT, "anim_dt")
             else:
                 anim_dt = None
@@ -1140,6 +1154,9 @@ if file_path:
                     print_line = None
                 rfile_cycle = input_with_help("Ciclos entre RFILE", 0, "rfile_cycle")
                 rfile_n = input_with_help("Número de RFILE", 0, "rfile_n")
+                rfile_dt = input_with_help("Paso RFILE", 0.0, "rfile_dt")
+                hisnoda_dt = input_with_help("Paso HISNODA", 0.0, "hisnoda_dt")
+                out_ascii = st.checkbox("Activar OUTP/ASCII", key="out_ascii")
                 h3d_dt = input_with_help("Paso H3D", 0.0, "h3d_dt")
                 col1, col2, col3 = st.columns(3)
                 with col1:
@@ -1162,6 +1179,9 @@ if file_path:
                 print_line = None
                 rfile_cycle = 0
                 rfile_n = 0
+                rfile_dt = 0.0
+                hisnoda_dt = 0.0
+                out_ascii = False
                 h3d_dt = 0.0
                 stop_emax = DEFAULT_STOP_EMAX
                 stop_mmax = DEFAULT_STOP_MMAX
@@ -1176,13 +1196,19 @@ if file_path:
                 st.session_state["control_settings"] = {
                     "runname": runname,
                     "t_end": t_end,
+                    "t_init": t_init,
                     "anim_dt": anim_dt,
+                    "shell_anim_dt": shell_anim_dt,
+                    "brick_anim_dt": brick_anim_dt,
                     "tfile_dt": tfile_dt,
+                    "hisnoda_dt": hisnoda_dt,
                     "dt_ratio": dt_ratio,
+                    "rfile_dt": rfile_dt,
                     "print_n": int(print_n) if print_n is not None else None,
                     "print_line": int(print_line) if print_line is not None else None,
                     "rfile_cycle": int(rfile_cycle) if rfile_cycle else None,
                     "rfile_n": int(rfile_n) if rfile_n else None,
+                    "out_ascii": out_ascii,
                     "h3d_dt": h3d_dt if (h3d_dt is not None and h3d_dt > 0) else None,
                     "stop_emax": stop_emax,
                     "stop_mmax": stop_mmax,
@@ -1250,13 +1276,19 @@ if file_path:
                 if ctrl:
                     runname = ctrl.get("runname", runname)
                     t_end = ctrl.get("t_end", t_end)
+                    t_init = ctrl.get("t_init", t_init)
                     anim_dt = ctrl.get("anim_dt", anim_dt)
+                    shell_anim_dt = ctrl.get("shell_anim_dt", shell_anim_dt)
+                    brick_anim_dt = ctrl.get("brick_anim_dt", brick_anim_dt)
                     tfile_dt = ctrl.get("tfile_dt", tfile_dt)
+                    hisnoda_dt = ctrl.get("hisnoda_dt", hisnoda_dt)
                     dt_ratio = ctrl.get("dt_ratio", dt_ratio)
+                    rfile_dt = ctrl.get("rfile_dt", rfile_dt)
                     print_n = ctrl.get("print_n", print_n)
                     print_line = ctrl.get("print_line", print_line)
                     rfile_cycle = ctrl.get("rfile_cycle", rfile_cycle)
                     rfile_n = ctrl.get("rfile_n", rfile_n)
+                    out_ascii = ctrl.get("out_ascii", out_ascii)
                     h3d_dt = ctrl.get("h3d_dt", h3d_dt)
                     stop_emax = ctrl.get("stop_emax", stop_emax)
                     stop_mmax = ctrl.get("stop_mmax", stop_mmax)
@@ -1282,13 +1314,19 @@ if file_path:
 
                         runname=runname,
                         t_end=t_end,
+                        t_init=t_init,
                         anim_dt=anim_dt,
+                        shell_anim_dt=shell_anim_dt,
+                        brick_anim_dt=brick_anim_dt,
                         tfile_dt=tfile_dt,
+                        hisnoda_dt=hisnoda_dt,
                         dt_ratio=dt_ratio,
+                        rfile_dt=rfile_dt,
                         print_n=int(print_n) if print_n is not None else None,
                         print_line=int(print_line) if print_line is not None else None,
                         rfile_cycle=int(rfile_cycle) if rfile_cycle else None,
                         rfile_n=int(rfile_n) if rfile_n else None,
+                        out_ascii=out_ascii,
                         h3d_dt=h3d_dt if (h3d_dt is not None and h3d_dt > 0) else None,
                         stop_emax=stop_emax,
                         stop_mmax=stop_mmax,

@@ -33,6 +33,12 @@ DEFAULT_STOP_NTH = 1
 DEFAULT_STOP_NANIM = 1
 DEFAULT_STOP_NERR = 0
 
+# Additional output control defaults
+DEFAULT_SHELL_ANIM_DT = None
+DEFAULT_BRICK_ANIM_DT = None
+DEFAULT_HISNODA_DT = None
+DEFAULT_RFILE_DT = None
+
 
 def write_rad(
     nodes: Dict[int, List[float]],
@@ -52,9 +58,14 @@ def write_rad(
 
     runname: str = DEFAULT_RUNNAME,
     t_end: float = DEFAULT_FINAL_TIME,
+    t_init: float = 0.0,
     anim_dt: float | None = DEFAULT_ANIM_DT,
+    shell_anim_dt: float | None = DEFAULT_SHELL_ANIM_DT,
+    brick_anim_dt: float | None = DEFAULT_BRICK_ANIM_DT,
     tfile_dt: float | None = DEFAULT_HISTORY_DT,
+    hisnoda_dt: float | None = DEFAULT_HISNODA_DT,
     dt_ratio: float | None = DEFAULT_DT_RATIO,
+    rfile_dt: float | None = DEFAULT_RFILE_DT,
     # Additional engine control options
     print_n: int | None = DEFAULT_PRINT_N,
     print_line: int | None = DEFAULT_PRINT_LINE,
@@ -67,6 +78,7 @@ def write_rad(
     stop_nth: int = DEFAULT_STOP_NTH,
     stop_nanim: int = DEFAULT_STOP_NANIM,
     stop_nerr: int = DEFAULT_STOP_NERR,
+    out_ascii: bool = False,
     adyrel: Tuple[float | None, float | None] | None = None,
     boundary_conditions: List[Dict[str, object]] | None = None,
     interfaces: List[Dict[str, object]] | None = None,
@@ -163,7 +175,10 @@ def write_rad(
             if print_n is not None and print_line is not None:
                 f.write(f"/PRINT/{print_n}/{print_line}\n")
             f.write(f"/RUN/{runname}/1/\n")
-            f.write(f"                {t_end}\n")
+            if t_init != 0.0:
+                f.write(f"{t_init} {t_end}\n")
+            else:
+                f.write(f"                {t_end}\n")
             f.write("/STOP\n")
             f.write(
                 f"{stop_emax} {stop_mmax} {stop_nmax} {stop_nth} {stop_nanim} {stop_nerr}\n"
@@ -178,15 +193,29 @@ def write_rad(
             if anim_dt is not None:
                 f.write("/ANIM/DT\n")
                 f.write(f"0 {anim_dt}\n")
+            if shell_anim_dt is not None:
+                f.write("/ANIM/SHELL/DT\n")
+                f.write(f"0 {shell_anim_dt}\n")
+            if brick_anim_dt is not None:
+                f.write("/ANIM/BRICK/DT\n")
+                f.write(f"0 {brick_anim_dt}\n")
             if h3d_dt is not None:
                 f.write("/H3D/DT\n")
                 f.write(f"0 {h3d_dt}\n")
+            if hisnoda_dt is not None:
+                f.write("/HISNODA/DT\n")
+                f.write(f"{hisnoda_dt}\n")
             if rfile_cycle is not None:
                 if rfile_n is not None:
                     f.write(f"/RFILE/{rfile_n}\n")
                 else:
                     f.write("/RFILE\n")
                 f.write(f"{rfile_cycle}\n")
+            if rfile_dt is not None:
+                f.write("/RFILE/DT\n")
+                f.write(f"{rfile_dt}\n")
+            if out_ascii:
+                f.write("/OUTP/ASCII\n")
             if adyrel is not None and (adyrel[0] is not None or adyrel[1] is not None):
                 f.write("/ADYREL\n")
                 tstart = 0.0 if adyrel[0] is None else adyrel[0]

@@ -12,6 +12,13 @@ if root_path not in sys.path:
 
 import streamlit as st
 
+def _rerun():
+    """Compatibility wrapper for streamlit rerun."""
+    if hasattr(st, "rerun"):
+        st.rerun()
+    elif hasattr(st, "experimental_rerun"):
+        st.experimental_rerun()
+
 SDEA_LOGO_URL = (
     "https://sdeasolutions.com/wp-content/uploads/2021/11/"
     "cropped-SDEA_Logo-ORIGINAL-250x250-1.jpg"
@@ -579,7 +586,7 @@ if file_path:
                             with cols[1]:
                                 if st.button("Eliminar", key=f"del_mat_{i}"):
                                     st.session_state["impact_materials"].pop(i)
-                                    st.experimental_rerun()
+                                    _rerun()
 
 
         with st.expander("Control del cálculo"):
@@ -662,7 +669,7 @@ if file_path:
                 with cols[1]:
                     if st.button("Eliminar", key="del_ctrl"):
                         st.session_state["control_settings"] = None
-                        st.experimental_rerun()
+                        _rerun()
 
         with st.expander("Condiciones de contorno (BCS)"):
             bc_name = st.text_input("Nombre BC", value="Fixed")
@@ -704,7 +711,7 @@ if file_path:
                 with cols[1]:
                     if st.button("Eliminar", key=f"del_bc_{i}"):
                         st.session_state["bcs"].pop(i)
-                        st.experimental_rerun()
+                        _rerun()
 
         with st.expander("Interacciones (INTER)"):
             int_type = st.selectbox(
@@ -759,7 +766,7 @@ if file_path:
                 with cols[1]:
                     if st.button("Eliminar", key=f"del_itf_{i}"):
                         st.session_state["interfaces"].pop(i)
-                        st.experimental_rerun()
+                        _rerun()
 
         with st.expander("Velocidad inicial (IMPVEL)"):
             vel_set = st.selectbox(
@@ -786,7 +793,7 @@ if file_path:
                 with cols[1]:
                     if st.button("Eliminar", key="del_initvel"):
                         st.session_state["init_vel"] = None
-                        st.experimental_rerun()
+                        _rerun()
 
         with st.expander("Carga de gravedad (GRAVITY)"):
             g = input_with_help("g", 9.81, "grav_g")
@@ -809,7 +816,7 @@ if file_path:
                 with cols[1]:
                     if st.button("Eliminar", key="del_gravity"):
                         st.session_state["gravity"] = None
-                        st.experimental_rerun()
+                        _rerun()
 
         rad_dir = st.text_input(
             "Directorio de salida",

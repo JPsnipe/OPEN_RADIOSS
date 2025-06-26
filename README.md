@@ -144,6 +144,10 @@ streamlit run src/dashboard/app.py
 Se puede subir un archivo ``.cdb`` propio. La interfaz cuenta con cuatro
 pestañas principales:
 
+- En la parte superior se puede elegir el **sistema de unidades** (``SI`` o
+  ``Imperial``). Las casillas de entrada mostrarán automáticamente la unidad
+  correspondiente en cada parámetro.
+
 - **Información** resumen de nodos y elementos.
 - **Vista 3D** previsualización ligera de la malla con opción de seleccionar
   los *name selections* que se quieran mostrar.

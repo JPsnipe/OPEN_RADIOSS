@@ -16,10 +16,6 @@ OPENRADIOSS_LOGO_URL = (
 )
 ANSYS_LOGO_URL = "https://www.ansys.com/content/dam/company/brand/logos/ansys-logos/ansys-logo.svg"
 
-root_path = str(Path(__file__).resolve().parents[2])
-if root_path not in sys.path:
-    sys.path.insert(0, root_path)
-
 from cdb2rad.parser import parse_cdb
 from cdb2rad.writer_rad import (
     write_rad,
@@ -44,12 +40,13 @@ from cdb2rad.pdf_search import (
     REFERENCE_GUIDE,
     REFERENCE_GUIDE_URL,
     THEORY_MANUAL,
-
-    USER_GUIDE,
-
-
+    THEORY_MANUAL_URL,
     search_pdf,
 )
+
+root_path = str(Path(__file__).resolve().parents[2])
+if root_path not in sys.path:
+    sys.path.insert(0, root_path)
 
 MAX_EDGES = 10000
 MAX_FACES = 15000
@@ -89,6 +86,33 @@ PARAM_INFO = {
     "EPS0": "Referencia de velocidad de deformaci\u00f3n en Johnson-Cook.",
 }
 
+# Units to display for each parameter depending on the selected system
+UNIT_OPTIONS = ["SI", "Imperial"]
+
+PARAM_UNITS = {
+    "Densidad": {"SI": "kg/m3", "Imperial": "lb/in3"},
+    "E": {"SI": "MPa", "Imperial": "psi"},
+    "A": {"SI": "MPa", "Imperial": "psi"},
+    "B": {"SI": "MPa", "Imperial": "psi"},
+    "SIG0": {"SI": "MPa", "Imperial": "psi"},
+    "SU": {"SI": "MPa", "Imperial": "psi"},
+    "Tiempo final": {"SI": "s", "Imperial": "s"},
+    "Paso animación": {"SI": "s", "Imperial": "s"},
+    "Intervalo historial": {"SI": "s", "Imperial": "s"},
+    "Gap": {"SI": "mm", "Imperial": "in"},
+    "Stiffness": {"SI": "N/mm", "Imperial": "lbf/in"},
+    "Vx": {"SI": "m/s", "Imperial": "ft/s"},
+    "Vy": {"SI": "m/s", "Imperial": "ft/s"},
+    "Vz": {"SI": "m/s", "Imperial": "ft/s"},
+    "g": {"SI": "m/s²", "Imperial": "ft/s²"},
+}
+
+
+def label_with_unit(base: str) -> str:
+    unit_sys = st.session_state.get("unit_sys", UNIT_OPTIONS[0])
+    unit = PARAM_UNITS.get(base, {}).get(unit_sys)
+    return f"{base} ({unit})" if unit else base
+
 def johnson_cook_curve(A: float, B: float, N: float):
     import numpy as np
     import matplotlib.pyplot as plt
@@ -105,7 +129,7 @@ def johnson_cook_curve(A: float, B: float, N: float):
 def input_with_help(label: str, value: float, key: str):
     col1, col2 = st.columns([1, 1])
     with col1:
-        val = st.number_input(label, value=value, key=key)
+        val = st.number_input(label_with_unit(label), value=value, key=key)
     with col2:
         info = PARAM_INFO.get(label)
         if info:
@@ -342,6 +366,13 @@ with header:
     with col3:
         st.image(ANSYS_LOGO_URL, width=120)
     st.markdown("</div>", unsafe_allow_html=True)
+
+unit_sel = st.selectbox(
+    "Sistema de unidades",
+    UNIT_OPTIONS,
+    key="unit_sys",
+    help="Afecta a las etiquetas de los par\u00e1metros",
+)
 
 uploaded = st.file_uploader("Subir archivo .cdb", type="cdb")
 

@@ -165,11 +165,15 @@ pestañas principales:
   el ``starter``.
 - **Generar INC** permite crear ``mesh.inc`` y muestra sus primeras líneas. \
 
+
+- **Generar INC** permite crear ``mesh.inc`` y muestra sus primeras líneas. \
+
   Incluye casillas para decidir si exportar las selecciones nombradas y los
   materiales.
 
-- **Generar RAD** para introducir parámetros de cálculo y obtener
+- **Generar RAD** para introducir parámetros de cálculo, definir **Propiedades** y obtener
   ``model_0000.rad``.
+Dentro de esta pestaña se incluye un bloque **Propiedades** donde se pueden crear tarjetas `/PROP` y asignarlas a `/PART` mediante el ID de material. Las tablas de propiedades y partes se muestran antes de generar el archivo.
 Se incluyen casillas opcionales para **sobrescribir** los archivos
 ``.inc`` o ``.rad`` si ya existen en el directorio de salida.
 - La opción **Incluir materiales del CDB** está desactivada por defecto;

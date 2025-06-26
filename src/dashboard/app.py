@@ -489,6 +489,7 @@ if file_path:
                 height=620,
             )
 
+
         st.subheader("Exportar VTK")
         vtk_dir = st.text_input(
             "Directorio de salida",
@@ -577,6 +578,7 @@ if file_path:
                         st.session_state["parts"].pop(i)
                         _rerun()
 
+
     with inp_tab:
         st.subheader("Generar mesh.inc")
 
@@ -644,6 +646,74 @@ if file_path:
             st.session_state["rbe3"] = []
         if "remote_points" not in st.session_state:
             st.session_state["remote_points"] = []
+        if "properties" not in st.session_state:
+            st.session_state["properties"] = []
+        if "parts" not in st.session_state:
+            st.session_state["parts"] = []
+        if "subsets" not in st.session_state:
+            st.session_state["subsets"] = {}
+
+        with st.expander("Propiedades"):
+            st.subheader("Configuración de propiedades")
+            with st.expander("Definir propiedad"):
+                pid = st.number_input(
+                    "ID propiedad",
+                    value=len(st.session_state["properties"]) + 1,
+                    key="prop_id",
+                )
+                pname = st.text_input("Nombre", value=f"PROP_{pid}", key="prop_name")
+                ptype = st.selectbox("Tipo", ["SHELL", "SOLID"], key="prop_type")
+                if ptype == "SHELL":
+                    thick = st.number_input("Espesor", value=DEFAULT_THICKNESS, key="prop_thick")
+                else:
+                    thick = None
+                if st.button("Añadir propiedad"):
+                    data = {"id": int(pid), "name": pname, "type": ptype}
+                    if thick is not None:
+                        data["thickness"] = thick
+                    st.session_state["properties"].append(data)
+
+            if st.session_state["properties"]:
+                st.write("Propiedades definidas:")
+                for i, pr in enumerate(st.session_state["properties"]):
+                    cols = st.columns([4, 1])
+                    with cols[0]:
+                        st.json(pr)
+                    with cols[1]:
+                        if st.button("Eliminar", key=f"del_prop_{i}"):
+                            st.session_state["properties"].pop(i)
+                            _rerun()
+
+            with st.expander("Definir parte"):
+                part_id = st.number_input(
+                    "ID parte",
+                    value=len(st.session_state["parts"]) + 1,
+                    key="part_id",
+                )
+                part_name = st.text_input("Nombre parte", value=f"PART_{part_id}", key="part_name")
+                prop_opts = [p["id"] for p in st.session_state["properties"]]
+                pid_sel = st.selectbox("Propiedad", prop_opts, disabled=not prop_opts, key="part_pid")
+                mid_sel = st.number_input("Material ID", value=1, key="part_mid")
+                if st.button("Añadir parte"):
+                    st.session_state["parts"].append(
+                        {
+                            "id": int(part_id),
+                            "name": part_name,
+                            "pid": int(pid_sel) if prop_opts else 1,
+                            "mid": int(mid_sel),
+                        }
+                    )
+
+            if st.session_state["parts"]:
+                st.write("Partes definidas:")
+                for i, pt in enumerate(st.session_state["parts"]):
+                    cols = st.columns([4, 1])
+                    with cols[0]:
+                        st.json(pt)
+                    with cols[1]:
+                        if st.button("Eliminar", key=f"del_part_{i}"):
+                            st.session_state["parts"].pop(i)
+                            _rerun()
 
         if "properties" not in st.session_state:
             st.session_state["properties"] = []

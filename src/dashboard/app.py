@@ -62,6 +62,11 @@ from cdb2rad.writer_inc import write_mesh_inc
 from cdb2rad.rad_validator import validate_rad_format
 from cdb2rad.utils import check_rad_inputs
 from cdb2rad.remote import add_remote_point, next_free_node_id
+from cdb2rad.pdf_search import (
+    REFERENCE_GUIDE_URL,
+    THEORY_MANUAL_URL,
+    USER_GUIDE as USER_GUIDE_URL,
+)
 
 MAX_EDGES = 10000
 MAX_FACES = 15000
@@ -371,12 +376,13 @@ if file_path:
     )
     st.session_state["work_dir"] = work_dir
     nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
-    info_tab, preview_tab, inp_tab, rad_tab = st.tabs(
+    info_tab, preview_tab, inp_tab, rad_tab, help_tab = st.tabs(
         [
             "Información",
             "Vista 3D",
             "Generar INC",
             "Generar RAD",
+            "Ayuda",
         ]
     )
 
@@ -811,13 +817,19 @@ if file_path:
         with st.expander("Rigid Connectors"):
             with st.expander("/RBODY"):
                 rb_id = st.number_input("RBID", 1)
-                master = st.selectbox("Nodo maestro", list(all_nodes.keys()))
-                slaves = st.multiselect("Nodos secundarios", list(all_nodes.keys()))
+                master = st.selectbox("Nodo maestro", list(all_nodes.keys()), key="rbody_master")
+                slaves = st.multiselect("Nodos secundarios", list(all_nodes.keys()), key="rb_slaves")
+                slave_sets = st.multiselect(
+                    "Name selections", list(all_node_sets.keys()), key="rb_sets", disabled=not all_node_sets
+                )
                 if st.button("Añadir RBODY"):
+                    nodes_union = {int(n) for n in slaves}
+                    for s in slave_sets:
+                        nodes_union.update(all_node_sets.get(s, []))
                     st.session_state["rbodies"].append({
                         "RBID": int(rb_id),
                         "Gnod_id": int(master),
-                        "nodes": [int(n) for n in slaves],
+                        "nodes": sorted(nodes_union),
                     })
             for i, rb in enumerate(st.session_state.get("rbodies", [])):
                 cols = st.columns([4, 1])
@@ -831,10 +843,16 @@ if file_path:
             with st.expander("/RBE2"):
                 m = st.selectbox("Master", list(all_nodes.keys()), key="rbe2m")
                 slaves2 = st.multiselect("Slaves", list(all_nodes.keys()), key="rbe2s")
+                slave_sets2 = st.multiselect(
+                    "Name selections", list(all_node_sets.keys()), key="rbe2_sets", disabled=not all_node_sets
+                )
                 if st.button("Añadir RBE2"):
+                    nodes_union = {int(n) for n in slaves2}
+                    for s in slave_sets2:
+                        nodes_union.update(all_node_sets.get(s, []))
                     st.session_state["rbe2"].append({
                         "N_master": int(m),
-                        "N_slave_list": [int(n) for n in slaves2],
+                        "N_slave_list": sorted(nodes_union),
                     })
             for i, rb in enumerate(st.session_state.get("rbe2", [])):
                 cols = st.columns([4, 1])
@@ -848,10 +866,16 @@ if file_path:
             with st.expander("/RBE3"):
                 dep = st.selectbox("Dependiente", list(all_nodes.keys()), key="rbe3d")
                 indep_nodes = st.multiselect("Independientes", list(all_nodes.keys()), key="rbe3i")
+                indep_sets = st.multiselect(
+                    "Name selections", list(all_node_sets.keys()), key="rbe3_sets", disabled=not all_node_sets
+                )
                 if st.button("Añadir RBE3"):
+                    nodes_union = {int(n) for n in indep_nodes}
+                    for s in indep_sets:
+                        nodes_union.update(all_node_sets.get(s, []))
                     st.session_state["rbe3"].append({
                         "N_dependent": int(dep),
-                        "independent": [(int(n), 1.0) for n in indep_nodes],
+                        "independent": [(nid, 1.0) for nid in sorted(nodes_union)],
                     })
             for i, rb in enumerate(st.session_state.get("rbe3", [])):
                 cols = st.columns([4, 1])
@@ -1023,6 +1047,14 @@ if file_path:
                     st.text_area(
                         "model.rad", rad_path.read_text(), height=400
                     )
+
+    with help_tab:
+        st.subheader("Documentación")
+        st.markdown(
+            f"[Reference Guide]({REFERENCE_GUIDE_URL}) | "
+            f"[User Guide]({USER_GUIDE_URL}) | "
+            f"[Theory Manual]({THEORY_MANUAL_URL})"
+        )
 
 else:
     st.info("Sube un archivo .cdb")

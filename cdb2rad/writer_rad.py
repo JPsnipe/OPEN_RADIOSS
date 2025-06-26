@@ -317,8 +317,8 @@ def write_rad(
                         f.write("#    \u03b1      \u03b2      m      n\n")
                         f.write(f"  {alpha}   {beta}   {m}   {n_fail}\n")
                     elif ftype:
-                        f.write(f"/{ftype}/{mid}\n")
-                        vals = [str(v) for v in fail.values() if v != ftype]
+                        f.write(f"/FAIL/{ftype}/{mid}\n")
+                        vals = [str(v) for k, v in fail.items() if k != "TYPE"]
                         if vals:
                             f.write(" ".join(vals) + "\n")
 

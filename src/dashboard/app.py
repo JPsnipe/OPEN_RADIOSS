@@ -251,6 +251,11 @@ def input_with_help(label: str, value: float, key: str, **kwargs):
     )
 
 
+def checkbox_input(label: str, value: int, key: str) -> int:
+    """Return ``1`` if the checkbox is selected, else ``0``."""
+    return 1 if st.checkbox(label, value=bool(value), key=key) else 0
+
+
 def viewer_html(
 
     nodes: Dict[int, List[float]],
@@ -855,7 +860,7 @@ if file_path:
                         "prop_thick",
                     )
                     with st.expander("Par\u00e1metros avanzados"):
-                        ishell = st.number_input("Ishell", value=24, step=1, key="prop_ishell")
+                        ishell = checkbox_input("Ishell", 1, "prop_ishell")
                         ip = 1 if st.checkbox("Iplas", value=True, key="prop_ip") else 0
                         ithick = 1 if st.checkbox("Ithick", value=True, key="prop_ithick") else 0
                         istr = 1 if st.checkbox("Istrain", value=False, key="prop_istrain") else 0
@@ -868,10 +873,10 @@ if file_path:
                 elif ptype == "SOLID":
                     thick = None
                     with st.expander("Par\u00e1metros avanzados"):
-                        isolid = st.number_input("Isolid", value=24, step=1, key="prop_isolid")
+                        isolid = checkbox_input("Isolid", 1, "prop_isolid")
                         ismstr = st.number_input("Ismstr", value=4, step=1, key="prop_ismstr")
-                        icpre = st.number_input("Icpre", value=1, step=1, key="prop_icpre")
-                        iframe = st.number_input("Iframe", value=1, step=1, key="prop_iframe")
+                        icpre = checkbox_input("Icpre", 1, "prop_icpre")
+                        iframe = checkbox_input("Iframe", 1, "prop_iframe")
                         inpts = st.number_input("Inpts", value=222, step=1, key="prop_inpts")
                         qa = input_with_help("qa", 1.1, "prop_qa")
                         qb = input_with_help("qb", 0.05, "prop_qb")
@@ -1162,24 +1167,28 @@ if file_path:
                     ("Gap", "gap", 0.0),
                     ("Stiffness", "stiff", 0.0),
                     ("Igap", "igap", 0),
-                    ("ISTF", "istf", 4),
-                    ("IDEL", "idel", 2),
+                    ("ISTF", "istf", 1),
+                    ("IDEL", "idel", 1),
                     ("IBAG", "ibag", 1),
-                    ("INACTI", "inacti", 6),
+                    ("INACTI", "inacti", 1),
                     ("BUMULT", "bumult", 1.0),
                     ("STFAC", "stfac", 1.0),
                     ("TSTART", "tstart", 0.0),
                     ("TSTOP", "tstop", 0.0),
                     ("VIS_S", "vis_s", 0.0),
                     ("VIS_F", "vis_f", 0.0),
-                    ("IFORM", "iform", 2),
+                    ("IFORM", "iform", 1),
                 ]
+                checkbox_keys = {"igap", "istf", "idel", "ibag", "inacti", "iform"}
                 values = {}
                 for i in range(0, len(fields), 3):
                     cols = st.columns(3)
                     for (label, key, default), col in zip(fields[i:i+3], cols):
                         with col:
-                            values[key] = input_with_help(label, default, key)
+                            if key in checkbox_keys:
+                                values[key] = checkbox_input(label, default, key)
+                            else:
+                                values[key] = input_with_help(label, default, key)
                 gap = values.get("gap")
                 stiff = values.get("stiff")
                 igap = values.get("igap")

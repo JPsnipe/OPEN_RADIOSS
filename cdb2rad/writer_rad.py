@@ -41,6 +41,27 @@ DEFAULT_HISNODA_DT = None
 DEFAULT_RFILE_DT = None
 
 
+def _merge_materials(
+    base: Dict[int, Dict[str, float]] | None,
+    extra: Dict[int, Dict[str, float]] | None,
+) -> Dict[int, Dict[str, float]]:
+    """Merge two material dictionaries avoiding ID collisions."""
+    result: Dict[int, Dict[str, float]] = {}
+    max_id = 0
+    if base:
+        result.update(base)
+        max_id = max(base.keys(), default=0)
+    if extra:
+        for mid, props in extra.items():
+            if mid in result:
+                max_id += 1
+                result[max_id] = props
+            else:
+                result[mid] = props
+                max_id = max(max_id, mid)
+    return result
+
+
 def write_starter(
     nodes: Dict[int, List[float]],
     elements: List[Tuple[int, int, List[int]]],
@@ -71,11 +92,7 @@ def write_starter(
 ) -> None:
     """Write a Radioss starter file (``*_0000.rad``)."""
 
-    all_mats: Dict[int, Dict[str, float]] = {}
-    if materials:
-        all_mats.update(materials)
-    if extra_materials:
-        all_mats.update(extra_materials)
+    all_mats = _merge_materials(materials, extra_materials)
     if all_mats:
         all_mats = apply_default_materials(all_mats)
 
@@ -664,11 +681,7 @@ def write_rad(
     provided.
     """
 
-    all_mats: Dict[int, Dict[str, float]] = {}
-    if materials:
-        all_mats.update(materials)
-    if extra_materials:
-        all_mats.update(extra_materials)
+    all_mats = _merge_materials(materials, extra_materials)
     if all_mats:
         all_mats = apply_default_materials(all_mats)
 

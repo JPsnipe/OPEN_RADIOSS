@@ -346,16 +346,22 @@ def write_rad(
                 if "FAIL" in props:
                     fail = props["FAIL"]
                     ftype = str(fail.get("TYPE", "")).upper()
-                    fname = fail.get("NAME", f"FAIL_{mid}")
                     if ftype == "JOHNSON":
                         d1 = fail.get("D1", -0.09)
                         d2 = fail.get("D2", 0.25)
                         d3 = fail.get("D3", -0.5)
                         d4 = fail.get("D4", 0.014)
                         d5 = fail.get("D5", 1.12)
+                        eps0 = fail.get("EPS0", 1.0)
+                        ifail_sh = fail.get("IFAIL_SH", 1)
+                        ifail_so = fail.get("IFAIL_SO", 1)
+                        dadv = fail.get("DADV", 0)
+                        ixfem = fail.get("IXFEM", 0)
                         f.write(f"/FAIL/JOHNSON/{mid}\n")
-                        f.write(f"{fname}\n")
                         f.write(f"{d1} {d2} {d3} {d4} {d5}\n")
+                        f.write(f"{eps0} {ifail_sh} {ifail_so}\n")
+                        f.write(f"{dadv}\n")
+                        f.write(f"{ixfem}\n")
                     elif ftype == "BIQUAD":
                         alpha = fail.get("ALPHA", 0.0)
                         beta = fail.get("BETA", 0.0)

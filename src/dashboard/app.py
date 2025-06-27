@@ -860,11 +860,46 @@ if file_path:
                         "prop_thick",
                     )
                     with st.expander("Par\u00e1metros avanzados"):
-                        ishell = checkbox_input("Ishell", 1, "prop_ishell")
-                        ip = 1 if st.checkbox("Iplas", value=True, key="prop_ip") else 0
-                        ithick = 1 if st.checkbox("Ithick", value=True, key="prop_ithick") else 0
-                        istr = 1 if st.checkbox("Istrain", value=False, key="prop_istrain") else 0
-                        ashear = 1 if st.checkbox("Ashear", value=False, key="prop_ashear") else 0
+                        ishell = int(
+                            st.number_input(
+                                "Ishell",
+                                value=1,
+                                step=1,
+                                key="prop_ishell",
+                            )
+                        )
+                        ip = int(
+                            st.number_input(
+                                "Iplas",
+                                value=1,
+                                step=1,
+                                key="prop_ip",
+                            )
+                        )
+                        ithick = int(
+                            st.number_input(
+                                "Ithick",
+                                value=1,
+                                step=1,
+                                key="prop_ithick",
+                            )
+                        )
+                        istr = int(
+                            st.number_input(
+                                "Istrain",
+                                value=0,
+                                step=1,
+                                key="prop_istrain",
+                            )
+                        )
+                        ashear = int(
+                            st.number_input(
+                                "Ashear",
+                                value=0,
+                                step=1,
+                                key="prop_ashear",
+                            )
+                        )
                         hm = input_with_help("hm", 0.0, "prop_hm")
                         hf = input_with_help("hf", 0.0, "prop_hf")
                         hr = input_with_help("hr", 0.0, "prop_hr")
@@ -873,10 +908,31 @@ if file_path:
                 elif ptype == "SOLID":
                     thick = None
                     with st.expander("Par\u00e1metros avanzados"):
-                        isolid = checkbox_input("Isolid", 1, "prop_isolid")
+                        isolid = int(
+                            st.number_input(
+                                "Isolid",
+                                value=1,
+                                step=1,
+                                key="prop_isolid",
+                            )
+                        )
                         ismstr = st.number_input("Ismstr", value=4, step=1, key="prop_ismstr")
-                        icpre = checkbox_input("Icpre", 1, "prop_icpre")
-                        iframe = checkbox_input("Iframe", 1, "prop_iframe")
+                        icpre = int(
+                            st.number_input(
+                                "Icpre",
+                                value=1,
+                                step=1,
+                                key="prop_icpre",
+                            )
+                        )
+                        iframe = int(
+                            st.number_input(
+                                "Iframe",
+                                value=1,
+                                step=1,
+                                key="prop_iframe",
+                            )
+                        )
                         inpts = st.number_input("Inpts", value=222, step=1, key="prop_inpts")
                         qa = input_with_help("qa", 1.1, "prop_qa")
                         qb = input_with_help("qb", 0.05, "prop_qb")

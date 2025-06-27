@@ -261,7 +261,7 @@ def write_starter(
         f.write("#RADIOSS STARTER\n")
         f.write("/BEGIN\n")
         f.write(f"{runname}\n")
-        f.write("        2024         0\n")
+        f.write("        2024\n")
         f.write("                  1                  2                  3\n")
         f.write("                  1                  2                  3\n")
 
@@ -820,7 +820,7 @@ def write_rad(
         f.write("#RADIOSS STARTER\n")
         f.write("/BEGIN\n")
         f.write(f"{runname}\n")
-        f.write("        2024         0\n")
+        f.write("        2024\n")
         f.write("                  1                  2                  3\n")
         f.write("                  1                  2                  3\n")
 

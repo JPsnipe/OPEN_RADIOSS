@@ -35,3 +35,43 @@ def test_material_blocks(tmp_path):
         fct_line = next(l for l in lines[idx:] if l.startswith('# fct_IDp'))
         fct_id = int(lines[lines.index(fct_line) + 1].split()[0])
         assert any(line.startswith(f'/FUNCT/{fct_id}') for line in lines)
+
+
+def test_material_id_offset(tmp_path):
+    nodes, elements, node_sets, elem_sets, mats = parse_cdb(DATA)
+    # Extra material using an ID already present in mats
+    extra = {1: {'LAW': 'LAW1', 'EX': 1e5, 'NUXY': 0.3, 'DENS': 7800.0}}
+    rad = tmp_path / 'offset_0000.rad'
+    write_starter(
+        nodes,
+        elements,
+        str(rad),
+        node_sets=node_sets,
+        elem_sets=elem_sets,
+        materials=mats,
+        extra_materials=extra,
+    )
+    text = rad.read_text()
+    mat_lines = [l for l in text.splitlines() if l.startswith('/MAT/')]
+    ids = [int(l.split('/')[3]) for l in mat_lines]
+    assert len(ids) == len(mats) + 1
+    assert len(ids) == len(set(ids))
+
+
+def test_extra_only_ids_preserved(tmp_path):
+    nodes, elements, node_sets, elem_sets, _mats = parse_cdb(DATA)
+    extra = {1: {'LAW': 'LAW1', 'EX': 1e5, 'NUXY': 0.3, 'DENS': 7800.0}}
+    rad = tmp_path / 'extra_0000.rad'
+    write_starter(
+        nodes,
+        elements,
+        str(rad),
+        node_sets=node_sets,
+        elem_sets=elem_sets,
+        materials=None,
+        extra_materials=extra,
+    )
+    lines = rad.read_text().splitlines()
+    mat_lines = [l for l in lines if l.startswith('/MAT/')]
+    ids = [int(l.split('/')[3]) for l in mat_lines]
+    assert ids == [1]

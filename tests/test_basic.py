@@ -180,6 +180,9 @@ def test_write_rad_with_type7_contact(tmp_path):
     txt = rad.read_text()
     assert '/INTER/TYPE7/1' in txt
     assert '/FRICTION' in txt
+    for line in txt.splitlines():
+        if line.startswith('/INTER/TYPE7'):
+            assert not line.startswith(' ')
 
 
 def test_write_rad_with_type2_contact(tmp_path):
@@ -196,6 +199,9 @@ def test_write_rad_with_type2_contact(tmp_path):
     txt = rad.read_text()
     assert '/INTER/TYPE2/1' in txt
     assert '/FRICTION' in txt
+    for line in txt.splitlines():
+        if line.startswith('/INTER/TYPE2'):
+            assert not line.startswith(' ')
 
 
 

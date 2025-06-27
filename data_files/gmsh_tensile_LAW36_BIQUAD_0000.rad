@@ -48,7 +48,7 @@ DP600 from SSAB Homepage
 #---1----|----2----|----3----|----4----|----5----|----6----|----7----|----8----|----9----|---10----|
 /BCS/1
 Fixed_End
-#  Tra rot   skew_ID  grnod_ID
+#  Trarot   Skew_ID  grnd_ID
    111 111         0        11
 /GRNOD/NODE/11
 Fixed_End_Main_Node
@@ -56,7 +56,7 @@ Fixed_End_Main_Node
 #---1----|----2----|----3----|----4----|----5----|----6----|----7----|----8----|----9----|---10----|
 /BCS/2
 Moving_End
-#  Tra rot   skew_ID  grnod_ID
+#  Trarot   Skew_ID  grnd_ID
    011 111         0        21
 /GRNOD/NODE/21
 Moving_End_Main_Node

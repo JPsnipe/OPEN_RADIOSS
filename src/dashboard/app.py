@@ -476,36 +476,60 @@ if file_path:
     )
 
     with info_tab:
-        st.write("Nodos:", len(nodes))
-        st.write("Elementos:", len(elements))
-        from cdb2rad.utils import element_summary
-
-        etype_counts, kw_counts = element_summary(elements)
-        st.write("Tipos de elemento (CDB):")
-        for et, cnt in sorted(etype_counts.items()):
-            st.write(f"- Tipo {et}: {cnt} elementos")
-        st.write("Tipos en Radioss:")
-        for kw, cnt in kw_counts.items():
-            st.write(f"- {kw}: {cnt}")
-        st.write("Conjuntos de nodos:", len(node_sets))
-        for name, nids in node_sets.items():
-            st.write(f"- {name}: {len(nids)} nodos")
         all_elem_sets = {**elem_sets, **st.session_state.get("subsets", {})}
-        st.write("Conjuntos de elementos:", len(all_elem_sets))
-        for name, eids in all_elem_sets.items():
-            st.write(f"- {name}: {len(eids)} elementos")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Nodos", len(nodes))
+            st.metric("Conjuntos de nodos", len(node_sets))
+            st.metric("Materiales", len(materials))
+        with col2:
+            st.metric("Elementos", len(elements))
+            st.metric("Conj. de elementos", len(all_elem_sets))
+            if st.session_state["parts"]:
+                st.metric("Partes", len(st.session_state["parts"]))
+
+        from cdb2rad.utils import element_summary
+        etype_counts, kw_counts = element_summary(elements)
+
+        with st.expander("Tipos de elemento (CDB)"):
+            st.table(
+                [
+                    {"Tipo": et, "Cantidad": cnt}
+                    for et, cnt in sorted(etype_counts.items())
+                ]
+            )
+
+        with st.expander("Tipos en Radioss"):
+            st.table(
+                [
+                    {"Keyword": kw, "Cantidad": cnt}
+                    for kw, cnt in kw_counts.items()
+                ]
+            )
+
+        with st.expander("Conjuntos de nodos"):
+            for name, nids in node_sets.items():
+                st.write(f"- {name}: {len(nids)} nodos")
+
+        with st.expander("Conjuntos de elementos"):
+            for name, eids in all_elem_sets.items():
+                st.write(f"- {name}: {len(eids)} elementos")
+
         if st.session_state["parts"]:
-            st.write("Partes definidas:")
-            for part in st.session_state["parts"]:
-                if "set" in part:
-                    st.write(
-                        f"- {part['name']} (ID {part['id']}) → {part['set']}"
-                    )
-                else:
-                    st.write(f"- {part['name']} (ID {part['id']})")
-        st.write("Materiales:")
-        for mid, props in materials.items():
-            st.write(f"- ID {mid}: {props}")
+            with st.expander("Partes definidas"):
+                for part in st.session_state["parts"]:
+                    if "set" in part:
+                        st.write(
+                            f"- {part['name']} (ID {part['id']}) → {part['set']}"
+                        )
+                    else:
+                        st.write(f"- {part['name']} (ID {part['id']})")
+
+        with st.expander("Materiales"):
+            for mid, props in materials.items():
+                st.write(f"ID {mid}")
+                st.json(props)
 
     with preview_tab:
         port = st.number_input("Puerto ParaView Web", value=8080, step=1)

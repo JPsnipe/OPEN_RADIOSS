@@ -44,22 +44,36 @@ DEFAULT_RFILE_DT = None
 def _merge_materials(
     base: Dict[int, Dict[str, float]] | None,
     extra: Dict[int, Dict[str, float]] | None,
-) -> Dict[int, Dict[str, float]]:
-    """Merge two material dictionaries avoiding ID collisions."""
+) -> tuple[Dict[int, Dict[str, float]], Dict[int, int]]:
+    """Merge two material dictionaries avoiding ID collisions.
+
+    Returns a tuple ``(materials, id_map)`` where ``id_map`` provides the
+    mapping from original material IDs to the final ones used in
+    ``materials``. IDs present only in ``base`` will map to themselves.
+    """
+
     result: Dict[int, Dict[str, float]] = {}
+    id_map: Dict[int, int] = {}
     max_id = 0
+
     if base:
         result.update(base)
         max_id = max(base.keys(), default=0)
+        for mid in base:
+            id_map[mid] = mid
+
     if extra:
         for mid, props in extra.items():
             if mid in result:
                 max_id += 1
                 result[max_id] = props
+                id_map[mid] = max_id
             else:
                 result[mid] = props
+                id_map[mid] = mid
                 max_id = max(max_id, mid)
-    return result
+
+    return result, id_map
 
 
 def write_starter(
@@ -92,7 +106,7 @@ def write_starter(
 ) -> None:
     """Write a Radioss starter file (``*_0000.rad``)."""
 
-    all_mats = _merge_materials(materials, extra_materials)
+    all_mats, mid_map = _merge_materials(materials, extra_materials)
     if all_mats:
         all_mats = apply_default_materials(all_mats)
 
@@ -423,7 +437,19 @@ def write_starter(
                     f.write(f"   {nid}     {wt}\n")
 
         if parts:
+            mapped_parts: List[Dict[str, Any]] = []
             for p in parts:
+                p_copy = dict(p)
+                mid_val = p_copy.get("mid")
+                if mid_val is not None:
+                    try:
+                        old = int(mid_val)
+                        p_copy["mid"] = mid_map.get(old, old)
+                    except (TypeError, ValueError):
+                        pass
+                mapped_parts.append(p_copy)
+
+            for p in mapped_parts:
                 pid = int(p.get("id", 1))
                 name = p.get("name", f"PART_{pid}")
                 prop_id = int(p.get("pid", 1))
@@ -681,7 +707,7 @@ def write_rad(
     provided.
     """
 
-    all_mats = _merge_materials(materials, extra_materials)
+    all_mats, mid_map = _merge_materials(materials, extra_materials)
     if all_mats:
         all_mats = apply_default_materials(all_mats)
 
@@ -1074,7 +1100,19 @@ def write_rad(
         # 6. PARTS AND PROPERTIES
 
         if parts:
+            mapped_parts: List[Dict[str, Any]] = []
             for p in parts:
+                p_copy = dict(p)
+                mid_val = p_copy.get("mid")
+                if mid_val is not None:
+                    try:
+                        old = int(mid_val)
+                        p_copy["mid"] = mid_map.get(old, old)
+                    except (TypeError, ValueError):
+                        pass
+                mapped_parts.append(p_copy)
+
+            for p in mapped_parts:
                 pid = int(p.get("id", 1))
                 name = p.get("name", f"PART_{pid}")
                 prop_id = int(p.get("pid", 1))

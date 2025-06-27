@@ -114,6 +114,7 @@ DEFAULT_VTK_DIR = r"C:\JAVIER\OPEN_RADIOSS\paraview\data"
 from cdb2rad.parser import parse_cdb
 from cdb2rad.writer_rad import (
     write_rad,
+    write_starter,
     DEFAULT_RUNNAME,
     DEFAULT_FINAL_TIME,
     DEFAULT_ANIM_DT,

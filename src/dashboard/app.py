@@ -156,6 +156,29 @@ LAW_DESCRIPTIONS = {
     "LAW44": "Modelo Cowper-Symonds",
 }
 
+# Laws considered elastoplastic for property checks
+ELASTO_PLASTIC_LAWS = {"LAW2", "LAW27", "LAW36", "LAW44"}
+
+
+def is_elastoplastic(law: str | None) -> bool:
+    """Return True if the material law implies plasticity."""
+    return law in ELASTO_PLASTIC_LAWS
+
+
+def get_material_law(
+    mid: int,
+    base_mats: Dict[int, Dict[str, float]],
+    impact_mats: List[Dict[str, float]],
+) -> str | None:
+    """Return LAW string for the given material id if available."""
+    mat = base_mats.get(mid)
+    if mat and "LAW" in mat:
+        return mat["LAW"]
+    for m in impact_mats:
+        if int(m.get("id", 0)) == mid:
+            return m.get("LAW")
+    return None
+
 FAIL_DESCRIPTIONS = {
     "": "Sin criterio de fallo",
     "JOHNSON": "Johnson-Cook failure",
@@ -895,6 +918,23 @@ if file_path:
             )
             mid_sel = st.number_input("Material ID", value=1, key="part_mid")
             if st.button("Añadir parte") and part_name and sel_set:
+                # Check Iplas consistency with selected material
+                prop = next(
+                    (p for p in st.session_state["properties"] if p["id"] == int(pid_sel)),
+                    None,
+                )
+                law = get_material_law(
+                    int(mid_sel),
+                    materials,
+                    st.session_state.get("impact_materials", []),
+                )
+                if prop and prop.get("type") == "SHELL" and law:
+                    recommended = 1 if is_elastoplastic(law) else 0
+                    current = int(prop.get("Iplas", 1))
+                    if current != recommended:
+                        st.warning(
+                            f"Iplas actual ({current}) no coincide con la ley {law}. Se recomienda {recommended}."
+                        )
                 st.session_state["parts"].append(
                     {
                         "id": int(part_id),

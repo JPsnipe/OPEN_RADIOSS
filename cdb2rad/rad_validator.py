@@ -174,11 +174,11 @@ def validate_rad_format(filepath: str) -> None:
             continue
 
         if line.startswith("/INTER/TYPE2"):
-            if i + 3 >= len(lines):
+            if i + 4 >= len(lines):
                 raise ValueError("Incomplete TYPE2 block")
-            if not lines[i + 2].startswith("/FRICTION"):
+            if not lines[i + 3].startswith("/FRICTION"):
                 raise ValueError("TYPE2 missing /FRICTION")
-            i += 4
+            i += 5
             continue
 
         if line.startswith("/RBODY/"):

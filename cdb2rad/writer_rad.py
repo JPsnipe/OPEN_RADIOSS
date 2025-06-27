@@ -76,6 +76,40 @@ def _merge_materials(
     return result, id_map
 
 
+def _map_parts(
+    parts: List[Dict[str, Any]] | None,
+    mid_map: Dict[int, int],
+    available: Dict[int, Dict[str, float]] | None,
+) -> List[Dict[str, Any]]:
+    """Return a new list of parts with material IDs updated.
+
+    Raises ``ValueError`` if any part references a material ID not present
+    in ``available`` after mapping. If ``available`` is ``None`` the check
+    is skipped.
+    """
+
+    if not parts:
+        return []
+
+    mapped: List[Dict[str, Any]] = []
+    for p in parts:
+        p_copy = dict(p)
+        mid_val = p_copy.get("mid")
+        if mid_val is not None:
+            try:
+                old = int(mid_val)
+            except (TypeError, ValueError):
+                old = None
+            if old is not None:
+                new_id = mid_map.get(old, old)
+                p_copy["mid"] = new_id
+                if available is not None and new_id not in available:
+                    name = p_copy.get("name", p_copy.get("id"))
+                    raise ValueError(f"Undefined material ID {old} for part {name}")
+        mapped.append(p_copy)
+    return mapped
+
+
 def write_starter(
     nodes: Dict[int, List[float]],
     elements: List[Tuple[int, int, List[int]]],
@@ -437,18 +471,8 @@ def write_starter(
                     f.write(f"   {nid}     {wt}\n")
 
         if parts:
-            mapped_parts: List[Dict[str, Any]] = []
-            for p in parts:
-                p_copy = dict(p)
-                mid_val = p_copy.get("mid")
-                if mid_val is not None:
-                    try:
-                        old = int(mid_val)
-                        p_copy["mid"] = mid_map.get(old, old)
-                    except (TypeError, ValueError):
-                        pass
-                mapped_parts.append(p_copy)
-
+            check_mats = None if not all_mats and default_material else all_mats
+            mapped_parts = _map_parts(parts, mid_map, check_mats)
             for p in mapped_parts:
                 pid = int(p.get("id", 1))
                 name = p.get("name", f"PART_{pid}")
@@ -1100,18 +1124,8 @@ def write_rad(
         # 6. PARTS AND PROPERTIES
 
         if parts:
-            mapped_parts: List[Dict[str, Any]] = []
-            for p in parts:
-                p_copy = dict(p)
-                mid_val = p_copy.get("mid")
-                if mid_val is not None:
-                    try:
-                        old = int(mid_val)
-                        p_copy["mid"] = mid_map.get(old, old)
-                    except (TypeError, ValueError):
-                        pass
-                mapped_parts.append(p_copy)
-
+            check_mats = None if not all_mats and default_material else all_mats
+            mapped_parts = _map_parts(parts, mid_map, check_mats)
             for p in mapped_parts:
                 pid = int(p.get("id", 1))
                 name = p.get("name", f"PART_{pid}")

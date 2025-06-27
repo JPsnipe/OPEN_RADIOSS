@@ -258,8 +258,8 @@ def write_starter(
         f.write("/BEGIN\n")
         f.write(f"{runname}\n")
         f.write("     2024    0\n")
-        f.write("     kg      mm      ms\n")
-        f.write("     kg      mm      ms\n")
+        f.write("     1       2       3\n")
+        f.write("     1       2       3\n")
 
         def write_law1(mid: int, name: str, rho: float, e: float, nu: float) -> None:
             f.write(f"/MAT/LAW1/{mid}\n")
@@ -817,8 +817,8 @@ def write_rad(
         f.write("/BEGIN\n")
         f.write(f"{runname}\n")
         f.write("     2024         0\n")
-        f.write("                  kg                  mm                   s\n")
-        f.write("                  kg                  mm                   s\n")
+        f.write("                  1                   2                   3\n")
+        f.write("                  1                   2                   3\n")
 
         if include_run:
             # General printout frequency

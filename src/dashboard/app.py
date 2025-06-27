@@ -733,10 +733,12 @@ if file_path:
                 with st.expander("Materiales de impacto"):
                     max_mid = max(materials.keys(), default=0)
                     default_mid = max_mid + len(st.session_state["impact_materials"]) + 1
-                    mat_id = input_with_help(
+                    mat_id = st.number_input(
                         "ID material",
-                        default_mid,
-                        "mat_id",
+                        value=default_mid,
+                        key="mat_id",
+                        step=1,
+                        format="%d",
                     )
                     law = st.selectbox(
                         "Tipo",
@@ -845,6 +847,8 @@ if file_path:
                     "ID propiedad",
                     value=len(st.session_state["properties"]) + 1,
                     key="prop_id",
+                    step=1,
+                    format="%d",
                 )
                 pname = st.text_input("Nombre", value=f"PROP_{pid}", key="prop_name")
                 ptype = st.selectbox("Tipo", ["SHELL", "SOLID"], key="prop_type")
@@ -930,6 +934,8 @@ if file_path:
                 "ID parte",
                 value=len(st.session_state["parts"]) + 1,
                 key="part_id",
+                step=1,
+                format="%d",
             )
             part_name = st.text_input("Nombre parte", value=f"PART_{part_id}", key="part_name")
             prop_opts = [p["id"] for p in st.session_state["properties"]]
@@ -937,7 +943,13 @@ if file_path:
             sel_set = st.selectbox(
                 "Subset o conjunto", list(all_elem_sets.keys()), key="part_set", disabled=not all_elem_sets
             )
-            mid_sel = st.number_input("Material ID", value=1, key="part_mid")
+            mid_sel = st.number_input(
+                "Material ID",
+                value=1,
+                key="part_mid",
+                step=1,
+                format="%d",
+            )
             if st.button("Añadir parte") and part_name and sel_set:
                 # Check Iplas consistency with selected material
                 prop = next(
@@ -1032,7 +1044,14 @@ if file_path:
                 rz = input_with_help("Z", 0.0, "rp_z")
             auto = st.checkbox("ID automático", value=True, key="rp_auto")
             next_id = next_free_node_id(all_nodes)
-            rid = st.number_input("ID", value=next_id, key="rp_id", disabled=auto)
+            rid = st.number_input(
+                "ID",
+                value=next_id,
+                key="rp_id",
+                disabled=auto,
+                step=1,
+                format="%d",
+            )
             if st.button("Añadir punto remoto"):
                 try:
                     if auto:
@@ -1054,7 +1073,12 @@ if file_path:
 
         with st.expander("Rigid Connectors"):
             with st.expander("/RBODY"):
-                rb_id = st.number_input("RBID", 1)
+                rb_id = st.number_input(
+                    "RBID",
+                    1,
+                    step=1,
+                    format="%d",
+                )
                 master = st.selectbox("Nodo maestro", list(all_nodes.keys()), key="rbody_master")
                 slaves = st.multiselect("Nodos secundarios", list(all_nodes.keys()), key="rb_slaves")
                 slave_sets = st.multiselect(

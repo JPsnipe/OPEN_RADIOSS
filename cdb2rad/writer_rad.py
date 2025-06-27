@@ -105,9 +105,52 @@ def _map_parts(
                 p_copy["mid"] = new_id
                 if available is not None and new_id not in available:
                     name = p_copy.get("name", p_copy.get("id"))
-                    raise ValueError(f"Undefined material ID {old} for part {name}")
+                    raise ValueError(
+                        f"Undefined material ID {old} for part {name}"
+                    )
         mapped.append(p_copy)
     return mapped
+
+
+def _write_interfaces(f, interfaces: List[Dict[str, object]] | None) -> None:
+    """Write ``/INTER`` blocks to ``f`` if any interfaces are defined."""
+
+    if not interfaces:
+        return
+
+    for idx, inter in enumerate(interfaces, start=1):
+        itype = str(inter.get("type", "TYPE2")).upper()
+        s_nodes = inter.get("slave", [])
+        m_nodes = inter.get("master", [])
+        name = inter.get("name", f"INTER_{idx}")
+        fric = inter.get("fric", 0.0)
+        slave_id = 200 + idx
+        master_id = 300 + idx
+
+        if itype == "TYPE7":
+            gap = inter.get("gap", 0.0)
+            stiff = inter.get("stiff", 0.0)
+            igap = inter.get("igap", 0)
+            f.write(f"/INTER/TYPE7/{idx}\n")
+            f.write(f"{name}\n")
+            f.write(f"{slave_id} {master_id} {stiff} {gap} {igap}\n")
+        else:
+            f.write(f"/INTER/TYPE2/{idx}\n")
+            f.write(f"{name}\n")
+            f.write(f"{slave_id} {master_id}\n")
+
+        f.write("/FRICTION\n")
+        f.write(f"{fric}\n")
+
+        f.write(f"/GRNOD/NODE/{slave_id}\n")
+        f.write(f"{name}_slave\n")
+        for nid in s_nodes:
+            f.write(f"{nid:10d}\n")
+
+        f.write(f"/GRNOD/NODE/{master_id}\n")
+        f.write(f"{name}_master\n")
+        for nid in m_nodes:
+            f.write(f"{nid:10d}\n")
 
 
 def write_starter(
@@ -387,39 +430,7 @@ def write_starter(
                     f.write(f"{nid:10d}\n")
 
         if interfaces:
-            for idx, inter in enumerate(interfaces, start=1):
-                itype = inter.get("type", "TYPE2").upper()
-                s_nodes = inter.get("slave", [])
-                m_nodes = inter.get("master", [])
-                name = inter.get("name", f"INTER_{idx}")
-                fric = inter.get("fric", 0.0)
-                slave_id = 200 + idx
-                master_id = 300 + idx
-
-                if itype == "TYPE7":
-                    gap = inter.get("gap", 0.0)
-                    stif = inter.get("stiff", 0.0)
-                    igap = inter.get("igap", 0)
-                    f.write(f"/INTER/TYPE7/{idx}\n")
-                    f.write(f"{name}\n")
-                    f.write(f"{slave_id} {master_id} {stif} {gap} {igap}\n")
-                    f.write("/FRICTION\n")
-                    f.write(f"{fric}\n")
-                else:
-                    f.write(f"/INTER/TYPE2/{idx}\n")
-                    f.write(f"{name}\n")
-                    f.write(f"{slave_id} {master_id}\n")
-                    f.write("/FRICTION\n")
-                    f.write(f"{fric}\n")
-
-                f.write(f"/GRNOD/NODE/{slave_id}\n")
-                f.write(f"{name}_slave\n")
-                for nid in s_nodes:
-                    f.write(f"{nid:10d}\n")
-                f.write(f"/GRNOD/NODE/{master_id}\n")
-                f.write(f"{name}_master\n")
-                for nid in m_nodes:
-                    f.write(f"{nid:10d}\n")
+            _write_interfaces(f, interfaces)
 
         if rbody:
             for idx, rb in enumerate(rbody, start=1):
@@ -1036,39 +1047,7 @@ def write_rad(
                     f.write(f"{nid:10d}\n")
 
         if interfaces:
-            for idx, inter in enumerate(interfaces, start=1):
-                itype = inter.get("type", "TYPE2").upper()
-                s_nodes = inter.get("slave", [])
-                m_nodes = inter.get("master", [])
-                name = inter.get("name", f"INTER_{idx}")
-                fric = inter.get("fric", 0.0)
-                slave_id = 200 + idx
-                master_id = 300 + idx
-
-                if itype == "TYPE7":
-                    gap = inter.get("gap", 0.0)
-                    stif = inter.get("stiff", 0.0)
-                    igap = inter.get("igap", 0)
-                    f.write(f"/INTER/TYPE7/{idx}\n")
-                    f.write(f"{name}\n")
-                    f.write(f"{slave_id} {master_id} {stif} {gap} {igap}\n")
-                    f.write("/FRICTION\n")
-                    f.write(f"{fric}\n")
-                else:
-                    f.write(f"/INTER/TYPE2/{idx}\n")
-                    f.write(f"{name}\n")
-                    f.write(f"{slave_id} {master_id}\n")
-                    f.write("/FRICTION\n")
-                    f.write(f"{fric}\n")
-
-                f.write(f"/GRNOD/NODE/{slave_id}\n")
-                f.write(f"{name}_slave\n")
-                for nid in s_nodes:
-                    f.write(f"{nid:10d}\n")
-                f.write(f"/GRNOD/NODE/{master_id}\n")
-                f.write(f"{name}_master\n")
-                for nid in m_nodes:
-                    f.write(f"{nid:10d}\n")
+            _write_interfaces(f, interfaces)
 
         # 5. RIGID CONNECTORS
 

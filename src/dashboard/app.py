@@ -1296,7 +1296,7 @@ if file_path:
             key="rad_dir",
         )
         rad_name = st.text_input(
-            "Nombre de archivo RAD", value="model_0000", key="rad_name"
+            "Nombre base RAD", value="model", key="rad_name"
         )
         overwrite_rad = st.checkbox("Sobrescribir si existe", value=False, key="overwrite_rad")
 
@@ -1333,10 +1333,10 @@ if file_path:
         disable_gen = not st.session_state.get("config_ok", False)
 
 
-        if st.button("Generar .rad", disabled=disable_gen):
+        if st.button("Generar starter", disabled=disable_gen):
             out_dir = Path(rad_dir).expanduser()
             out_dir.mkdir(parents=True, exist_ok=True)
-            rad_path = out_dir / f"{rad_name}.rad"
+            rad_path = out_dir / f"{rad_name}_0000.rad"
             mesh_path = out_dir / "mesh.inc"
             impact_defined = use_impact and st.session_state.get("impact_materials")
             if (rad_path.exists() or mesh_path.exists()) and not overwrite_rad:
@@ -1377,7 +1377,7 @@ if file_path:
                 if not include_inc:
                     write_mesh_inc(all_nodes, elements, str(mesh_path), node_sets=all_node_sets)
                 all_elem_sets = {**elem_sets, **st.session_state.get("subsets", {})}
-                write_rad(
+                write_starter(
                         all_nodes,
                         elements,
                         str(rad_path),
@@ -1387,30 +1387,7 @@ if file_path:
                         elem_sets=all_elem_sets,
                         materials=materials if use_cdb_mats else None,
                         extra_materials=extra,
-
                         runname=runname,
-                        t_end=t_end,
-                        t_init=t_init,
-                        anim_dt=anim_dt,
-                        shell_anim_dt=shell_anim_dt,
-                        brick_anim_dt=brick_anim_dt,
-                        tfile_dt=tfile_dt,
-                        hisnoda_dt=hisnoda_dt,
-                        dt_ratio=dt_ratio,
-                        rfile_dt=rfile_dt,
-                        print_n=int(print_n) if print_n is not None else None,
-                        print_line=int(print_line) if print_line is not None else None,
-                        rfile_cycle=int(rfile_cycle) if rfile_cycle else None,
-                        rfile_n=int(rfile_n) if rfile_n else None,
-                        out_ascii=out_ascii,
-                        h3d_dt=h3d_dt if (h3d_dt is not None and h3d_dt > 0) else None,
-                        stop_emax=stop_emax,
-                        stop_mmax=stop_mmax,
-                        stop_nmax=stop_nmax,
-                        stop_nth=int(stop_nth),
-                        stop_nanim=int(stop_nanim),
-                        stop_nerr=int(stop_nerr),
-                        adyrel=(adyrel_start, adyrel_stop),
 
                         boundary_conditions=st.session_state.get("bcs"),
                         interfaces=st.session_state.get("interfaces"),
@@ -1431,8 +1408,73 @@ if file_path:
                 st.success(f"Ficheros generados en: {rad_path}")
                 with st.expander("Ver .rad completo"):
                     st.text_area(
-                        "model.rad", rad_path.read_text(), height=400
+                        "model_0000.rad", rad_path.read_text(), height=400
                     )
+
+        if st.button("Generar engine", disabled=disable_gen):
+            out_dir = Path(rad_dir).expanduser()
+            out_dir.mkdir(parents=True, exist_ok=True)
+            eng_path = out_dir / f"{rad_name}_0001.rad"
+            ctrl = st.session_state.get("control_settings")
+            if ctrl:
+                runname = ctrl.get("runname", runname)
+                t_end = ctrl.get("t_end", t_end)
+                t_init = ctrl.get("t_init", t_init)
+                anim_dt = ctrl.get("anim_dt", anim_dt)
+                shell_anim_dt = ctrl.get("shell_anim_dt", shell_anim_dt)
+                brick_anim_dt = ctrl.get("brick_anim_dt", brick_anim_dt)
+                tfile_dt = ctrl.get("tfile_dt", tfile_dt)
+                hisnoda_dt = ctrl.get("hisnoda_dt", hisnoda_dt)
+                dt_ratio = ctrl.get("dt_ratio", dt_ratio)
+                rfile_dt = ctrl.get("rfile_dt", rfile_dt)
+                print_n = ctrl.get("print_n", print_n)
+                print_line = ctrl.get("print_line", print_line)
+                rfile_cycle = ctrl.get("rfile_cycle", rfile_cycle)
+                rfile_n = ctrl.get("rfile_n", rfile_n)
+                out_ascii = ctrl.get("out_ascii", out_ascii)
+                h3d_dt = ctrl.get("h3d_dt", h3d_dt)
+                stop_emax = ctrl.get("stop_emax", stop_emax)
+                stop_mmax = ctrl.get("stop_mmax", stop_mmax)
+                stop_nmax = ctrl.get("stop_nmax", stop_nmax)
+                stop_nth = ctrl.get("stop_nth", stop_nth)
+                stop_nanim = ctrl.get("stop_nanim", stop_nanim)
+                stop_nerr = ctrl.get("stop_nerr", stop_nerr)
+                adyrel_start = ctrl.get("adyrel_start", adyrel_start)
+                adyrel_stop = ctrl.get("adyrel_stop", adyrel_stop)
+            write_engine(
+                str(eng_path),
+                runname=runname,
+                t_end=t_end,
+                t_init=t_init,
+                anim_dt=anim_dt,
+                shell_anim_dt=shell_anim_dt,
+                brick_anim_dt=brick_anim_dt,
+                tfile_dt=tfile_dt,
+                hisnoda_dt=hisnoda_dt,
+                dt_ratio=dt_ratio,
+                rfile_dt=rfile_dt,
+                print_n=int(print_n) if print_n is not None else None,
+                print_line=int(print_line) if print_line is not None else None,
+                rfile_cycle=int(rfile_cycle) if rfile_cycle else None,
+                rfile_n=int(rfile_n) if rfile_n else None,
+                out_ascii=out_ascii,
+                h3d_dt=h3d_dt if (h3d_dt is not None and h3d_dt > 0) else None,
+                stop_emax=stop_emax,
+                stop_mmax=stop_mmax,
+                stop_nmax=stop_nmax,
+                stop_nth=int(stop_nth),
+                stop_nanim=int(stop_nanim),
+                stop_nerr=int(stop_nerr),
+                adyrel=(adyrel_start, adyrel_stop),
+            )
+            try:
+                validate_rad_format(str(eng_path))
+                st.info("Formato RAD OK")
+            except ValueError as e:
+                st.error(f"Error formato: {e}")
+            st.success(f"Ficheros generados en: {eng_path}")
+            with st.expander("Ver engine"):
+                st.text_area("model_0001.rad", eng_path.read_text(), height=400)
 
     with help_tab:
         st.subheader("Documentación")

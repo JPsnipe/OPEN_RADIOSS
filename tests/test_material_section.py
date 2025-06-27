@@ -1,6 +1,6 @@
 import os
 from cdb2rad.parser import parse_cdb
-from cdb2rad.writer_rad import write_rad
+from cdb2rad.writer_rad import write_starter
 
 DATA = os.path.join(os.path.dirname(__file__), '..', 'data', 'model.cdb')
 
@@ -14,8 +14,8 @@ def test_material_blocks(tmp_path):
             'CURVE': [(0.0, 300.0), (0.1, 400.0)],
         }
     }
-    rad = tmp_path / 'mat.rad'
-    write_rad(
+    rad = tmp_path / 'mat_0000.rad'
+    write_starter(
         nodes,
         elements,
         str(rad),

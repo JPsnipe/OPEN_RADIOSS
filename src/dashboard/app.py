@@ -1300,23 +1300,40 @@ if file_path:
         )
         overwrite_rad = st.checkbox("Sobrescribir si existe", value=False, key="overwrite_rad")
 
+        adv_check = st.checkbox("Validación avanzada", key="adv_check")
         if st.button("Chequear configuracion"):
-            errs = check_rad_inputs(
+            st.session_state["config_results"] = check_rad_inputs(
                 use_cdb_mats,
                 materials,
                 use_impact,
                 st.session_state.get("impact_materials"),
                 st.session_state.get("bcs"),
                 st.session_state.get("interfaces"),
+                properties=st.session_state.get("properties"),
+                parts=st.session_state.get("parts"),
+                subsets=st.session_state.get("subsets"),
+                node_sets=all_node_sets,
+                nodes=all_nodes,
+                advanced=adv_check,
             )
-            if errs:
-                for e in errs:
-                    st.error(e)
-            else:
-                st.success("Configuracion OK")
+
+        results = st.session_state.get("config_results")
+        has_errors = False
+        if results:
+            for ok, msg in results:
+                if ok:
+                    st.write(f"✅ {msg}")
+                else:
+                    st.write(f"❌ {msg}")
+                    has_errors = True
+            st.session_state["config_ok"] = not has_errors
+        else:
+            st.session_state["config_ok"] = False
+
+        disable_gen = not st.session_state.get("config_ok", False)
 
 
-        if st.button("Generar .rad"):
+        if st.button("Generar .rad", disabled=disable_gen):
             out_dir = Path(rad_dir).expanduser()
             out_dir.mkdir(parents=True, exist_ok=True)
             rad_path = out_dir / f"{rad_name}.rad"

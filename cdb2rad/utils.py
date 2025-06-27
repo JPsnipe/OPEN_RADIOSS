@@ -58,21 +58,86 @@ def check_rad_inputs(
     impact_materials: List[Dict[str, float]] | None,
     bcs: List[Dict[str, object]] | None,
     interfaces: List[Dict[str, object]] | None,
-) -> List[str]:
-    """Return a list of missing configuration items for RAD generation."""
-    errors: List[str] = []
-    if use_cdb_mats and not materials:
-        errors.append("Faltan materiales importados del CDB")
-    if use_impact and not impact_materials:
-        errors.append("No se han definido materiales de impacto")
-    if bcs:
-        for idx, bc in enumerate(bcs, start=1):
-            if not bc.get("nodes"):
-                errors.append(f"BC {idx} sin nodos")
+    properties: List[Dict[str, object]] | None = None,
+    parts: List[Dict[str, object]] | None = None,
+    subsets: Dict[str, List[int]] | None = None,
+    node_sets: Dict[str, List[int]] | None = None,
+    nodes: Dict[int, List[float]] | None = None,
+    advanced: bool = False,
+) -> List[tuple[bool, str]]:
+    """Return a list of ``(status, message)`` tuples summarising the checks."""
+
+    results: List[tuple[bool, str]] = []
+
+    # 1. Materials
+    n_mats = 0
+    if use_cdb_mats and materials:
+        n_mats += len(materials)
+    if use_impact and impact_materials:
+        n_mats += len(impact_materials)
+    ok = n_mats > 0
+    results.append((ok, f"Materiales definidos: {n_mats}"))
+
+    # 2. Properties
+    n_props = len(properties or [])
+    results.append((n_props > 0, f"Propiedades definidas: {n_props}"))
+
+    # 3. Parts
+    n_parts = len(parts or [])
+    results.append((n_parts > 0, f"Partes definidas: {n_parts}"))
+
+    mat_ids = set()
+    if materials:
+        mat_ids.update(int(m) for m in materials.keys())
+    if impact_materials:
+        for m in impact_materials:
+            if "id" in m:
+                try:
+                    mat_ids.add(int(m["id"]))
+                except (TypeError, ValueError):
+                    pass
+    prop_ids = {int(p.get("id", 0)) for p in properties or []}
+
+    # 4. Part references
+    if parts:
+        for pt in parts:
+            pid = int(pt.get("pid", 0))
+            mid = int(pt.get("mid", 0))
+            if pid not in prop_ids:
+                results.append((False, f"PART {pt.get('id')} referencia PROP {pid} inexistente"))
                 break
+            if mid not in mat_ids:
+                results.append((False, f"PART {pt.get('id')} referencia MAT {mid} inexistente"))
+                break
+
+    # 5. Subset usage
+    if subsets:
+        used = {pt.get("set") for pt in parts or [] if pt.get("set")}
+        unused = [name for name in subsets.keys() if name not in used]
+        for sub in unused:
+            results.append((False, f"Subset sin uso: {sub}"))
+
+    # 6. Node set existence
+    if bcs and node_sets and nodes:
+        node_ids = set(nodes.keys())
+        for idx, bc in enumerate(bcs, start=1):
+            undefined = [n for n in bc.get("nodes", []) if n not in node_ids]
+            if undefined:
+                nid = undefined[0]
+                results.append((False, f"Nodo no definido en BC {idx}: {nid}"))
+                break
+
+    # 7. Interface completeness
     if interfaces:
         for idx, itf in enumerate(interfaces, start=1):
             if not itf.get("slave") or not itf.get("master"):
-                errors.append(f"Interfaz {idx} incompleta")
+                results.append((False, f"Interfaz {idx} incompleta"))
                 break
-    return errors
+
+    # 8. Advanced checks
+    if advanced and properties:
+        for p in properties:
+            if p.get("type") == "SHELL" and float(p.get("thickness", 0.0)) <= 0.0:
+                results.append((False, f"Espesor en PROP/SHELL/{p.get('id')} = 0.0"))
+
+    return results

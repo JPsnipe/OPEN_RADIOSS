@@ -176,6 +176,20 @@ def _write_interfaces(f, interfaces: List[Dict[str, object]] | None) -> None:
             f.write(f"{fric} {fric_stiff}\n")
 
 
+def _write_begin(f, runname: str, unit_sys: str | None) -> None:
+    """Write the ``/BEGIN`` card with optional unit codes."""
+
+    f.write("/BEGIN\n")
+    f.write(f"{runname}\n")
+    if unit_sys == "SI":
+        f.write("      2017         0\n")
+        f.write("                  kg                  mm                  ms\n")
+        f.write("                  kg                  mm                  ms\n")
+    else:
+        f.write("        2024\n")
+        f.write("                  1                  2                  3\n")
+        f.write("                  1                  2                  3\n")
+
 def write_starter(
     nodes: Dict[int, List[float]],
     elements: List[Tuple[int, int, List[int]]],
@@ -203,8 +217,13 @@ def write_starter(
     parts: List[Dict[str, Any]] | None = None,
     subsets: Dict[str, List[int]] | None = None,
     default_material: bool = True,
+    unit_sys: str | None = None,
 ) -> None:
-    """Write a Radioss starter file (``*_0000.rad``)."""
+    """Write a Radioss starter file (``*_0000.rad``).
+
+    ``unit_sys`` can be set to ``"SI"`` to output the ``/BEGIN`` card with
+    kilogram--millimeter--millisecond units as used in legacy examples.
+    """
 
     all_mats, mid_map = _merge_materials(materials, extra_materials)
     if all_mats:
@@ -258,11 +277,7 @@ def write_starter(
 
     with open(outfile, "w") as f:
         f.write("#RADIOSS STARTER\n")
-        f.write("/BEGIN\n")
-        f.write(f"{runname}\n")
-        f.write("        2024\n")
-        f.write("                  1                  2                  3\n")
-        f.write("                  1                  2                  3\n")
+        _write_begin(f, runname, unit_sys)
 
         def write_law1(mid: int, name: str, rho: float, e: float, nu: float) -> None:
             f.write(f"/MAT/LAW1/{mid}\n")
@@ -755,6 +770,7 @@ def write_rad(
     subsets: Dict[str, List[int]] | None = None,
     include_run: bool = True,
     default_material: bool = True,
+    unit_sys: str | None = None,
 ) -> None:
     """Generate ``model_0000.rad`` with optional solver controls.
 
@@ -767,7 +783,8 @@ def write_rad(
     ``#include`` line referencing the mesh. Use ``include_run=False`` to
     skip control cards like ``/RUN`` and ``/STOP``. Set ``default_material``
     to ``False`` to avoid inserting a placeholder material when none are
-    provided.
+    provided. ``unit_sys`` behaves like the same argument in
+    :func:`write_starter` and customizes the ``/BEGIN`` block.
     """
 
     all_mats, mid_map = _merge_materials(materials, extra_materials)
@@ -822,11 +839,7 @@ def write_rad(
 
     with open(outfile, "w") as f:
         f.write("#RADIOSS STARTER\n")
-        f.write("/BEGIN\n")
-        f.write(f"{runname}\n")
-        f.write("        2024\n")
-        f.write("                  1                  2                  3\n")
-        f.write("                  1                  2                  3\n")
+        _write_begin(f, runname, unit_sys)
 
         if include_run:
             # General printout frequency

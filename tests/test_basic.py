@@ -431,5 +431,22 @@ def test_write_rad_with_solid_prop(tmp_path):
     assert nums2[1] == '1.5'
 
 
+def test_write_starter_si_units(tmp_path):
+    nodes, elements, node_sets, elem_sets, materials = parse_cdb(DATA)
+    rad = tmp_path / 'si_units_0000.rad'
+    write_starter(
+        nodes,
+        elements,
+        str(rad),
+        node_sets=node_sets,
+        elem_sets=elem_sets,
+        materials=materials,
+        unit_sys="SI",
+    )
+    txt = rad.read_text()
+    assert '2017         0' in txt
+    assert 'kg                  mm                  ms' in txt
+
+
 
 

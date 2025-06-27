@@ -424,6 +424,11 @@ def write_starter(
                 nodes_bc = bc.get("nodes", [])
                 gid = 100 + idx
 
+                f.write(f"/GRNOD/NODE/{gid}\n")
+                f.write(f"{name}_nodes\n")
+                for nid in nodes_bc:
+                    f.write(f"{nid:10d}\n")
+
                 if bc_type == "BCS":
                     tra = str(bc.get("tra", "000")).rjust(3, "0")
                     rot = str(bc.get("rot", "000")).rjust(3, "0")
@@ -442,11 +447,6 @@ def write_starter(
                 else:
                     f.write(f"# Unsupported BC type: {bc_type}\n")
                     continue
-
-                f.write(f"/GRNOD/NODE/{gid}\n")
-                f.write(f"{name}_nodes\n")
-                for nid in nodes_bc:
-                    f.write(f"{nid:10d}\n")
 
         if interfaces:
             _write_interfaces(f, interfaces)

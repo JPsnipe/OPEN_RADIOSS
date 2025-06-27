@@ -629,6 +629,26 @@ if file_path:
     with inp_tab:
         st.subheader("Generar mesh.inc")
 
+        all_elem_sets = {**elem_sets, **st.session_state.get("subsets", {})}
+        node_id_map = {n: i for i, n in enumerate(node_sets.keys(), start=1)}
+        elem_id_map = {n: i for i, n in enumerate(all_elem_sets.keys(), start=1)}
+
+        with st.expander("Grupos importados"):
+            rows = (
+                [
+                    {"Nombre": n, "ID": idx, "Tipo": "NODOS"}
+                    for n, idx in node_id_map.items()
+                ]
+                + [
+                    {"Nombre": n, "ID": idx, "Tipo": "ELEMENTOS"}
+                    for n, idx in elem_id_map.items()
+                ]
+            )
+            if rows:
+                st.table(rows)
+            else:
+                st.write("No se encontraron grupos")
+
         use_sets = st.checkbox("Incluir name selections", value=True)
         use_mats = st.checkbox("Incluir materiales", value=True)
         inc_dir = st.text_input(

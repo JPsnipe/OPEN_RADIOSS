@@ -436,22 +436,22 @@ def write_starter(
             f.write(f"#include {mesh_inc}\n")
 
         if boundary_conditions:
+            set_id_map = {
+                n: i for i, n in enumerate(node_sets.keys(), start=1)
+            } if node_sets else {}
             for idx, bc in enumerate(boundary_conditions, start=1):
                 bc_type = str(bc.get("type", "BCS")).upper()
                 name = bc.get("name", f"BC_{idx}")
-                nodes_bc = bc.get("nodes")
-                if nodes_bc is None:
-                    set_name = bc.get("set")
-                    if set_name and node_sets:
-                        nodes_bc = node_sets.get(set_name, [])
-                    else:
-                        nodes_bc = []
-                gid = 100 + idx
 
-                f.write(f"/GRNOD/NODE/{gid}\n")
-                f.write(f"{name}_nodes\n")
-                for nid in nodes_bc:
-                    f.write(f"{nid:10d}\n")
+                set_name = bc.get("set")
+                use_existing_gid = False
+                if set_name and set_name in set_id_map:
+                    gid = set_id_map[set_name]
+                    nodes_bc = node_sets.get(set_name, []) if node_sets else []
+                    use_existing_gid = True
+                else:
+                    nodes_bc = bc.get("nodes", [])
+                    gid = 100 + idx
 
                 if bc_type == "BCS":
                     tra = str(bc.get("tra", "000")).rjust(3, "0")
@@ -471,6 +471,12 @@ def write_starter(
                 else:
                     f.write(f"# Unsupported BC type: {bc_type}\n")
                     continue
+
+                if not use_existing_gid:
+                    f.write(f"/GRNOD/NODE/{gid}\n")
+                    f.write(f"{name}_nodes\n")
+                    for nid in nodes_bc:
+                        f.write(f"{nid:10d}\n")
 
         if interfaces:
             _write_interfaces(f, interfaces)
@@ -1056,17 +1062,22 @@ def write_rad(
         # 4. BOUNDARY CONDITIONS
 
         if boundary_conditions:
+            set_id_map = {
+                n: i for i, n in enumerate(node_sets.keys(), start=1)
+            } if node_sets else {}
             for idx, bc in enumerate(boundary_conditions, start=1):
                 bc_type = str(bc.get("type", "BCS")).upper()
                 name = bc.get("name", f"BC_{idx}")
-                nodes_bc = bc.get("nodes")
-                if nodes_bc is None:
-                    set_name = bc.get("set")
-                    if set_name and node_sets:
-                        nodes_bc = node_sets.get(set_name, [])
-                    else:
-                        nodes_bc = []
-                gid = 100 + idx
+
+                set_name = bc.get("set")
+                use_existing_gid = False
+                if set_name and set_name in set_id_map:
+                    gid = set_id_map[set_name]
+                    nodes_bc = node_sets.get(set_name, []) if node_sets else []
+                    use_existing_gid = True
+                else:
+                    nodes_bc = bc.get("nodes", [])
+                    gid = 100 + idx
 
                 if bc_type == "BCS":
                     tra = str(bc.get("tra", "000")).rjust(3, "0")
@@ -1087,10 +1098,11 @@ def write_rad(
                     f.write(f"# Unsupported BC type: {bc_type}\n")
                     continue
 
-                f.write(f"/GRNOD/NODE/{gid}\n")
-                f.write(f"{name}_nodes\n")
-                for nid in nodes_bc:
-                    f.write(f"{nid:10d}\n")
+                if not use_existing_gid:
+                    f.write(f"/GRNOD/NODE/{gid}\n")
+                    f.write(f"{name}_nodes\n")
+                    for nid in nodes_bc:
+                        f.write(f"{nid:10d}\n")
 
         if interfaces:
             _write_interfaces(f, interfaces)

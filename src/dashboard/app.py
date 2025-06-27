@@ -229,19 +229,25 @@ def label_with_unit(base: str) -> str:
     unit = PARAM_UNITS.get(base, {}).get(unit_sys)
     return f"{base} ({unit})" if unit else base
 
-def input_with_help(label: str, value: float, key: str):
+def input_with_help(label: str, value: float, key: str, **kwargs):
     """Simplified numeric input without additional help.
 
-    Allows values with up to 10 decimal places so they are not truncated in the
-    UI. Integer parameters (step=1) should use ``st.number_input`` directly or a
-    checkbox when only ``0``/``1`` are valid.
+    Numbers with more than three decimals are shown in exponential form
+    to keep the UI compact. Integer parameters (``step=1``) should use
+    ``st.number_input`` directly or a checkbox when only ``0``/``1`` are
+    valid.
     """
 
+    val = float(value)
+    as_str = f"{val:.10f}".rstrip("0").rstrip(".")
+    decimals = len(as_str.split(".")[1]) if "." in as_str else 0
+    fmt = "%.10f" if decimals <= 3 else "%.6e"
     return st.number_input(
         label_with_unit(label),
-        value=float(value),
+        value=val,
         key=key,
-        format="%.10f",
+        format=fmt,
+        **kwargs,
     )
 
 
@@ -843,11 +849,10 @@ if file_path:
                 pname = st.text_input("Nombre", value=f"PROP_{pid}", key="prop_name")
                 ptype = st.selectbox("Tipo", ["SHELL", "SOLID"], key="prop_type")
                 if ptype == "SHELL":
-                    thick = st.number_input(
+                    thick = input_with_help(
                         "Espesor",
-                        value=DEFAULT_THICKNESS,
-                        key="prop_thick",
-                        format="%.10f",
+                        DEFAULT_THICKNESS,
+                        "prop_thick",
                     )
                     with st.expander("Par\u00e1metros avanzados"):
                         ishell = st.number_input("Ishell", value=24, step=1, key="prop_ishell")
@@ -855,11 +860,11 @@ if file_path:
                         ithick = 1 if st.checkbox("Ithick", value=True, key="prop_ithick") else 0
                         istr = 1 if st.checkbox("Istrain", value=False, key="prop_istrain") else 0
                         ashear = 1 if st.checkbox("Ashear", value=False, key="prop_ashear") else 0
-                        hm = st.number_input("hm", value=0.0, key="prop_hm", format="%.10f")
-                        hf = st.number_input("hf", value=0.0, key="prop_hf", format="%.10f")
-                        hr = st.number_input("hr", value=0.0, key="prop_hr", format="%.10f")
-                        dm = st.number_input("dm", value=0.0, key="prop_dm", format="%.10f")
-                        dn = st.number_input("dn", value=0.0, key="prop_dn", format="%.10f")
+                        hm = input_with_help("hm", 0.0, "prop_hm")
+                        hf = input_with_help("hf", 0.0, "prop_hf")
+                        hr = input_with_help("hr", 0.0, "prop_hr")
+                        dm = input_with_help("dm", 0.0, "prop_dm")
+                        dn = input_with_help("dn", 0.0, "prop_dn")
                 elif ptype == "SOLID":
                     thick = None
                     with st.expander("Par\u00e1metros avanzados"):
@@ -868,10 +873,10 @@ if file_path:
                         icpre = st.number_input("Icpre", value=1, step=1, key="prop_icpre")
                         iframe = st.number_input("Iframe", value=1, step=1, key="prop_iframe")
                         inpts = st.number_input("Inpts", value=222, step=1, key="prop_inpts")
-                        qa = st.number_input("qa", value=1.1, format="%.10f", key="prop_qa")
-                        qb = st.number_input("qb", value=0.05, format="%.10f", key="prop_qb")
-                        dn_s = st.number_input("dn", value=0.1, format="%.10f", key="prop_dn_s")
-                        h = st.number_input("h", value=0.0, format="%.10f", key="prop_h")
+                        qa = input_with_help("qa", 1.1, "prop_qa")
+                        qb = input_with_help("qb", 0.05, "prop_qb")
+                        dn_s = input_with_help("dn", 0.1, "prop_dn_s")
+                        h = input_with_help("h", 0.0, "prop_h")
                 else:
                     thick = None
                 if st.button("Añadir propiedad"):
@@ -1020,11 +1025,11 @@ if file_path:
         with st.expander("Puntos remotos"):
             colx, coly, colz = st.columns(3)
             with colx:
-                rx = st.number_input("X", 0.0, key="rp_x", format="%.10f")
+                rx = input_with_help("X", 0.0, "rp_x")
             with coly:
-                ry = st.number_input("Y", 0.0, key="rp_y", format="%.10f")
+                ry = input_with_help("Y", 0.0, "rp_y")
             with colz:
-                rz = st.number_input("Z", 0.0, key="rp_z", format="%.10f")
+                rz = input_with_help("Z", 0.0, "rp_z")
             auto = st.checkbox("ID automático", value=True, key="rp_auto")
             next_id = next_free_node_id(all_nodes)
             rid = st.number_input("ID", value=next_id, key="rp_id", disabled=auto)

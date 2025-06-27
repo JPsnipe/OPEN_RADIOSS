@@ -390,7 +390,7 @@ def write_rad(
                     rot = str(bc.get("rot", "000")).rjust(3, "0")
                     f.write(f"/BCS/{idx}\n")
                     f.write(f"{name}\n")
-                    f.write("#  Tra rot   skew_ID  grnod_ID\n")
+                    f.write("#  Trarot   Skew_ID  grnd_ID\n")
                     f.write(f"   {tra} {rot}         0        {gid}\n")
                 elif bc_type == "PRESCRIBED_MOTION":
                     direction = int(bc.get("dir", 1))

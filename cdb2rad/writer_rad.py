@@ -76,6 +76,7 @@ def _merge_materials(
     return result, id_map
 
 
+
 def _map_parts(
     parts: List[Dict[str, Any]] | None,
     mid_map: Dict[int, int],
@@ -110,6 +111,7 @@ def _map_parts(
                     )
         mapped.append(p_copy)
     return mapped
+
 
 
 def _write_interfaces(f, interfaces: List[Dict[str, object]] | None) -> None:

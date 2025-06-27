@@ -192,8 +192,8 @@ BC_DESCRIPTIONS = {
 }
 
 INT_DESCRIPTIONS = {
-    "TYPE2": "Nodo-superficie",
     "TYPE7": "Superficie-superficie",
+    "TYPE2": "Nodo-superficie",
 }
 
 
@@ -1131,10 +1131,49 @@ if file_path:
             fric = input_with_help("Fricción", 0.0, "fric")
 
             gap = stiff = igap = None
+            istf = idel = ibag = inacti = None
+            bumult = stfac = None
+            tstart = tstop = None
+            vis_s = vis_f = None
+            iform = None
+
             if int_type == "TYPE7":
-                gap = input_with_help("Gap", 0.0, "gap")
-                stiff = input_with_help("Stiffness", 0.0, "stiff")
-                igap = input_with_help("Igap", 0, "igap")
+                fields = [
+                    ("Gap", "gap", 0.0),
+                    ("Stiffness", "stiff", 0.0),
+                    ("Igap", "igap", 0),
+                    ("ISTF", "istf", 4),
+                    ("IDEL", "idel", 2),
+                    ("IBAG", "ibag", 1),
+                    ("INACTI", "inacti", 6),
+                    ("BUMULT", "bumult", 1.0),
+                    ("STFAC", "stfac", 1.0),
+                    ("TSTART", "tstart", 0.0),
+                    ("TSTOP", "tstop", 0.0),
+                    ("VIS_S", "vis_s", 0.0),
+                    ("VIS_F", "vis_f", 0.0),
+                    ("IFORM", "iform", 2),
+                ]
+                values = {}
+                for i in range(0, len(fields), 3):
+                    cols = st.columns(3)
+                    for (label, key, default), col in zip(fields[i:i+3], cols):
+                        with col:
+                            values[key] = input_with_help(label, default, key)
+                gap = values.get("gap")
+                stiff = values.get("stiff")
+                igap = values.get("igap")
+                istf = values.get("istf")
+                idel = values.get("idel")
+                ibag = values.get("ibag")
+                inacti = values.get("inacti")
+                bumult = values.get("bumult")
+                stfac = values.get("stfac")
+                tstart = values.get("tstart")
+                tstop = values.get("tstop")
+                vis_s = values.get("vis_s")
+                vis_f = values.get("vis_f")
+                iform = values.get("iform")
 
             if st.button("Añadir interfaz") and slave_set and master_set:
                 s_list = all_node_sets.get(slave_set, [])
@@ -1152,6 +1191,17 @@ if file_path:
                             "gap": gap,
                             "stiff": stiff,
                             "igap": int(igap),
+                            "istf": int(istf),
+                            "idel": int(idel),
+                            "ibag": int(ibag),
+                            "inacti": int(inacti),
+                            "bumult": float(bumult),
+                            "stfac": float(stfac),
+                            "tstart": float(tstart),
+                            "tstop": float(tstop),
+                            "vis_s": float(vis_s),
+                            "vis_f": float(vis_f),
+                            "iform": int(iform),
                         })
                     st.session_state["interfaces"].append(itf)
                     st.session_state["next_inter_idx"] += 1

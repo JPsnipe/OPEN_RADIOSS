@@ -126,6 +126,7 @@ def _write_interfaces(f, interfaces: List[Dict[str, object]] | None) -> None:
         m_nodes = inter.get("master", [])
         name = inter.get("name", f"INTER_{idx}")
         fric = inter.get("fric", 0.0)
+        fric_stiff = inter.get("stf")
         slave_id = 200 + idx
         master_id = 300 + idx
 
@@ -158,9 +159,6 @@ def _write_interfaces(f, interfaces: List[Dict[str, object]] | None) -> None:
             f.write(f"{name}\n")
             f.write(f"{slave_id} {master_id}\n")
 
-        f.write("/FRICTION\n")
-        f.write(f"{fric}\n")
-
         f.write(f"/GRNOD/NODE/{slave_id}\n")
         f.write(f"{name}_slave\n")
         for nid in s_nodes:
@@ -170,6 +168,12 @@ def _write_interfaces(f, interfaces: List[Dict[str, object]] | None) -> None:
         f.write(f"{name}_master\n")
         for nid in m_nodes:
             f.write(f"{nid:10d}\n")
+
+        f.write("/FRICTION\n")
+        if fric_stiff is None:
+            f.write(f"{fric}\n")
+        else:
+            f.write(f"{fric} {fric_stiff}\n")
 
 
 def write_starter(

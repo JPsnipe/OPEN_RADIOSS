@@ -159,7 +159,7 @@ def test_write_rad_with_gravity(tmp_path):
     rad = tmp_path / 'grav.rad'
     write_rad(nodes, elements, str(rad), gravity={'g': 9.81, 'nz': -1.0})
     txt = rad.read_text()
-    assert '/GRAVITY' in txt
+    assert '/GRAV' in txt
 
 
 def test_write_rad_with_type7_contact(tmp_path):

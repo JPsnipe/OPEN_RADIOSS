@@ -1091,7 +1091,7 @@ if file_path:
                         st.session_state["init_vel"] = None
                         _rerun()
 
-        with st.expander("Carga de gravedad (GRAVITY)"):
+        with st.expander("Carga de gravedad (/GRAV)"):
             g = input_with_help("g", 9.81, "grav_g")
             nx = input_with_help("nx", 0.0, "grav_nx")
             ny = input_with_help("ny", 0.0, "grav_ny")

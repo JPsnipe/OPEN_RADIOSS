@@ -608,8 +608,6 @@ if file_path:
             st.session_state["interfaces"] = []
         if "next_inter_idx" not in st.session_state:
             st.session_state["next_inter_idx"] = 1
-        if "reset_int_name" in st.session_state:
-            st.session_state["int_name"] = st.session_state.pop("reset_int_name")
         if "init_vel" not in st.session_state:
             st.session_state["init_vel"] = None
         if "gravity" not in st.session_state:
@@ -1045,11 +1043,11 @@ if file_path:
             )
             idx = st.session_state.get("next_inter_idx", 1)
             def_name = f"{int_type}_{idx}"
-            int_name = st.text_input(
-                "Nombre interfaz",
-                value=st.session_state.get("int_name", def_name),
-                key="int_name",
-            )
+            if "reset_int_name" in st.session_state:
+                st.session_state["int_name"] = st.session_state.pop("reset_int_name")
+            elif "int_name" not in st.session_state:
+                st.session_state["int_name"] = def_name
+            int_name = st.text_input("Nombre interfaz", key="int_name")
             slave_set = st.selectbox(
                 "Conjunto esclavo",
                 list(all_node_sets.keys()),

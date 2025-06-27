@@ -1,4 +1,5 @@
 import os
+import pytest
 from cdb2rad.parser import parse_cdb
 from cdb2rad.writer_rad import write_starter
 
@@ -27,3 +28,21 @@ def test_part_material_mapping(tmp_path):
     mat_id = int(lines[idx + 2].split()[1])
     assert mat_id != 1
     assert any(line.startswith(f'/MAT/LAW1/{mat_id}') for line in lines)
+
+
+def test_invalid_part_material(tmp_path):
+    nodes, elements, node_sets, elem_sets, mats = parse_cdb(DATA)
+    props = [{'id': 1, 'name': 'shell_p', 'type': 'SHELL', 'thickness': 1.0}]
+    parts = [{'id': 1, 'name': 'part1', 'pid': 1, 'mid': 999}]
+    rad = tmp_path / 'invalid_0000.rad'
+    with pytest.raises(ValueError):
+        write_starter(
+            nodes,
+            elements,
+            str(rad),
+            node_sets=node_sets,
+            elem_sets=elem_sets,
+            materials=mats,
+            properties=props,
+            parts=parts,
+        )

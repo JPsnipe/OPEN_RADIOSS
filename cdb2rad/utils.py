@@ -137,7 +137,39 @@ def check_rad_inputs(
     # 8. Advanced checks
     if advanced and properties:
         for p in properties:
-            if p.get("type") == "SHELL" and float(p.get("thickness", 0.0)) <= 0.0:
-                results.append((False, f"Espesor en PROP/SHELL/{p.get('id')} = 0.0"))
+            if p.get("type") == "SHELL":
+                pid = p.get("id")
+                if float(p.get("thickness", 0.0)) <= 0.0:
+                    results.append((False, f"Espesor en PROP/SHELL/{pid} = 0.0"))
+                ishell = int(p.get("Ishell", 24))
+                valid_ishell = {1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 23, 24}
+                if ishell not in valid_ishell:
+                    results.append((False, f"Ishell no valido en PROP/SHELL/{pid}"))
+                    continue
+                if any(float(p.get(k, 0.0)) != 0.0 for k in ("hm", "hf", "hr", "dm", "dn")) and ishell != 24:
+                    results.append((False, f"Parametros de hora solo validos con Ishell 24 en PROP/SHELL/{pid}"))
+                    continue
+            if p.get("type") == "SOLID":
+                pid = p.get("id")
+                isolid = int(p.get("Isolid", 24))
+                if isolid not in {0, 1, 2, 5, 14, 16, 17, 18, 24}:
+                    results.append((False, f"Isolid no valido en PROP/SOLID/{pid}"))
+                    continue
+                if int(p.get("Icpre", 0)) and isolid not in {14, 17, 18, 24}:
+                    results.append((False, f"Icpre incompatible con Isolid en PROP/SOLID/{pid}"))
+                    continue
+                if p.get("Inpts") is not None and isolid not in {14, 16}:
+                    results.append((False, f"Inpts solo valido con Isolid 14 o 16 en PROP/SOLID/{pid}"))
+                    continue
+                if float(p.get("dn", 0.0)) != 0.0 and isolid != 24:
+                    results.append((False, f"dn solo valido con Isolid 24 en PROP/SOLID/{pid}"))
+                    continue
+                if float(p.get("h", 0.0)) != 0.0 and isolid not in {1, 2}:
+                    results.append((False, f"h solo valido con Isolid 1 o 2 en PROP/SOLID/{pid}"))
+                    continue
+                iframe = int(p.get("Iframe", 1))
+                if isolid in {14, 24} and iframe != 2:
+                    results.append((False, f"Iframe debe ser 2 para Isolid {isolid} en PROP/SOLID/{pid}"))
+                    continue
 
     return results

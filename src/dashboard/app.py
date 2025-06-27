@@ -115,6 +115,7 @@ from cdb2rad.parser import parse_cdb
 from cdb2rad.writer_rad import (
     write_rad,
     write_starter,
+    write_engine,
     DEFAULT_RUNNAME,
     DEFAULT_FINAL_TIME,
     DEFAULT_ANIM_DT,

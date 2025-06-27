@@ -241,7 +241,8 @@ def input_with_help(label: str, value: float, key: str):
         label_with_unit(label),
         value=float(value),
         key=key,
-        format="%.10f",
+        step=1e-10,
+        format="%.10g",
     )
 
 
@@ -847,7 +848,8 @@ if file_path:
                         "Espesor",
                         value=DEFAULT_THICKNESS,
                         key="prop_thick",
-                        format="%.10f",
+                        step=1e-10,
+                        format="%.10g",
                     )
                     with st.expander("Par\u00e1metros avanzados"):
                         ishell = st.number_input("Ishell", value=24, step=1, key="prop_ishell")
@@ -855,11 +857,11 @@ if file_path:
                         ithick = 1 if st.checkbox("Ithick", value=True, key="prop_ithick") else 0
                         istr = 1 if st.checkbox("Istrain", value=False, key="prop_istrain") else 0
                         ashear = 1 if st.checkbox("Ashear", value=False, key="prop_ashear") else 0
-                        hm = st.number_input("hm", value=0.0, key="prop_hm", format="%.10f")
-                        hf = st.number_input("hf", value=0.0, key="prop_hf", format="%.10f")
-                        hr = st.number_input("hr", value=0.0, key="prop_hr", format="%.10f")
-                        dm = st.number_input("dm", value=0.0, key="prop_dm", format="%.10f")
-                        dn = st.number_input("dn", value=0.0, key="prop_dn", format="%.10f")
+                        hm = st.number_input("hm", value=0.0, key="prop_hm", step=1e-10, format="%.10g")
+                        hf = st.number_input("hf", value=0.0, key="prop_hf", step=1e-10, format="%.10g")
+                        hr = st.number_input("hr", value=0.0, key="prop_hr", step=1e-10, format="%.10g")
+                        dm = st.number_input("dm", value=0.0, key="prop_dm", step=1e-10, format="%.10g")
+                        dn = st.number_input("dn", value=0.0, key="prop_dn", step=1e-10, format="%.10g")
                 elif ptype == "SOLID":
                     thick = None
                     with st.expander("Par\u00e1metros avanzados"):
@@ -868,10 +870,10 @@ if file_path:
                         icpre = st.number_input("Icpre", value=1, step=1, key="prop_icpre")
                         iframe = st.number_input("Iframe", value=1, step=1, key="prop_iframe")
                         inpts = st.number_input("Inpts", value=222, step=1, key="prop_inpts")
-                        qa = st.number_input("qa", value=1.1, format="%.10f", key="prop_qa")
-                        qb = st.number_input("qb", value=0.05, format="%.10f", key="prop_qb")
-                        dn_s = st.number_input("dn", value=0.1, format="%.10f", key="prop_dn_s")
-                        h = st.number_input("h", value=0.0, format="%.10f", key="prop_h")
+                        qa = st.number_input("qa", value=1.1, step=1e-10, format="%.10g", key="prop_qa")
+                        qb = st.number_input("qb", value=0.05, step=1e-10, format="%.10g", key="prop_qb")
+                        dn_s = st.number_input("dn", value=0.1, step=1e-10, format="%.10g", key="prop_dn_s")
+                        h = st.number_input("h", value=0.0, step=1e-10, format="%.10g", key="prop_h")
                 else:
                     thick = None
                 if st.button("Añadir propiedad"):
@@ -1020,11 +1022,11 @@ if file_path:
         with st.expander("Puntos remotos"):
             colx, coly, colz = st.columns(3)
             with colx:
-                rx = st.number_input("X", 0.0, key="rp_x", format="%.10f")
+                rx = st.number_input("X", 0.0, key="rp_x", step=1e-10, format="%.10g")
             with coly:
-                ry = st.number_input("Y", 0.0, key="rp_y", format="%.10f")
+                ry = st.number_input("Y", 0.0, key="rp_y", step=1e-10, format="%.10g")
             with colz:
-                rz = st.number_input("Z", 0.0, key="rp_z", format="%.10f")
+                rz = st.number_input("Z", 0.0, key="rp_z", step=1e-10, format="%.10g")
             auto = st.checkbox("ID automático", value=True, key="rp_auto")
             next_id = next_free_node_id(all_nodes)
             rid = st.number_input("ID", value=next_id, key="rp_id", disabled=auto)

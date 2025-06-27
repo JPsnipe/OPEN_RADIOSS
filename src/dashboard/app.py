@@ -1004,11 +1004,10 @@ if file_path:
                 bc_data.update({"dir": int(bc_dir), "value": float(bc_val)})
 
             if st.button("Añadir BC") and bc_set:
-                node_list = all_node_sets.get(bc_set, [])
                 entry = {
                     "name": bc_name,
                     "type": bc_type,
-                    "nodes": node_list,
+                    "set": bc_set,
                 }
                 entry.update(bc_data)
                 st.session_state["bcs"].append(entry)

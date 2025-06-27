@@ -424,7 +424,13 @@ def write_starter(
             for idx, bc in enumerate(boundary_conditions, start=1):
                 bc_type = str(bc.get("type", "BCS")).upper()
                 name = bc.get("name", f"BC_{idx}")
-                nodes_bc = bc.get("nodes", [])
+                nodes_bc = bc.get("nodes")
+                if nodes_bc is None:
+                    set_name = bc.get("set")
+                    if set_name and node_sets:
+                        nodes_bc = node_sets.get(set_name, [])
+                    else:
+                        nodes_bc = []
                 gid = 100 + idx
 
                 f.write(f"/GRNOD/NODE/{gid}\n")
@@ -1040,7 +1046,13 @@ def write_rad(
             for idx, bc in enumerate(boundary_conditions, start=1):
                 bc_type = str(bc.get("type", "BCS")).upper()
                 name = bc.get("name", f"BC_{idx}")
-                nodes_bc = bc.get("nodes", [])
+                nodes_bc = bc.get("nodes")
+                if nodes_bc is None:
+                    set_name = bc.get("set")
+                    if set_name and node_sets:
+                        nodes_bc = node_sets.get(set_name, [])
+                    else:
+                        nodes_bc = []
                 gid = 100 + idx
 
                 if bc_type == "BCS":

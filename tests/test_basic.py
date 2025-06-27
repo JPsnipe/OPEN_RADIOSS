@@ -136,6 +136,22 @@ def test_write_rad_with_bc(tmp_path):
     assert 'fixed' in txt
 
 
+def test_write_rad_with_bc_set(tmp_path):
+    nodes, elements, node_sets, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'bc_set_0000.rad'
+    bc = [{
+        'name': 'fixed',
+        'tra': '111',
+        'rot': '111',
+        'set': 'SUFACE_BALL'
+    }]
+    write_starter(nodes, elements, str(rad), node_sets=node_sets, boundary_conditions=bc)
+    txt = rad.read_text()
+    assert '/BCS/1' in txt
+    first_node = node_sets['SUFACE_BALL'][0]
+    assert str(first_node) in txt
+
+
 def test_write_rad_with_prescribed(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
     rad = tmp_path / 'prescribed_0000.rad'

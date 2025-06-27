@@ -4,7 +4,9 @@ from typing import Dict, List, Tuple
 import json
 from pathlib import Path
 
-from .material_defaults import apply_default_materials
+# Material definitions used to be written here, which duplicated them between
+# ``mesh.inc`` and the starter file.  That logic now lives in ``writer_rad``,
+# so this module no longer outputs material blocks.
 
 
 def write_mesh_inc(
@@ -18,8 +20,13 @@ def write_mesh_inc(
 ) -> None:
     """Write ``mesh.inc`` with element blocks derived from ``mapping.json``.
 
-    Optionally, node and element sets (from CMBLOCK) and basic material
-    properties can be written for later use in the starter file.
+    Parameters other than ``nodes`` and ``elements`` are optional.  Material
+    definitions supplied via ``materials`` are ignored and kept only for
+    backward compatibility.
+
+    Node and element sets (from ``CMBLOCK``) can be written for later use in
+    the starter file.  Material definitions are handled exclusively by
+    ``write_starter``.
     """
 
     if mapping_file is None:
@@ -71,58 +78,7 @@ def write_mesh_inc(
                 for eid in eids:
                     f.write(f"{eid:10d}\n")
 
-        if materials:
-            materials = apply_default_materials(materials)
-            for mid, props in materials.items():
-                law = props.get("LAW", "LAW1").upper()
-                e = props.get("EX", 210000.0)
-                nu = props.get("NUXY", 0.3)
-                rho = props.get("DENS", 7800.0)
-                if law in ("LAW2", "JOHNSON_COOK", "PLAS_JOHNS"):
-                    a = props.get("A", 0.0)
-                    b = props.get("B", 0.0)
-                    n_val = props.get("N", 0.0)
-                    c = props.get("C", 0.0)
-                    eps0 = props.get("EPS0", 1.0)
-                    f.write(f"\n/MAT/LAW2/{mid}\n")
-                    f.write(f"{rho} {e} {nu}\n")
-                    f.write(f"{a} {b} {n_val} {c} {eps0}\n")
-                elif law in ("LAW27", "PLAS_BRIT"):
-                    sig0 = props.get("SIG0", 0.0)
-                    su = props.get("SU", 0.0)
-                    epsu = props.get("EPSU", 0.0)
-                    f.write(f"\n/MAT/LAW27/{mid}\n")
-                    f.write(f"{rho} {e} {nu}\n")
-                    f.write(f"{sig0} {su} {epsu}\n")
-                elif law in ("LAW36", "PLAS_TAB"):
-                    fs = props.get("Fsmooth", 0.0)
-                    fc = props.get("Fcut", 0.0)
-                    ch = props.get("Chard", 0.0)
-                    f.write(f"\n/MAT/LAW36/{mid}\n")
-                    f.write(f"{rho} {e} {nu}\n")
-                    f.write(f"{fs} {fc} {ch}\n")
-                elif law in ("LAW44", "COWPER"):
-                    a = props.get("A", 0.0)
-                    b = props.get("B", 0.0)
-                    n_val = props.get("N", 1.0)
-                    c = props.get("C", 0.0)
-                    f.write(f"\n/MAT/LAW44/{mid}\n")
-                    f.write(f"{rho} {e} {nu}\n")
-                    f.write(f"{a} {b} {n_val} {c}\n")
-                else:
-                    name = props.get("NAME", f"MAT_{mid}")
-                    f.write(f"\n/MAT/LAW1/{mid}\n")
-                    f.write(f"{name}\n")
-                    f.write("#              RHO\n")
-                    f.write(f"{rho}\n")
-                    f.write("#                  E                  Nu\n")
-                    f.write(f"{e} {nu}\n")
-
-                if "FAIL" in props:
-                    fail = props["FAIL"]
-                    ftype = fail.get("TYPE", "").upper()
-                    if ftype:
-                        f.write(f"\n/{ftype}/{mid}\n")
-                        vals = [str(v) for v in fail.values() if v != ftype]
-                        if vals:
-                            f.write(" ".join(vals) + "\n")
+        # Materials are intentionally not written in mesh.inc files.
+        # They are instead handled exclusively by ``writer_rad`` when
+        # generating the starter.  The ``materials`` argument is kept for
+        # backward compatibility but is ignored.

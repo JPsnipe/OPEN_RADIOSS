@@ -217,7 +217,6 @@ def write_starter(
             mesh_inc,
             node_sets=node_sets,
             elem_sets=elem_sets,
-            materials=all_mats if all_mats else None,
         )
 
     # Validate connector inputs
@@ -775,7 +774,6 @@ def write_rad(
             mesh_inc,
             node_sets=node_sets,
             elem_sets=elem_sets,
-            materials=all_mats if all_mats else None,
         )
 
     # Basic validation of connector definitions

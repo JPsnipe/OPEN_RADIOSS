@@ -1,7 +1,7 @@
 import os
 from cdb2rad.parser import parse_cdb
 from cdb2rad.writer_inc import write_mesh_inc
-from cdb2rad.writer_rad import write_rad
+from cdb2rad.writer_rad import write_starter, write_engine
 from cdb2rad.utils import element_summary
 from cdb2rad.material_defaults import apply_default_materials
 
@@ -45,11 +45,12 @@ def test_write_mesh(tmp_path):
 
 def test_write_rad(tmp_path):
     nodes, elements, node_sets, elem_sets, materials = parse_cdb(DATA)
-    rad = tmp_path / 'model.rad'
-    write_rad(
+    starter = tmp_path / 'model_0000.rad'
+    engine = tmp_path / 'model_0001.rad'
+    write_starter(
         nodes,
         elements,
-        str(rad),
+        str(starter),
         node_sets=node_sets,
         elem_sets=elem_sets,
         materials=materials,
@@ -57,25 +58,27 @@ def test_write_rad(tmp_path):
         young=1e5,
         poisson=0.25,
         density=7000.0,
-
+        runname="demo",
+    )
+    write_engine(
+        str(engine),
         runname="demo",
         t_end=0.02,
         anim_dt=0.002,
         tfile_dt=0.0001,
         dt_ratio=0.8,
-
     )
-    content = rad.read_text()
+    content = starter.read_text()
     assert content.startswith('#RADIOSS STARTER')
     assert '/BEGIN' in content
     assert '/END' in content
     assert '100000.0' in content
 
-    assert '/STOP' in content
-    assert '/RUN/demo/1' in content
-    assert '0.02' in content
-    assert '0.002' in content
-    assert '0.0001' in content
+    eng_txt = engine.read_text()
+    assert '/RUN/demo/1' in eng_txt
+    assert '0.02' in eng_txt
+    assert '0.002' in eng_txt
+    assert '0.0001' in eng_txt
 
 
 def test_write_rad_extra_materials(tmp_path):
@@ -93,17 +96,17 @@ def test_write_rad_extra_materials(tmp_path):
             'EPS0': 1.0,
         }
     }
-    rad = tmp_path / 'model_extra.rad'
-    write_rad(
+    starter = tmp_path / 'model_extra_0000.rad'
+    write_starter(
         nodes,
         elements,
-        str(rad),
+        str(starter),
         node_sets=node_sets,
         elem_sets=elem_sets,
         materials=materials,
         extra_materials=extra,
     )
-    txt = rad.read_text()
+    txt = starter.read_text()
     assert '/MAT/LAW2/99' in txt
 
 def test_write_mesh_without_sets_materials(tmp_path):
@@ -119,14 +122,14 @@ def test_write_mesh_without_sets_materials(tmp_path):
 
 def test_write_rad_with_bc(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
-    rad = tmp_path / 'bc.rad'
+    rad = tmp_path / 'bc_0000.rad'
     bc = [{
         'name': 'fixed',
         'tra': '111',
         'rot': '111',
         'nodes': [1, 2]
     }]
-    write_rad(nodes, elements, str(rad), boundary_conditions=bc)
+    write_starter(nodes, elements, str(rad), boundary_conditions=bc)
     txt = rad.read_text()
     assert '/BCS/1' in txt
     assert 'fixed' in txt
@@ -134,7 +137,7 @@ def test_write_rad_with_bc(tmp_path):
 
 def test_write_rad_with_prescribed(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
-    rad = tmp_path / 'prescribed.rad'
+    rad = tmp_path / 'prescribed_0000.rad'
     bc = [{
         'name': 'move',
         'type': 'PRESCRIBED_MOTION',
@@ -142,30 +145,30 @@ def test_write_rad_with_prescribed(tmp_path):
         'value': 5.0,
         'nodes': [1, 2]
     }]
-    write_rad(nodes, elements, str(rad), boundary_conditions=bc)
+    write_starter(nodes, elements, str(rad), boundary_conditions=bc)
     txt = rad.read_text()
     assert '/BOUNDARY/PRESCRIBED_MOTION/1' in txt
 
 
 def test_write_rad_with_impvel(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
-    rad = tmp_path / 'vel.rad'
-    write_rad(nodes, elements, str(rad), init_velocity={'nodes': [1], 'vx': 10.0})
+    rad = tmp_path / 'vel_0000.rad'
+    write_starter(nodes, elements, str(rad), init_velocity={'nodes': [1], 'vx': 10.0})
     txt = rad.read_text()
     assert '/IMPVEL/1' in txt
 
 
 def test_write_rad_with_gravity(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
-    rad = tmp_path / 'grav.rad'
-    write_rad(nodes, elements, str(rad), gravity={'g': 9.81, 'nz': -1.0})
+    rad = tmp_path / 'grav_0000.rad'
+    write_starter(nodes, elements, str(rad), gravity={'g': 9.81, 'nz': -1.0})
     txt = rad.read_text()
     assert '/GRAV' in txt
 
 
 def test_write_rad_with_type7_contact(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
-    rad = tmp_path / 'contact7.rad'
+    rad = tmp_path / 'contact7_0000.rad'
     inter = [{
         'type': 'TYPE7',
         'name': 'cnt7',
@@ -173,7 +176,7 @@ def test_write_rad_with_type7_contact(tmp_path):
         'master': [3, 4],
         'fric': 0.2,
     }]
-    write_rad(nodes, elements, str(rad), interfaces=inter)
+    write_starter(nodes, elements, str(rad), interfaces=inter)
     txt = rad.read_text()
     assert '/INTER/TYPE7/1' in txt
     assert '/FRICTION' in txt
@@ -181,7 +184,7 @@ def test_write_rad_with_type7_contact(tmp_path):
 
 def test_write_rad_with_type2_contact(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
-    rad = tmp_path / 'contact2.rad'
+    rad = tmp_path / 'contact2_0000.rad'
     inter = [{
         'type': 'TYPE2',
         'name': 'cnt2',
@@ -189,7 +192,7 @@ def test_write_rad_with_type2_contact(tmp_path):
         'master': [3, 4],
         'fric': 0.1,
     }]
-    write_rad(nodes, elements, str(rad), interfaces=inter)
+    write_starter(nodes, elements, str(rad), interfaces=inter)
     txt = rad.read_text()
     assert '/INTER/TYPE2/1' in txt
     assert '/FRICTION' in txt
@@ -198,14 +201,18 @@ def test_write_rad_with_type2_contact(tmp_path):
 
 def test_write_rad_advanced_options(tmp_path):
     nodes, elements, node_sets, elem_sets, mats = parse_cdb(DATA)
-    rad = tmp_path / 'advanced.rad'
-    write_rad(
+    starter = tmp_path / 'advanced_0000.rad'
+    engine = tmp_path / 'advanced_0001.rad'
+    write_starter(
         nodes,
         elements,
-        str(rad),
+        str(starter),
         node_sets=node_sets,
         elem_sets=elem_sets,
         materials=mats,
+    )
+    write_engine(
+        str(engine),
         print_n=-250,
         print_line=55,
         rfile_cycle=10,
@@ -219,7 +226,7 @@ def test_write_rad_advanced_options(tmp_path):
         stop_nerr=0,
         adyrel=(0.0, 0.02),
     )
-    text = rad.read_text()
+    text = engine.read_text()
     assert '/RFILE/2' in text
     assert '/H3D/DT' in text
     assert '/ADYREL' in text
@@ -227,11 +234,11 @@ def test_write_rad_advanced_options(tmp_path):
 
 def test_write_rad_extra_outputs(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
-    rad = tmp_path / 'extra_outputs.rad'
-    write_rad(
-        nodes,
-        elements,
-        str(rad),
+    starter = tmp_path / 'extra_outputs_0000.rad'
+    engine = tmp_path / 'extra_outputs_0001.rad'
+    write_starter(nodes, elements, str(starter))
+    write_engine(
+        str(engine),
         shell_anim_dt=0.003,
         brick_anim_dt=0.002,
         hisnoda_dt=0.004,
@@ -239,7 +246,7 @@ def test_write_rad_extra_outputs(tmp_path):
         out_ascii=True,
         t_init=0.1,
     )
-    txt = rad.read_text()
+    txt = engine.read_text()
     assert '/ANIM/SHELL/DT' in txt
     assert '/ANIM/BRICK/DT' in txt
     assert '/HISNODA/DT' in txt
@@ -250,34 +257,36 @@ def test_write_rad_extra_outputs(tmp_path):
 
 def test_write_rad_adyrel_none(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
-    rad = tmp_path / 'adyrel_none.rad'
-    write_rad(nodes, elements, str(rad), adyrel=(None, None))
-    txt = rad.read_text()
+    starter = tmp_path / 'adyrel_none_0000.rad'
+    engine = tmp_path / 'adyrel_none_0001.rad'
+    write_starter(nodes, elements, str(starter))
+    write_engine(str(engine), adyrel=(None, None))
+    txt = engine.read_text()
     assert '/ADYREL' not in txt
 
 
 def test_write_rad_without_include(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
-    rad = tmp_path / 'noinc.rad'
-    write_rad(nodes, elements, str(rad), include_inc=False)
+    rad = tmp_path / 'noinc_0000.rad'
+    write_starter(nodes, elements, str(rad), include_inc=False)
     content = rad.read_text()
     assert '#include' not in content
 
 
 def test_write_rad_skip_controls(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
-    rad = tmp_path / 'skip.rad'
-    write_rad(
-        nodes,
-        elements,
-        str(rad),
+    starter = tmp_path / 'skip_0000.rad'
+    engine = tmp_path / 'skip_0001.rad'
+    write_starter(nodes, elements, str(starter))
+    write_engine(
+        str(engine),
         anim_dt=None,
         tfile_dt=None,
         dt_ratio=None,
         print_n=None,
         print_line=None,
     )
-    txt = rad.read_text()
+    txt = engine.read_text()
     assert '/ANIM/DT' not in txt
     assert '/TFILE' not in txt
     assert '/DT/NODA' not in txt
@@ -286,7 +295,7 @@ def test_write_rad_skip_controls(tmp_path):
 
 def test_write_rad_with_connectors(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
-    rad = tmp_path / 'conn.rad'
+    rad = tmp_path / 'conn_0000.rad'
     rb = [{
         'RBID': 1,
         'Gnod_id': list(nodes.keys())[0],
@@ -302,7 +311,7 @@ def test_write_rad_with_connectors(tmp_path):
         'N_dependent': list(nodes.keys())[0],
         'independent': [(list(nodes.keys())[1], 1.0)],
     }]
-    write_rad(nodes, elements, str(rad), rbody=rb, rbe2=rbe2, rbe3=rbe3)
+    write_starter(nodes, elements, str(rad), rbody=rb, rbe2=rbe2, rbe3=rbe3)
     text = rad.read_text()
     assert '/RBODY/1' in text
     assert '/RBE2/1' in text
@@ -311,14 +320,14 @@ def test_write_rad_with_connectors(tmp_path):
 
 def test_write_rad_with_properties(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
-    rad = tmp_path / 'prop.rad'
+    rad = tmp_path / 'prop_0000.rad'
     props = [
         {'id': 1, 'name': 'shell_prop', 'type': 'SHELL', 'thickness': 1.2}
     ]
     parts = [
         {'id': 1, 'name': 'part1', 'pid': 1, 'mid': 1}
     ]
-    write_rad(nodes, elements, str(rad), properties=props, parts=parts)
+    write_starter(nodes, elements, str(rad), properties=props, parts=parts)
     txt = rad.read_text()
     assert '/PROP/SHELL/1' in txt
     assert '/PART/1' in txt
@@ -327,7 +336,7 @@ def test_write_rad_with_properties(tmp_path):
 
 def test_write_rad_with_advanced_shell(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
-    rad = tmp_path / 'prop_adv.rad'
+    rad = tmp_path / 'prop_adv_0000.rad'
     props = [
         {
             'id': 1,
@@ -346,7 +355,7 @@ def test_write_rad_with_advanced_shell(tmp_path):
             'dn': 0.5,
         }
     ]
-    write_rad(nodes, elements, str(rad), properties=props)
+    write_starter(nodes, elements, str(rad), properties=props)
     lines = rad.read_text().splitlines()
     idx = lines.index('/PROP/SHELL/1')
     nums1 = lines[idx + 3].split()
@@ -360,7 +369,7 @@ def test_write_rad_with_advanced_shell(tmp_path):
 
 def test_write_rad_with_solid_prop(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
-    rad = tmp_path / 'solid.rad'
+    rad = tmp_path / 'solid_0000.rad'
     props = [
         {
             'id': 1,
@@ -385,7 +394,7 @@ def test_write_rad_with_solid_prop(tmp_path):
         'pid': 1,
         'mid': 1,
     }]
-    write_rad(nodes, elements, str(rad), properties=props, parts=parts)
+    write_starter(nodes, elements, str(rad), properties=props, parts=parts)
     lines = rad.read_text().splitlines()
     idx = lines.index('/PROP/SOLID/1')
     assert 'Isolid' in lines[idx + 2]

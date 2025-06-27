@@ -691,9 +691,11 @@ if file_path:
 
             if use_impact:
                 with st.expander("Materiales de impacto"):
+                    max_mid = max(materials.keys(), default=0)
+                    default_mid = max_mid + len(st.session_state["impact_materials"]) + 1
                     mat_id = input_with_help(
                         "ID material",
-                        len(st.session_state["impact_materials"]) + 1,
+                        default_mid,
                         "mat_id",
                     )
                     law = st.selectbox(

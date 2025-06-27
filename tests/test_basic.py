@@ -73,6 +73,7 @@ def test_write_rad(tmp_path):
     assert '/BEGIN' in content
     assert '/END' in content
     assert '100000.0' in content
+    assert 'kg      mm      ms' in content
 
     eng_txt = engine.read_text()
     assert '/RUN/demo/1' in eng_txt

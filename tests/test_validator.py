@@ -1,7 +1,7 @@
 import os
 import pytest
 from cdb2rad.parser import parse_cdb
-from cdb2rad.writer_rad import write_rad
+from cdb2rad.writer_rad import write_starter, write_engine
 from cdb2rad.rad_validator import validate_rad_format
 
 DATA = os.path.join(os.path.dirname(__file__), '..', 'data', 'model.cdb')
@@ -22,11 +22,12 @@ def test_validate_examples(example):
 
 def test_generated_rad_format(tmp_path):
     nodes, elements, node_sets, elem_sets, mats = parse_cdb(DATA)
-    rad = tmp_path / 'model.rad'
-    write_rad(
+    starter = tmp_path / 'model_0000.rad'
+    engine = tmp_path / 'model_0001.rad'
+    write_starter(
         nodes,
         elements,
-        str(rad),
+        str(starter),
         node_sets=node_sets,
         elem_sets=elem_sets,
         materials=mats,
@@ -35,7 +36,9 @@ def test_generated_rad_format(tmp_path):
         init_velocity={'nodes': [1], 'vx': 1.0},
         gravity={'g': 9.81, 'nz': -1.0},
     )
-    validate_rad_format(str(rad))
+    write_engine(str(engine))
+    validate_rad_format(str(starter))
+    validate_rad_format(str(engine))
 
 
 def test_invalid_keyword(tmp_path):

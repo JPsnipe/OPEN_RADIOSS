@@ -1502,6 +1502,7 @@ if file_path:
                         materials=materials if use_cdb_mats else None,
                         extra_materials=extra,
                         runname=runname,
+                        unit_sys=unit_sel,
 
                         boundary_conditions=st.session_state.get("bcs"),
                         interfaces=st.session_state.get("interfaces"),

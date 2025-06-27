@@ -150,8 +150,7 @@ def test_write_rad_with_bc_set(tmp_path):
     write_starter(nodes, elements, str(rad), node_sets=node_sets, boundary_conditions=bc)
     txt = rad.read_text()
     assert '/BCS/1' in txt
-    first_node = node_sets['SUFACE_BALL'][0]
-    assert str(first_node) in txt
+    assert '/GRNOD/NODE/1' not in txt
 
 
 def test_write_rad_with_prescribed(tmp_path):

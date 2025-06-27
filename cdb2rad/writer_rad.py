@@ -174,7 +174,7 @@ def write_rad(
             # General printout frequency
             if print_n is not None and print_line is not None:
                 f.write(f"/PRINT/{print_n}/{print_line}\n")
-            f.write(f"/RUN/{runname}/1/\n")
+            f.write(f"/RUN/{runname}/1\n")
             if t_init != 0.0:
                 f.write(f"{t_init} {t_end}\n")
             else:

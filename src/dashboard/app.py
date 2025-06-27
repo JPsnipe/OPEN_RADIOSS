@@ -11,7 +11,41 @@ root_path = str(Path(__file__).resolve().parents[2])
 if root_path not in sys.path:
     sys.path.insert(0, root_path)
 
-import streamlit as st
+try:
+    import streamlit as st
+    STREAMLIT_AVAILABLE = True
+except ModuleNotFoundError:  # allow importing without streamlit for testing
+    STREAMLIT_AVAILABLE = False
+    class _DummyStreamlit:
+        def __init__(self):
+            self.session_state = {}
+            self.components = type('comp', (), {'v1': self})()
+
+        def __getattr__(self, name):
+            if name in {'columns', 'tabs'}:
+                return lambda x=None, **k: [self for _ in range(len(x) if isinstance(x, (list, tuple)) else 1)]
+            if name in {'container', 'expander'}:
+                return lambda *a, **k: self
+            if name == 'html':
+                return lambda *a, **k: None
+            if name == 'cache_data':
+                def decorator(func=None, **kwargs):
+                    if func is None:
+                        return lambda f: f
+                    return func
+                return decorator
+            return lambda *a, **k: None
+
+        def __call__(self, *a, **k):
+            return None
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            pass
+
+    st = _DummyStreamlit()
 from cdb2rad.mesh_convert import convert_to_vtk, mesh_to_temp_vtk
 
 from cdb2rad.vtk_writer import write_vtk, write_vtp
@@ -99,11 +133,14 @@ from cdb2rad.writer_inc import write_mesh_inc
 from cdb2rad.rad_validator import validate_rad_format
 from cdb2rad.utils import check_rad_inputs
 from cdb2rad.remote import add_remote_point, next_free_node_id
-from cdb2rad.pdf_search import (
-    REFERENCE_GUIDE_URL,
-    THEORY_MANUAL_URL,
-    USER_GUIDE as USER_GUIDE_URL,
-)
+if STREAMLIT_AVAILABLE:
+    from cdb2rad.pdf_search import (
+        REFERENCE_GUIDE_URL,
+        THEORY_MANUAL_URL,
+        USER_GUIDE as USER_GUIDE_URL,
+    )
+else:
+    REFERENCE_GUIDE_URL = THEORY_MANUAL_URL = USER_GUIDE_URL = ""
 
 MAX_EDGES = 10000
 MAX_FACES = 15000

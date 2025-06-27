@@ -72,6 +72,7 @@ def test_write_rad(tmp_path):
     assert '100000.0' in content
 
     assert '/STOP' in content
+    assert '/RUN/demo/1' in content
     assert '0.02' in content
     assert '0.002' in content
     assert '0.0001' in content

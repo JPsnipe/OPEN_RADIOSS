@@ -61,7 +61,36 @@ def write_vtp(
     """
 
     if vtk is None:  # pragma: no cover - optional dependency
-        raise ModuleNotFoundError("vtk is required to write .vtp files")
+        # Minimal fallback writer when VTK is unavailable
+        id_map = {nid: i for i, nid in enumerate(sorted(nodes))}
+        with open(outfile, "w") as f:
+            f.write('<?xml version="1.0"?>\n')
+            f.write('<VTKFile type="PolyData" version="0.1">\n')
+            f.write('<PolyData>\n')
+            f.write(
+                f'<Piece NumberOfPoints="{len(nodes)}" NumberOfPolys="{len(elements)}">\n'
+            )
+            f.write('<Points>\n')
+            f.write('<DataArray type="Float32" NumberOfComponents="3" format="ascii">\n')
+            for nid in sorted(nodes):
+                x, y, z = nodes[nid]
+                f.write(f"{x} {y} {z} ")
+            f.write('\n</DataArray>\n</Points>\n')
+            f.write('<Polys>\n')
+            f.write('<DataArray type="Int32" Name="connectivity" format="ascii">\n')
+            for _, _, nids in elements:
+                mapped = [str(id_map[n]) for n in nids if n in id_map]
+                f.write(" ".join(mapped) + " ")
+            f.write('\n</DataArray>\n')
+            f.write('<DataArray type="Int32" Name="offsets" format="ascii">\n')
+            offset = 0
+            for _, _, nids in elements:
+                offset += len([n for n in nids if n in id_map])
+                f.write(f"{offset} ")
+            f.write('\n</DataArray>\n')
+            f.write('</Polys>\n')
+            f.write('</Piece>\n</PolyData>\n</VTKFile>\n')
+        return
 
     id_map = {nid: i for i, nid in enumerate(sorted(nodes))}
 

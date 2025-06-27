@@ -7,6 +7,7 @@ function parameters.
 """
 
 from typing import Dict, List, Tuple, Any
+import math
 
 from .writer_inc import write_mesh_inc
 from .material_defaults import apply_default_materials
@@ -598,11 +599,16 @@ def write_rad(
                 f.write(f"{nid:10d}\n")
 
         if gravity:
-            g = gravity.get("g", 9.81)
-            nx = gravity.get("nx", 0.0)
-            ny = gravity.get("ny", 0.0)
-            nz = gravity.get("nz", -1.0)
+            g = float(gravity.get("g", 9.81))
+            nx = float(gravity.get("nx", 0.0))
+            ny = float(gravity.get("ny", 0.0))
+            nz = float(gravity.get("nz", -1.0))
             comp = int(gravity.get("comp", 3))
+            mag = math.sqrt(nx * nx + ny * ny + nz * nz)
+            if mag:
+                nx /= mag
+                ny /= mag
+                nz /= mag
             f.write("/GRAV\n")
             f.write(f"{comp} {g}\n")
             f.write(f"{nx} {ny} {nz}\n")

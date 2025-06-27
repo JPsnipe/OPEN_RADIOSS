@@ -597,7 +597,7 @@ def write_rad(
             ny = gravity.get("ny", 0.0)
             nz = gravity.get("nz", -1.0)
             comp = int(gravity.get("comp", 3))
-            f.write("/GRAVITY\n")
+            f.write("/GRAV\n")
             f.write(f"{comp} {g}\n")
             f.write(f"{nx} {ny} {nz}\n")
 

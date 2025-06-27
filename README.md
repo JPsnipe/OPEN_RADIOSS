@@ -191,7 +191,7 @@ La pestaña *Generar RAD* también permite definir condiciones de contorno
 
 (tarjetas ``/BCS``), contactos simples (``/INTER/TYPE2``) o generales
 (``/INTER/TYPE7``), velocidades iniciales (``/IMPVEL``) y cargas de
-gravedad (``/GRAVITY``) seleccionando las *name selections* de nodos en un
+gravedad (``/GRAV``) seleccionando las *name selections* de nodos en un
 desplegable. Estos campos se pueden editar, añadir o eliminar en el panel
 correspondiente antes de generar el archivo.
 El panel de gravedad está junto a **Velocidad inicial** y permite indicar la magnitud `g` y la dirección `(nx, ny, nz)`.

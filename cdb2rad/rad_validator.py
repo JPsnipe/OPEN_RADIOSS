@@ -47,7 +47,7 @@ KEYWORDS = (
     "/INTER/TYPE",
     "/FRICTION",
     "/IMPVEL",
-    "/GRAVITY",
+    "/GRAV",
     "/INCLUDE",
     "/NODE",
     "/GRNOD/GRNOD/",
@@ -210,11 +210,11 @@ def validate_rad_format(filepath: str) -> None:
             i += 1
             continue
 
-        if line.startswith("/GRAVITY"):
+        if line.startswith("/GRAV"):
             if i + 2 >= len(lines):
-                raise ValueError("Incomplete /GRAVITY block")
+                raise ValueError("Incomplete /GRAV block")
             if len(lines[i + 1].split()) != 2:
-                raise ValueError("/GRAVITY header format")
+                raise ValueError("/GRAV header format")
             if not all(_is_number(t) for t in lines[i + 2].split()):
                 raise ValueError("Invalid gravity vector")
             i += 3

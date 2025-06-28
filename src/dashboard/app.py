@@ -169,7 +169,7 @@ DEFAULT_PROPERTIES = {
     "HEXA8": {
         "type": "SOLID",
         "Isolid": 24,  # BRICK8 1x1x1 co-rotational
-=======
+
 
         "Ismstr": 2,
         "Icpre": 3,

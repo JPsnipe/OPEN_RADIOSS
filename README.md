@@ -28,6 +28,10 @@ ejemplos de la documentación.
 
 - ``mesh.inc``: definición de nodos y elementos.
 - ``model_0000.rad``: fichero de inicio con propiedades, material y BCs.
+## ⚠️ Orden obligatoria
+
+Todos los campos enteros de cada tarjeta deben escribirse con sus lineas completas y parametros obligatorios. Consulta siempre la [documentacion de Radioss 2022](https://help.altair.com/hwsolvers/rad/index.htm) para verificar la sintaxis.
+
 
 ### Tipos de elemento admitidos
 

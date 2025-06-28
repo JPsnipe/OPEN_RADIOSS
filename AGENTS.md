@@ -7,6 +7,7 @@ This repository implements a lightweight **translator between Ansys `.cdb` files
 The agent’s task is to help maintain and extend a Python program that takes as input a `.cdb` file exported from Ansys Mechanical or MAPDL, and produces:
 
 For all keyword formats and examples, consult the [Altair Radioss 2022 Reference Guide](https://2022.help.altair.com/2022/simulation/pdfs/radopen/AltairRadioss_2022_ReferenceGuide.pdf), which is the primary source for this project.
+**Priority**: All integer fields must be written with every mandatory line and parameter exactly as specified in the 2022 documentation (<https://help.altair.com/hwsolvers/rad/index.htm>).
 
 1. A **Radioss input mesh file** (`mesh.inc`) containing:
    - `/NODE`, `/SHELL`, `/BRICK` definitions

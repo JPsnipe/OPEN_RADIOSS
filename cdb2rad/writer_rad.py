@@ -40,6 +40,9 @@ DEFAULT_BRICK_ANIM_DT = None
 DEFAULT_HISNODA_DT = None
 DEFAULT_RFILE_DT = None
 
+# Default Radioss version for the /VERS card and /BEGIN block
+DEFAULT_RAD_VERSION = 2022
+
 
 def _merge_materials(
     base: Dict[int, Dict[str, float]] | None,
@@ -186,7 +189,7 @@ def _write_begin(f, runname: str, unit_sys: str | None) -> None:
         f.write("                  kg                  mm                  ms\n")
         f.write("                  kg                  mm                  ms\n")
     else:
-        f.write("        2024\n")
+        f.write(f"        {DEFAULT_RAD_VERSION}\n")
         f.write("                  1                  2                  3\n")
         f.write("                  1                  2                  3\n")
 
@@ -713,7 +716,7 @@ def write_engine(
         if tfile_dt is not None:
             f.write("/TFILE/0\n")
             f.write(f"{tfile_dt}\n")
-        f.write("/VERS/2024\n")
+        f.write(f"/VERS/{DEFAULT_RAD_VERSION}\n")
         if dt_ratio is not None:
             f.write("/DT/NODA/CST/0\n")
             f.write(f"{dt_ratio} 0 0\n")
@@ -889,7 +892,7 @@ def write_rad(
             if tfile_dt is not None:
                 f.write("/TFILE/0\n")
                 f.write(f"{tfile_dt}\n")
-            f.write("/VERS/2024\n")
+            f.write(f"/VERS/{DEFAULT_RAD_VERSION}\n")
             if dt_ratio is not None:
                 f.write("/DT/NODA/CST/0\n")
                 f.write(f"{dt_ratio} 0 0\n")

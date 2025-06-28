@@ -883,7 +883,7 @@ if file_path:
                         ishell = int(
                             st.number_input(
                                 "Ishell",
-                                value=1,
+                                value=24,
                                 step=1,
                                 key="prop_ishell",
                             )
@@ -924,14 +924,14 @@ if file_path:
                         hf = input_with_help("hf", 0.0, "prop_hf")
                         hr = input_with_help("hr", 0.0, "prop_hr")
                         dm = input_with_help("dm", 0.0, "prop_dm")
-                        dn = input_with_help("dn", 0.0, "prop_dn")
+                        dn = input_with_help("dn", 0.015, "prop_dn")
                 elif ptype == "SOLID":
                     thick = None
                     with st.expander("Par\u00e1metros avanzados"):
                         isolid = int(
                             st.number_input(
                                 "Isolid",
-                                value=1,
+                                value=24,
                                 step=1,
                                 key="prop_isolid",
                             )
@@ -945,19 +945,28 @@ if file_path:
                                 key="prop_icpre",
                             )
                         )
+                        iframe_default = 2 if isolid in {14, 24} else 1
                         iframe = int(
                             st.number_input(
                                 "Iframe",
-                                value=1,
+                                value=iframe_default,
                                 step=1,
                                 key="prop_iframe",
                             )
                         )
-                        inpts = st.number_input("Inpts", value=222, step=1, key="prop_inpts")
-                        qa = input_with_help("qa", 1.1, "prop_qa")
-                        qb = input_with_help("qb", 0.05, "prop_qb")
-                        dn_s = input_with_help("dn", 0.1, "prop_dn_s")
-                        h = input_with_help("h", 0.0, "prop_h")
+                        inpts = None
+                        if isolid in {14, 16}:
+                            inpts = st.number_input("Inpts", value=222, step=1, key="prop_inpts")
+                        qa = qb = None
+                        if isolid in {1, 17}:
+                            qa = input_with_help("qa", 1.1, "prop_qa")
+                            qb = input_with_help("qb", 0.05, "prop_qb")
+                        dn_s = None
+                        if isolid == 24:
+                            dn_s = input_with_help("dn", 0.1, "prop_dn_s")
+                        h = None
+                        if isolid in {1, 2}:
+                            h = input_with_help("h", 0.0, "prop_h")
                 else:
                     thick = None
                 if st.button("Añadir propiedad"):
@@ -985,13 +994,18 @@ if file_path:
                                 "Ismstr": int(ismstr),
                                 "Icpre": int(icpre),
                                 "Iframe": int(iframe),
-                                "Inpts": int(inpts),
-                                "qa": float(qa),
-                                "qb": float(qb),
-                                "dn": float(dn_s),
-                                "h": float(h),
                             }
                         )
+                        if inpts is not None:
+                            data["Inpts"] = int(inpts)
+                        if qa is not None:
+                            data["qa"] = float(qa)
+                        if qb is not None:
+                            data["qb"] = float(qb)
+                        if dn_s is not None:
+                            data["dn"] = float(dn_s)
+                        if h is not None:
+                            data["h"] = float(h)
                     st.session_state["properties"].append(data)
 
             if st.session_state["properties"]:

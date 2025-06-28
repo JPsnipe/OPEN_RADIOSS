@@ -160,9 +160,11 @@ LAW_DESCRIPTIONS = {
 ELASTO_PLASTIC_LAWS = {"LAW2", "LAW27", "LAW36", "LAW44"}
 
 # Default property templates for quick insertion
+
 # Values match typical Radioss recommendations:
 #  - HEXA8: co-rotational formulation, 1 IP
 #  - TETRA4: co-rotational formulation, 1 IP
+
 #  - QUAD4: classic shell with QEPH formulation
 DEFAULT_PROPERTIES = {
     "HEXA8": {
@@ -174,6 +176,7 @@ DEFAULT_PROPERTIES = {
     },
     "TETRA4": {
         "type": "SOLID",
+
         # Valores por defecto según la ayuda de Radioss
         #   Isolid=1: formulación co-rotacional
         #   Ismstr=2: deformaciones medias
@@ -183,11 +186,16 @@ DEFAULT_PROPERTIES = {
         "Ismstr": 2,
         "Icpre": 1,
         "Iframe": 0,
+
     },
     "QUAD4": {
         "type": "SHELL",
         "thickness": DEFAULT_THICKNESS,
+
         "Ishell": 24,  # Q4 with improved hourglass
+
+
+
         "Iplas": 2,
         "Ithick": 2,
         "Istrain": 1,

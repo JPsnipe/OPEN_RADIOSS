@@ -22,8 +22,30 @@ ejemplos de la documentación.
 
 ## Salida generada
 
- - ``mesh.inc``: definición de nodos y elementos.
- - ``model_0000.rad``: fichero de inicio con propiedades, material y BCs.
+- ``mesh.inc``: definición de nodos y elementos.
+- ``model_0000.rad``: fichero de inicio con propiedades, material y BCs.
+
+### Tipos de elemento admitidos
+
+El archivo ``cdb2rad/mapping.json`` define la correspondencia básica entre
+los ``ETYP`` de Ansys y las palabras clave de Radioss utilizadas en
+``mesh.inc``. Los valores incluidos por defecto son:
+
+| ETYP | Nombre Ansys  | Radioss |
+|-----:|---------------|---------|
+| 1    | SOLID185      | /BRICK  |
+| 2    | SHELL181      | /SHELL  |
+| 4    | SHELL63       | /SHELL  |
+| 45   | SHELL45       | /SHELL  |
+| 181  | SHELL181      | /SHELL  |
+| 182  | SHELL281      | /SHELL  |
+| 185  | SOLID185      | /BRICK  |
+| 186  | SOLID186      | /BRICK  |
+| 187  | SOLID187      | /TETRA  |
+
+Si se encuentra un ``ETYP`` no contemplado en la tabla, el número de nodos
+del elemento se utiliza para decidir entre ``/SHELL``, ``/BRICK`` o ``/TETRA``.
+
 
 ## Instalación de dependencias
 

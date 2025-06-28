@@ -693,16 +693,18 @@ if file_path:
         elem_id_map = {n: i for i, n in enumerate(all_elem_sets.keys(), start=1)}
 
         with st.expander("Grupos importados"):
-            rows = (
-                [
-                    {"Nombre": n, "ID": idx, "Tipo": "NODOS"}
-                    for n, idx in node_id_map.items()
-                ]
-                + [
-                    {"Nombre": n, "ID": idx, "Tipo": "ELEMENTOS"}
-                    for n, idx in elem_id_map.items()
-                ]
-            )
+            from cdb2rad.utils import element_set_types
+
+            set_info = element_set_types(elements, all_elem_sets)
+            rows = [
+                {"Nombre": n, "ID": idx, "Tipo": "NODOS", "Elementos": ""}
+                for n, idx in node_id_map.items()
+            ]
+            for n, idx in elem_id_map.items():
+                info = set_info.get(n, {})
+                desc = ", ".join(f"{k}:{v}" for k, v in info.items()) if info else ""
+                rows.append({"Nombre": n, "ID": idx, "Tipo": "ELEMENTOS", "Elementos": desc})
+
             if rows:
                 st.table(rows)
             else:

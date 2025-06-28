@@ -590,12 +590,14 @@ def write_starter(
 
                     f.write(f"/PROP/SOLID/{pid}\n")
                     f.write(f"{pname}\n")
+
                     f.write("#   Isolid    Ismstr               Icpre               Inpts    Itetra    Iframe                  dn\n")
                     f.write(f"       {isol}         {ismstr}                   {icpre}                   {inpts}         {itetra4}         {iframe}                   {dn}\n")
                     f.write("#                q_a                 q_b                   h            LAMBDA_V                MU_V\n")
                     f.write(f"                   {qa}                   {qb}                   {h}                   0                   0\n")
                     f.write("#             dt_min   istrain      IHKT\n")
                     f.write(f"                   0         0         {ihkt}\n")
+
                 else:
                     f.write(f"/PROP/{ptype}/{pid}\n")
                     f.write(f"{pname}\n")

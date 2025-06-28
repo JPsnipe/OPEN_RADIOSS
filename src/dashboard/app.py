@@ -256,6 +256,22 @@ def checkbox_input(label: str, value: int, key: str) -> int:
     return 1 if st.checkbox(label, value=bool(value), key=key) else 0
 
 
+def optional_number_input(label: str, value: float, key: str, **kwargs) -> float | None:
+    """Return numeric input ``label`` only when checkbox is selected.
+
+    The number input is disabled until the checkbox associated with ``label``
+    is marked. When unchecked, ``None`` is returned so the parameter is not
+    written to the ``.rad`` file.
+    """
+
+    use_param = st.checkbox(f"{label}", key=f"{key}_use")
+    return (
+        input_with_help(label, value, key, disabled=not use_param, **kwargs)
+        if use_param
+        else None
+    )
+
+
 def viewer_html(
 
     nodes: Dict[int, List[float]],
@@ -937,14 +953,7 @@ if file_path:
                             )
                         )
                         ismstr = st.number_input("Ismstr", value=4, step=1, key="prop_ismstr")
-                        icpre = int(
-                            st.number_input(
-                                "Icpre",
-                                value=1,
-                                step=1,
-                                key="prop_icpre",
-                            )
-                        )
+                        icpre = optional_number_input("Icpre", 1, "prop_icpre")
                         iframe_default = 2 if isolid in {14, 24} else 1
                         iframe = int(
                             st.number_input(
@@ -956,17 +965,17 @@ if file_path:
                         )
                         inpts = None
                         if isolid in {14, 16}:
-                            inpts = st.number_input("Inpts", value=222, step=1, key="prop_inpts")
+                            inpts = optional_number_input("Inpts", 222, "prop_inpts")
                         qa = qb = None
                         if isolid in {1, 17}:
-                            qa = input_with_help("qa", 1.1, "prop_qa")
-                            qb = input_with_help("qb", 0.05, "prop_qb")
+                            qa = optional_number_input("qa", 1.1, "prop_qa")
+                            qb = optional_number_input("qb", 0.05, "prop_qb")
                         dn_s = None
                         if isolid == 24:
-                            dn_s = input_with_help("dn", 0.1, "prop_dn_s")
+                            dn_s = optional_number_input("dn", 0.1, "prop_dn_s")
                         h = None
                         if isolid in {1, 2}:
-                            h = input_with_help("h", 0.0, "prop_h")
+                            h = optional_number_input("h", 0.0, "prop_h")
                 else:
                     thick = None
                 if st.button("Añadir propiedad"):
@@ -992,10 +1001,11 @@ if file_path:
                             {
                                 "Isolid": int(isolid),
                                 "Ismstr": int(ismstr),
-                                "Icpre": int(icpre),
                                 "Iframe": int(iframe),
                             }
                         )
+                        if icpre is not None:
+                            data["Icpre"] = int(icpre)
                         if inpts is not None:
                             data["Inpts"] = int(inpts)
                         if qa is not None:

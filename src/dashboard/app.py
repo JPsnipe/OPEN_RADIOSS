@@ -49,6 +49,7 @@ except ModuleNotFoundError:  # allow importing without streamlit for testing
 from cdb2rad.mesh_convert import convert_to_vtk, mesh_to_temp_vtk
 
 from cdb2rad.vtk_writer import write_vtk, write_vtp
+from cdb2rad import rad_preview
 
 
 def _rerun():
@@ -898,7 +899,7 @@ if file_path:
                         for i, mat in enumerate(st.session_state["impact_materials"]):
                             cols = st.columns([4, 1])
                             with cols[0]:
-                                st.json(mat)
+                                st.code(rad_preview.preview_material(mat))
                             with cols[1]:
                                 if st.button("Eliminar", key=f"del_mat_{i}"):
                                     st.session_state["impact_materials"].pop(i)
@@ -922,10 +923,10 @@ if file_path:
                 if ids:
                     st.session_state["subsets"][sub_name] = sorted(ids)
                     _rerun()
-        for name, ids in st.session_state["subsets"].items():
+        for i, (name, ids) in enumerate(st.session_state["subsets"].items(), start=1):
             cols = st.columns([4, 1])
             with cols[0]:
-                st.write(f"{name}: {len(ids)} elementos")
+                st.code(rad_preview.preview_subset(name, ids, i))
             with cols[1]:
                 if st.button("Eliminar", key=f"del_subset_{name}"):
                     del st.session_state["subsets"][name]
@@ -1087,7 +1088,7 @@ if file_path:
                 for i, pr in enumerate(st.session_state["properties"]):
                     cols = st.columns([4, 1])
                     with cols[0]:
-                        st.json(pr)
+                        st.code(rad_preview.preview_property(pr))
                     with cols[1]:
                         if st.button("Eliminar", key=f"del_prop_{i}"):
                             st.session_state["properties"].pop(i)
@@ -1141,10 +1142,7 @@ if file_path:
             for i, part in enumerate(st.session_state["parts"]):
                 cols = st.columns([4, 1])
                 with cols[0]:
-                    if "set" in part:
-                        st.write(f"{part['name']} → {part['set']} (ID {part['id']})")
-                    else:
-                        st.write(f"{part['name']} (ID {part['id']})")
+                    st.code(rad_preview.preview_part(part))
                 with cols[1]:
                     if st.button("Eliminar", key=f"del_part_{i}"):
                         st.session_state["parts"].pop(i)
@@ -1184,7 +1182,7 @@ if file_path:
             for i, bc in enumerate(st.session_state["bcs"]):
                 cols = st.columns([4, 1])
                 with cols[0]:
-                    st.json(bc)
+                    st.code(rad_preview.preview_bc(bc))
                 with cols[1]:
                     if st.button("Eliminar", key=f"del_bc_{i}"):
                         st.session_state["bcs"].pop(i)
@@ -1240,7 +1238,7 @@ if file_path:
             for i, rb in enumerate(st.session_state.get("rbodies", [])):
                 cols = st.columns([4, 1])
                 with cols[0]:
-                    st.json(rb)
+                    st.code(rad_preview.preview_rbody(rb))
                 with cols[1]:
                     if st.button("Eliminar", key=f"del_rb_{i}"):
                         st.session_state["rbodies"].pop(i)
@@ -1263,7 +1261,7 @@ if file_path:
             for i, rb in enumerate(st.session_state.get("rbe2", [])):
                 cols = st.columns([4, 1])
                 with cols[0]:
-                    st.json(rb)
+                    st.code(rad_preview.preview_rbe2(rb))
                 with cols[1]:
                     if st.button("Eliminar", key=f"del_rbe2_{i}"):
                         st.session_state["rbe2"].pop(i)
@@ -1286,7 +1284,7 @@ if file_path:
             for i, rb in enumerate(st.session_state.get("rbe3", [])):
                 cols = st.columns([4, 1])
                 with cols[0]:
-                    st.json(rb)
+                    st.code(rad_preview.preview_rbe3(rb))
                 with cols[1]:
                     if st.button("Eliminar", key=f"del_rbe3_{i}"):
                         st.session_state["rbe3"].pop(i)
@@ -1403,7 +1401,7 @@ if file_path:
             for i, itf in enumerate(st.session_state["interfaces"]):
                 cols = st.columns([4, 1])
                 with cols[0]:
-                    st.json(itf)
+                    st.code(rad_preview.preview_interface(itf))
                 with cols[1]:
                     if st.button("Eliminar", key=f"del_itf_{i}"):
                         st.session_state["interfaces"].pop(i)
@@ -1431,7 +1429,7 @@ if file_path:
             if st.session_state["init_vel"]:
                 cols = st.columns([4, 1])
                 with cols[0]:
-                    st.json(st.session_state["init_vel"])
+                    st.code(rad_preview.preview_init_velocity(st.session_state["init_vel"]))
                 with cols[1]:
                     if st.button("Eliminar", key="del_initvel"):
                         st.session_state["init_vel"] = None
@@ -1454,7 +1452,7 @@ if file_path:
             if st.session_state["gravity"]:
                 cols = st.columns([4, 1])
                 with cols[0]:
-                    st.json(st.session_state["gravity"])
+                    st.code(rad_preview.preview_gravity(st.session_state["gravity"]))
                 with cols[1]:
                     if st.button("Eliminar", key="del_gravity"):
                         st.session_state["gravity"] = None
@@ -1569,7 +1567,9 @@ if file_path:
                 st.write("Control de cálculo definido:")
                 cols = st.columns([4, 1])
                 with cols[0]:
-                    st.json(st.session_state["control_settings"])
+                    st.code(
+                        rad_preview.preview_control(st.session_state["control_settings"])
+                    )
                 with cols[1]:
                     if st.button("Eliminar", key="del_ctrl"):
                         st.session_state["control_settings"] = None

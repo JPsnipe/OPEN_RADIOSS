@@ -611,6 +611,9 @@ def write_starter(
                     dn = float(prop.get("dn", 0.0))
                     h = float(prop.get("h", 0.0))
 
+                    dtmin = float(prop.get("dtmin", 0.0))
+                    ndir = int(prop.get("Ndir", 1))
+                    sphpart = int(prop.get("sphpart_ID", 0))
                     f.write(f"/PROP/SOLID/{pid}\n")
                     f.write(f"{pname}\n")
                     f.write(
@@ -619,10 +622,12 @@ def write_starter(
                     f.write(
                         f"       {isol}        {ismstr}        {icpre}        {itetra4}        {itetra10}        {imass}        {iframe}        {ihkt}\n"
                     )
-                    f.write("#   Inpts        qa         qb         dn          h\n")
+                    f.write("#   Inpts        qa         qb         dn         h\n")
                     f.write(
                         f"       {inpts}        {qa}        {qb}        {dn}        {h}\n"
                     )
+                    f.write("#   dtmin      Ndir  sphpart_ID\n")
+                    f.write(f"       {dtmin}        {ndir}        {sphpart}\n")
                 else:
                     f.write(f"/PROP/{ptype}/{pid}\n")
                     f.write(f"{pname}\n")
@@ -1261,6 +1266,9 @@ def write_rad(
                     qb = prop.get("qb")
                     dn = prop.get("dn")
                     h = prop.get("h")
+                    dtmin = prop.get("dtmin")
+                    ndir = prop.get("Ndir")
+                    sphpart = prop.get("sphpart_ID")
 
                     f.write(f"/PROP/SOLID/{pid}\n")
                     f.write(f"{pname}\n")
@@ -1285,6 +1293,15 @@ def write_rad(
                     if h is not None and float(h) != 0.0:
                         headers.append("h")
                         values.append(f"{float(h):<8g}")
+                    if dtmin is not None:
+                        headers.append("dtmin")
+                        values.append(f"{float(dtmin):<8g}")
+                    if ndir is not None:
+                        headers.append("Ndir")
+                        values.append(f"{int(ndir):5d}")
+                    if sphpart is not None:
+                        headers.append("sphpart_ID")
+                        values.append(f"{int(sphpart):5d}")
                     if headers:
                         f.write("#  " + "        ".join(headers) + "\n")
                         f.write("   " + "   ".join(values) + "\n")

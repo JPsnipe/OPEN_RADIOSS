@@ -409,6 +409,9 @@ def test_write_rad_with_solid_prop(tmp_path):
             'qb': 0.1,
             'dn': 0.2,
             'h': 0.3,
+            'dtmin': 0.04,
+            'Ndir': 2,
+            'sphpart_ID': 9,
 
         }
     ]
@@ -427,7 +430,11 @@ def test_write_rad_with_solid_prop(tmp_path):
     nums2 = lines[idx + 5].split()
     assert nums[0] == '22'
     assert nums2[0] == '111'
-    assert nums2[1] == '1.5'
+    nums3 = lines[idx + 7].split()
+    assert nums3[0] == "0.04"
+    assert nums3[1] == "2"
+    assert nums3[2] == "9"
+    assert nums2[1] == "1.5"
 
 
 def test_write_starter_si_units(tmp_path):

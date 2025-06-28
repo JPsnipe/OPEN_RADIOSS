@@ -1010,6 +1010,10 @@ if file_path:
                                 key="prop_iframe",
                             )
                         )
+                        itetra4 = optional_number_input("Itetra4", 0, "prop_itetra4")
+                        itetra10 = optional_number_input("Itetra10", 0, "prop_itetra10")
+                        imass = optional_number_input("Imass", 0, "prop_imass")
+                        ihkt = optional_number_input("IHKT", 0, "prop_ihkt")
                         inpts = None
                         if isolid in {14, 16}:
                             inpts = optional_number_input("Inpts", 222, "prop_inpts")
@@ -1058,6 +1062,14 @@ if file_path:
                         )
                         if icpre is not None:
                             data["Icpre"] = int(icpre)
+                        if itetra4 is not None:
+                            data["Itetra4"] = int(itetra4)
+                        if itetra10 is not None:
+                            data["Itetra10"] = int(itetra10)
+                        if imass is not None:
+                            data["Imass"] = int(imass)
+                        if ihkt is not None:
+                            data["IHKT"] = int(ihkt)
                         if inpts is not None:
                             data["Inpts"] = int(inpts)
                         if qa is not None:

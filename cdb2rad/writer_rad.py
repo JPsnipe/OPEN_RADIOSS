@@ -577,39 +577,25 @@ def write_starter(
                     isol = int(prop.get("Isolid", 24))
                     ismstr = int(prop.get("Ismstr", 4))
                     icpre = int(prop.get("Icpre", 1))
+                    itetra4 = int(prop.get("Itetra4", 0))
+                    itetra10 = int(prop.get("Itetra10", 0))
+                    imass = int(prop.get("Imass", 0))
                     iframe = int(prop.get("Iframe", 1))
-                    inpts = prop.get("Inpts")
-                    qa = prop.get("qa")
-                    qb = prop.get("qb")
-                    dn = prop.get("dn")
-                    h = prop.get("h")
+                    ihkt = int(prop.get("IHKT", 0))
+                    inpts = int(prop.get("Inpts", 0))
+                    qa = float(prop.get("qa", 0.0))
+                    qb = float(prop.get("qb", 0.0))
+                    dn = float(prop.get("dn", 0.0))
+                    h = float(prop.get("h", 0.0))
 
                     f.write(f"/PROP/SOLID/{pid}\n")
                     f.write(f"{pname}\n")
-                    f.write("#  Isolid   Ismstr    Icpre   Iframe\n")
-                    f.write(
-                        f"       {isol}        {ismstr}        {icpre}        {iframe}\n"
-                    )
-                    headers = []
-                    values = []
-                    if inpts is not None:
-                        headers.append("Inpts")
-                        values.append(f"{int(inpts):5d}")
-                    if qa is not None:
-                        headers.append("qa")
-                        values.append(f"{float(qa):<8g}")
-                    if qb is not None:
-                        headers.append("qb")
-                        values.append(f"{float(qb):<8g}")
-                    if dn is not None:
-                        headers.append("dn")
-                        values.append(f"{float(dn):<8g}")
-                    if h is not None and float(h) != 0.0:
-                        headers.append("h")
-                        values.append(f"{float(h):<8g}")
-                    if headers:
-                        f.write("#  " + "        ".join(headers) + "\n")
-                        f.write("   " + "   ".join(values) + "\n")
+                    f.write("#   Isolid    Ismstr               Icpre               Inpts    Itetra    Iframe                  dn\n")
+                    f.write(f"       {isol}         {ismstr}                   {icpre}                   {inpts}         {itetra4}         {iframe}                   {dn}\n")
+                    f.write("#                q_a                 q_b                   h            LAMBDA_V                MU_V\n")
+                    f.write(f"                   {qa}                   {qb}                   {h}                   0                   0\n")
+                    f.write("#             dt_min   istrain      IHKT\n")
+                    f.write(f"                   0         0         {ihkt}\n")
                 else:
                     f.write(f"/PROP/{ptype}/{pid}\n")
                     f.write(f"{pname}\n")
@@ -1223,44 +1209,27 @@ def write_rad(
                     isol = int(prop.get("Isolid", 24))
                     ismstr = int(prop.get("Ismstr", 4))
                     icpre = int(prop.get("Icpre", 1))
+                    inpts = int(prop.get("Inpts", 0))
+                    itetra = int(prop.get("Itetra", 0))
                     iframe = int(prop.get("Iframe", 1))
-                    inpts = prop.get("Inpts")
-                    qa = prop.get("qa")
-                    qb = prop.get("qb")
-                    dn = prop.get("dn")
-                    h = prop.get("h")
+                    dn = float(prop.get("dn", 0.0))
+                    qa = float(prop.get("qa", 0.0))
+                    qb = float(prop.get("qb", 0.0))
+                    h = float(prop.get("h", 0.0))
+                    lambda_v = float(prop.get("LAMBDA_V", 0.0))
+                    mu_v = float(prop.get("MU_V", 0.0))
+                    dt_min = float(prop.get("dt_min", 0.0))
+                    istrain = int(prop.get("istrain", 0))
+                    ihkt = int(prop.get("IHKT", 0))
 
                     f.write(f"/PROP/SOLID/{pid}\n")
                     f.write(f"{pname}\n")
-                    f.write("#  Isolid   Ismstr    Icpre   Iframe\n")
-                    f.write(
-                        f"       {isol}        {ismstr}        {icpre}        {iframe}\n"
-                    )
-                    headers = []
-                    values = []
-                    if inpts is not None:
-                        headers.append("Inpts")
-                        values.append(f"{int(inpts):5d}")
-                    if qa is not None:
-                        headers.append("qa")
-                        values.append(f"{float(qa):<8g}")
-                    if qb is not None:
-                        headers.append("qb")
-                        values.append(f"{float(qb):<8g}")
-                    if dn is not None:
-                        headers.append("dn")
-                        values.append(f"{float(dn):<8g}")
-                    if h is not None and float(h) != 0.0:
-                        headers.append("h")
-                        values.append(f"{float(h):<8g}")
-                    if headers:
-                        f.write("#  " + "        ".join(headers) + "\n")
-                        f.write("   " + "   ".join(values) + "\n")
-                else:
-                    f.write(f"/PROP/{ptype}/{pid}\n")
-                    f.write(f"{pname}\n")
-                    f.write("# property parameters not defined\n")
-
+                    f.write("#   Isolid    Ismstr               Icpre               Inpts    Itetra    Iframe                  dn\n")
+                    f.write(f"       {isol}         {ismstr}                   {icpre}                   {inpts}         {itetra}         {iframe}                   {dn}\n")
+                    f.write("#                q_a                 q_b                   h            LAMBDA_V                MU_V\n")
+                    f.write(f"                   {qa}                   {qb}                   {h}                   {lambda_v}                   {mu_v}\n")
+                    f.write("#             dt_min   istrain      IHKT\n")
+                    f.write(f"                   {dt_min}         {istrain}         {ihkt}\n")
         if subsets:
             for idx, (name, ids) in enumerate(subsets.items(), start=1):
                 f.write(f"/SUBSET/{idx}\n")

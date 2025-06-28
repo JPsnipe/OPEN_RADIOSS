@@ -159,6 +159,41 @@ LAW_DESCRIPTIONS = {
 # Laws considered elastoplastic for property checks
 ELASTO_PLASTIC_LAWS = {"LAW2", "LAW27", "LAW36", "LAW44"}
 
+# Default property templates for quick insertion
+# Values match typical Radioss recommendations:
+#  - HEXA8: co-rotational formulation, 1 IP
+#  - TETRA4: co-rotational formulation, 1 IP
+#  - QUAD4: classic shell with QEPH formulation
+DEFAULT_PROPERTIES = {
+    "HEXA8": {
+        "type": "SOLID",
+        "Isolid": 24,  # BRICK8 1x1x1 co-rotational
+        "Ismstr": 2,
+        "Icpre": 3,
+        "Iframe": 2,
+    },
+    "TETRA4": {
+        "type": "SOLID",
+        # Valores por defecto según la ayuda de Radioss
+        #   Isolid=1: formulación co-rotacional
+        #   Ismstr=2: deformaciones medias
+        #   Icpre=1: horquilla recomendada
+        #   Iframe=0: sin rotación adicional
+        "Isolid": 1,
+        "Ismstr": 2,
+        "Icpre": 1,
+        "Iframe": 0,
+    },
+    "QUAD4": {
+        "type": "SHELL",
+        "thickness": DEFAULT_THICKNESS,
+        "Ishell": 24,  # Q4 with improved hourglass
+        "Iplas": 2,
+        "Ithick": 2,
+        "Istrain": 1,
+    },
+}
+
 
 def is_elastoplastic(law: str | None) -> bool:
     """Return True if the material law implies plasticity."""
@@ -881,6 +916,24 @@ if file_path:
 
         with st.expander("Propiedades (/PROP)"):
             st.subheader("Configuración de propiedades")
+
+            cols = st.columns(3)
+            if cols[0].button("Hexa8 por defecto"):
+                pid = len(st.session_state["properties"]) + 1
+                data = {"id": pid, "name": f"HEXA8_{pid}", **DEFAULT_PROPERTIES["HEXA8"]}
+                st.session_state["properties"].append(data)
+                _rerun()
+            if cols[1].button("Tetra4 por defecto"):
+                pid = len(st.session_state["properties"]) + 1
+                data = {"id": pid, "name": f"TETRA4_{pid}", **DEFAULT_PROPERTIES["TETRA4"]}
+                st.session_state["properties"].append(data)
+                _rerun()
+            if cols[2].button("Quad4 por defecto"):
+                pid = len(st.session_state["properties"]) + 1
+                data = {"id": pid, "name": f"QUAD4_{pid}", **DEFAULT_PROPERTIES["QUAD4"]}
+                st.session_state["properties"].append(data)
+                _rerun()
+
             with st.expander("Definir propiedad"):
                 pid = st.number_input(
                     "ID propiedad",

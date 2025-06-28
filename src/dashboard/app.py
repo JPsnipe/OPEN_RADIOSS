@@ -693,6 +693,7 @@ if file_path:
         elem_id_map = {n: i for i, n in enumerate(all_elem_sets.keys(), start=1)}
 
         with st.expander("Grupos importados"):
+
             from cdb2rad.utils import element_set_types, element_set_etypes
 
             rad_info = element_set_types(elements, all_elem_sets)
@@ -707,6 +708,7 @@ if file_path:
                 ainfo = ansys_info.get(n, {})
                 adesc = ", ".join(f"{k}:{v}" for k, v in ainfo.items()) if ainfo else ""
                 rows.append({"Nombre": n, "ID": idx, "Tipo": "ELEMENTOS", "Radioss": rdesc, "Ansys": adesc})
+
 
             if rows:
                 st.table(rows)

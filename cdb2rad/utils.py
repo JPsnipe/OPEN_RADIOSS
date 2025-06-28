@@ -125,6 +125,7 @@ def element_set_types(
     return result
 
 
+
 def element_set_etypes(
     elements: List[Tuple[int, int, List[int]]],
     elem_sets: Dict[str, List[int]],
@@ -149,6 +150,7 @@ def element_set_etypes(
         result[set_name] = counts
 
     return result
+
 
 
 def check_rad_inputs(

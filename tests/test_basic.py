@@ -422,12 +422,12 @@ def test_write_rad_with_solid_prop(tmp_path):
     lines = rad.read_text().splitlines()
     idx = lines.index('/PROP/SOLID/1')
     assert 'Isolid' in lines[idx + 2]
-    nums = lines[idx + 3].split()
-
+    nums1 = lines[idx + 3].split()
     nums2 = lines[idx + 5].split()
-    assert nums[0] == '22'
-    assert nums2[0] == '111'
-    assert nums2[1] == '1.5'
+    nums3 = lines[idx + 7].split()
+    assert nums1[0] == '22'
+    assert nums2[0] == '1.5'
+    assert nums3[0] == '0'
 
 
 def test_write_starter_si_units(tmp_path):

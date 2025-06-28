@@ -4,6 +4,21 @@ from typing import List, Tuple, Dict
 import json
 from pathlib import Path
 
+# Basic mapping from Ansys ``ETYP`` numbers to element names.  The list is not
+# exhaustive but covers the values present in the example ``model.cdb`` and
+# common cases.  Unknown numbers fall back to ``ETYP{num}``.
+ETYP_NAMES: Dict[int, str] = {
+    1: "SOLID185",
+    2: "SHELL181",
+    4: "SHELL63",
+    45: "SHELL45",
+    181: "SHELL181",
+    182: "SHELL281",
+    185: "SOLID185",
+    186: "SOLID186",
+    187: "SOLID187",
+}
+
 
 def element_summary(
     elements: List[Tuple[int, int, List[int]]],
@@ -108,6 +123,34 @@ def element_set_types(
         result[name] = counts
 
     return result
+
+
+
+def element_set_etypes(
+    elements: List[Tuple[int, int, List[int]]],
+    elem_sets: Dict[str, List[int]],
+    name_map: Dict[int, str] | None = None,
+) -> Dict[str, Dict[str, int]]:
+    """Return Ansys ETYP name counts for each element set."""
+
+    if name_map is None:
+        name_map = ETYP_NAMES
+
+    eid_map: Dict[int, int] = {eid: etype for eid, etype, _ in elements}
+
+    result: Dict[str, Dict[str, int]] = {}
+    for set_name, ids in elem_sets.items():
+        counts: Dict[str, int] = {}
+        for eid in ids:
+            etype = eid_map.get(eid)
+            if etype is None:
+                continue
+            aname = name_map.get(etype, f"ETYP{etype}")
+            counts[aname] = counts.get(aname, 0) + 1
+        result[set_name] = counts
+
+    return result
+
 
 
 def check_rad_inputs(

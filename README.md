@@ -198,7 +198,8 @@ pestañas principales:
 - **Generar INC** permite crear ``mesh.inc`` y muestra sus primeras líneas. \
 
   Incluye casillas para decidir si exportar las selecciones nombradas y los
-  materiales.
+  materiales. La tabla **Grupos importados** indica el tipo de elemento en
+  Radioss y el nombre Ansys asociado a cada conjunto.
 
 - **Generar RAD** para introducir parámetros de cálculo, definir **Propiedades** y obtener
   ``model_0000.rad``.

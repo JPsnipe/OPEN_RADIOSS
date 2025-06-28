@@ -2,7 +2,7 @@ import os
 from cdb2rad.parser import parse_cdb
 from cdb2rad.writer_inc import write_mesh_inc
 from cdb2rad.writer_rad import write_starter, write_engine
-from cdb2rad.utils import element_summary
+from cdb2rad.utils import element_summary, element_set_etypes
 from cdb2rad.material_defaults import apply_default_materials
 
 DATA = os.path.join(os.path.dirname(__file__), '..', 'data', 'model.cdb')
@@ -445,6 +445,13 @@ def test_write_starter_si_units(tmp_path):
     txt = rad.read_text()
     assert '2017         0' in txt
     assert 'kg                  mm                  ms' in txt
+
+
+def test_element_set_etypes():
+    nodes, elements, node_sets, elem_sets, _ = parse_cdb(DATA)
+    info = element_set_etypes(elements, elem_sets)
+    # Expect at least one recognized Ansys type in the BALL set
+    assert any(v > 0 for v in info.get('BALL', {}).values())
 
 
 

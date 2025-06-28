@@ -904,43 +904,20 @@ if file_path:
                                 key="prop_ishell",
                             )
                         )
-                        ip = int(
-                            st.number_input(
-                                "Iplas",
-                                value=1,
-                                step=1,
-                                key="prop_ip",
-                            )
-                        )
-                        ithick = int(
-                            st.number_input(
-                                "Ithick",
-                                value=1,
-                                step=1,
-                                key="prop_ithick",
-                            )
-                        )
-                        istr = int(
-                            st.number_input(
-                                "Istrain",
-                                value=0,
-                                step=1,
-                                key="prop_istrain",
-                            )
-                        )
-                        ashear = int(
-                            st.number_input(
-                                "Ashear",
-                                value=0,
-                                step=1,
-                                key="prop_ashear",
-                            )
-                        )
-                        hm = input_with_help("hm", 0.0, "prop_hm")
-                        hf = input_with_help("hf", 0.0, "prop_hf")
-                        hr = input_with_help("hr", 0.0, "prop_hr")
-                        dm = input_with_help("dm", 0.0, "prop_dm")
-                        dn = input_with_help("dn", 0.015, "prop_dn")
+                        ip = optional_number_input("Iplas", 1, "prop_ip")
+                        ithick = optional_number_input("Ithick", 1, "prop_ithick")
+                        istr = optional_number_input("Istrain", 0, "prop_istrain")
+                        ashear = optional_number_input("Ashear", 0, "prop_ashear")
+                        hm = hf = hr = None
+                        if ishell in {1, 2, 3, 4}:
+                            hm = optional_number_input("hm", 0.0, "prop_hm")
+                            hf = optional_number_input("hf", 0.0, "prop_hf")
+                            hr = optional_number_input("hr", 0.0, "prop_hr")
+                        dm = optional_number_input("dm", 0.0, "prop_dm")
+                        dn = None
+                        if ishell in {12, 24}:
+                            dn_default = 0.015 if ishell == 24 else 0.001
+                            dn = optional_number_input("dn", dn_default, "prop_dn")
                 elif ptype == "SOLID":
                     thick = None
                     with st.expander("Par\u00e1metros avanzados"):
@@ -982,20 +959,25 @@ if file_path:
                     data = {"id": int(pid), "name": pname, "type": ptype}
                     if ptype == "SHELL":
                         data["thickness"] = thick
-                        data.update(
-                            {
-                                "Ishell": int(ishell),
-                                "Iplas": int(ip),
-                                "Ithick": int(ithick),
-                                "Istrain": int(istr),
-                                "Ashear": int(ashear),
-                                "hm": float(hm),
-                                "hf": float(hf),
-                                "hr": float(hr),
-                                "dm": float(dm),
-                                "dn": float(dn),
-                            }
-                        )
+                        data["Ishell"] = int(ishell)
+                        if ip is not None:
+                            data["Iplas"] = int(ip)
+                        if ithick is not None:
+                            data["Ithick"] = int(ithick)
+                        if istr is not None:
+                            data["Istrain"] = int(istr)
+                        if ashear is not None:
+                            data["Ashear"] = int(ashear)
+                        if hm is not None:
+                            data["hm"] = float(hm)
+                        if hf is not None:
+                            data["hf"] = float(hf)
+                        if hr is not None:
+                            data["hr"] = float(hr)
+                        if dm is not None:
+                            data["dm"] = float(dm)
+                        if dn is not None:
+                            data["dn"] = float(dn)
                     elif ptype == "SOLID":
                         data.update(
                             {

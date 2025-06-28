@@ -577,39 +577,29 @@ def write_starter(
                     isol = int(prop.get("Isolid", 24))
                     ismstr = int(prop.get("Ismstr", 4))
                     icpre = int(prop.get("Icpre", 1))
+                    itetra4 = int(prop.get("Itetra4", 0))
+                    itetra10 = int(prop.get("Itetra10", 0))
+                    imass = int(prop.get("Imass", 0))
                     iframe = int(prop.get("Iframe", 1))
-                    inpts = prop.get("Inpts")
-                    qa = prop.get("qa")
-                    qb = prop.get("qb")
-                    dn = prop.get("dn")
-                    h = prop.get("h")
+                    ihkt = int(prop.get("IHKT", 0))
+                    inpts = int(prop.get("Inpts", 0))
+                    qa = float(prop.get("qa", 0.0))
+                    qb = float(prop.get("qb", 0.0))
+                    dn = float(prop.get("dn", 0.0))
+                    h = float(prop.get("h", 0.0))
 
                     f.write(f"/PROP/SOLID/{pid}\n")
                     f.write(f"{pname}\n")
-                    f.write("#  Isolid   Ismstr    Icpre   Iframe\n")
                     f.write(
-                        f"       {isol}        {ismstr}        {icpre}        {iframe}\n"
+                        "#  Isolid   Ismstr    Icpre   Itetra4   Itetra10   Imass   Iframe   IHKT\n"
                     )
-                    headers = []
-                    values = []
-                    if inpts is not None:
-                        headers.append("Inpts")
-                        values.append(f"{int(inpts):5d}")
-                    if qa is not None:
-                        headers.append("qa")
-                        values.append(f"{float(qa):<8g}")
-                    if qb is not None:
-                        headers.append("qb")
-                        values.append(f"{float(qb):<8g}")
-                    if dn is not None:
-                        headers.append("dn")
-                        values.append(f"{float(dn):<8g}")
-                    if h is not None and float(h) != 0.0:
-                        headers.append("h")
-                        values.append(f"{float(h):<8g}")
-                    if headers:
-                        f.write("#  " + "        ".join(headers) + "\n")
-                        f.write("   " + "   ".join(values) + "\n")
+                    f.write(
+                        f"       {isol}        {ismstr}        {icpre}        {itetra4}        {itetra10}        {imass}        {iframe}        {ihkt}\n"
+                    )
+                    f.write("#   Inpts        qa         qb         dn          h\n")
+                    f.write(
+                        f"       {inpts}        {qa}        {qb}        {dn}        {h}\n"
+                    )
                 else:
                     f.write(f"/PROP/{ptype}/{pid}\n")
                     f.write(f"{pname}\n")

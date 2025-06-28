@@ -533,14 +533,26 @@ def write_starter(
         if parts:
             check_mats = None if not all_mats and default_material else all_mats
             mapped_parts = _map_parts(parts, mid_map, check_mats)
+            subset_map: Dict[str, int] = (
+                {n: i for i, n in enumerate(subsets.keys(), start=1)}
+                if subsets
+                else {}
+            )
+
             for p in mapped_parts:
                 pid = int(p.get("id", 1))
                 name = p.get("name", f"PART_{pid}")
                 prop_id = int(p.get("pid", 1))
                 mat_id = int(p.get("mid", 1))
+                set_name = p.get("set")
+                subset_id = subset_map.get(str(set_name), 0) if set_name else 0
+                thick_val = float(p.get("thick", 0.0))
+
                 f.write(f"/PART/{pid}\n")
                 f.write(f"{name}\n")
-                f.write(f"         {prop_id}         {mat_id}         0\n")
+                f.write(
+                    f"         {prop_id}         {mat_id}         {subset_id}         {thick_val}\n"
+                )
 
         if properties:
             for prop in properties:
@@ -1169,14 +1181,24 @@ def write_rad(
         if parts:
             check_mats = None if not all_mats and default_material else all_mats
             mapped_parts = _map_parts(parts, mid_map, check_mats)
+            subset_map: Dict[str, int] = (
+                {n: i for i, n in enumerate(subsets.keys(), start=1)}
+                if subsets
+                else {}
+            )
             for p in mapped_parts:
                 pid = int(p.get("id", 1))
                 name = p.get("name", f"PART_{pid}")
                 prop_id = int(p.get("pid", 1))
                 mat_id = int(p.get("mid", 1))
+                set_name = p.get("set")
+                subset_id = subset_map.get(str(set_name), 0) if set_name else 0
+                thick_val = float(p.get("thick", 0.0))
                 f.write(f"/PART/{pid}\n")
                 f.write(f"{name}\n")
-                f.write(f"         {prop_id}         {mat_id}         0\n")
+                f.write(
+                    f"         {prop_id}         {mat_id}         {subset_id}         {thick_val}\n"
+                )
 
         if properties:
             for prop in properties:

@@ -197,7 +197,7 @@ def _write_begin(f, runname: str, unit_sys: str | None) -> None:
 def write_starter(
     nodes: Dict[int, List[float]],
     elements: List[Tuple[int, int, List[int]]],
-    outfile: str,
+    outfile: str | Any,
     mesh_inc: str = "mesh.inc",
     include_inc: bool = True,
     node_sets: Dict[str, List[int]] | None = None,
@@ -282,7 +282,13 @@ def write_starter(
                 if nid not in nodes:
                     raise ValueError("RBE3 independent node missing")
 
-    with open(outfile, "w") as f:
+    needs_close = False
+    if hasattr(outfile, "write"):
+        f = outfile
+    else:
+        f = open(outfile, "w")
+        needs_close = True
+    try:
         f.write("#RADIOSS STARTER\n")
         _write_begin(f, runname, unit_sys)
 
@@ -682,10 +688,12 @@ def write_starter(
             f.write(f"{nx} {ny} {nz}\n")
 
         f.write("/END\n")
-
+    finally:
+        if needs_close:
+            f.close()
 
 def write_engine(
-    outfile: str,
+    outfile: str | Any,
     *,
     runname: str = DEFAULT_RUNNAME,
     t_end: float = DEFAULT_FINAL_TIME,
@@ -713,7 +721,13 @@ def write_engine(
 ) -> None:
     """Write a Radioss engine file (``*_0001.rad``)."""
 
-    with open(outfile, "w") as f:
+    needs_close = False
+    if hasattr(outfile, "write"):
+        f = outfile
+    else:
+        f = open(outfile, "w")
+        needs_close = True
+    try:
         f.write("#RADIOSS ENGINE\n")
         if print_n is not None and print_line is not None:
             f.write(f"/PRINT/{print_n}/{print_line}\n")
@@ -762,12 +776,15 @@ def write_engine(
             tstart = 0.0 if adyrel[0] is None else adyrel[0]
             tstop = t_end if adyrel[1] is None else adyrel[1]
             f.write(f"{tstart} {tstop}\n")
+    finally:
+        if needs_close:
+            f.close()
 
 
 def write_rad(
     nodes: Dict[int, List[float]],
     elements: List[Tuple[int, int, List[int]]],
-    outfile: str,
+    outfile: str | Any,
     mesh_inc: str = "mesh.inc",
     include_inc: bool = True,
     node_sets: Dict[str, List[int]] | None = None,
@@ -886,7 +903,13 @@ def write_rad(
                 if nid not in nodes:
                     raise ValueError("RBE3 independent node missing")
 
-    with open(outfile, "w") as f:
+    needs_close = False
+    if hasattr(outfile, "write"):
+        f = outfile
+    else:
+        f = open(outfile, "w")
+        needs_close = True
+    try:
         f.write("#RADIOSS STARTER\n")
         _write_begin(f, runname, unit_sys)
 
@@ -1352,5 +1375,7 @@ def write_rad(
             f.write(f"{nx} {ny} {nz}\n")
 
         f.write("/END\n")
-
+    finally:
+        if needs_close:
+            f.close()
 

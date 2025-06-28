@@ -73,8 +73,8 @@ def test_write_rad(tmp_path):
     assert '/BEGIN' in content
     assert '/END' in content
     assert '200000.0' in content
-    assert '2024         0' not in content
-    assert '2024' in content
+    assert '2022         0' not in content
+    assert '2022' in content
     assert '1                  2                  3' in content
 
     eng_txt = engine.read_text()

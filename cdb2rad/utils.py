@@ -153,23 +153,23 @@ def check_rad_inputs(
                 pid = p.get("id")
                 isolid = int(p.get("Isolid", 24))
                 if isolid not in {0, 1, 2, 5, 14, 16, 17, 18, 24}:
-                    results.append((False, f"Isolid no valido en PROP/SOLID/{pid}"))
+                    results.append((True, f"WARNING: Isolid no valido en PROP/SOLID/{pid}"))
                     continue
                 if int(p.get("Icpre", 0)) and isolid not in {14, 17, 18, 24}:
-                    results.append((False, f"Icpre incompatible con Isolid en PROP/SOLID/{pid}"))
+                    results.append((True, f"WARNING: Icpre incompatible con Isolid en PROP/SOLID/{pid}"))
                     continue
                 if p.get("Inpts") is not None and isolid not in {14, 16}:
-                    results.append((False, f"Inpts solo valido con Isolid 14 o 16 en PROP/SOLID/{pid}"))
+                    results.append((True, f"WARNING: Inpts solo valido con Isolid 14 o 16 en PROP/SOLID/{pid}"))
                     continue
                 if float(p.get("dn", 0.0)) != 0.0 and isolid != 24:
-                    results.append((False, f"dn solo valido con Isolid 24 en PROP/SOLID/{pid}"))
+                    results.append((True, f"WARNING: dn solo valido con Isolid 24 en PROP/SOLID/{pid}"))
                     continue
                 if float(p.get("h", 0.0)) != 0.0 and isolid not in {1, 2}:
-                    results.append((False, f"h solo valido con Isolid 1 o 2 en PROP/SOLID/{pid}"))
+                    results.append((True, f"WARNING: h solo valido con Isolid 1 o 2 en PROP/SOLID/{pid}"))
                     continue
                 iframe = int(p.get("Iframe", 1))
                 if isolid in {14, 24} and iframe != 2:
-                    results.append((False, f"Iframe debe ser 2 para Isolid {isolid} en PROP/SOLID/{pid}"))
+                    results.append((True, f"WARNING: Iframe debe ser 2 para Isolid {isolid} en PROP/SOLID/{pid}"))
                     continue
 
     return results

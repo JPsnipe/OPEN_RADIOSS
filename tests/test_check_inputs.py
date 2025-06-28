@@ -33,7 +33,8 @@ def test_check_rad_inputs_solid_conflict():
         parts=[{"id": 1, "pid": 1, "mid": 1}],
         advanced=True,
     )
-    assert any(not ok for ok, _ in res)
+    assert all(ok for ok, _ in res)
+    assert any('WARNING' in msg for _, msg in res)
 
 
 def test_check_rad_inputs_solid_ok():

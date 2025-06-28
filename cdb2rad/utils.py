@@ -147,7 +147,7 @@ def check_rad_inputs(
                     results.append((False, f"Ishell no valido en PROP/SHELL/{pid}"))
                     continue
                 if any(float(p.get(k, 0.0)) != 0.0 for k in ("hm", "hf", "hr", "dm", "dn")) and ishell != 24:
-                    results.append((False, f"Parametros de hora solo validos con Ishell 24 en PROP/SHELL/{pid}"))
+                    results.append((True, f"WARNING: Parametros de hora solo validos con Ishell 24 en PROP/SHELL/{pid}"))
                     continue
             if p.get("type") == "SOLID":
                 pid = p.get("id")

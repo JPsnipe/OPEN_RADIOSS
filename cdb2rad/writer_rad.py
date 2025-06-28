@@ -185,13 +185,13 @@ def _write_begin(f, runname: str, unit_sys: str | None) -> None:
     f.write("/BEGIN\n")
     f.write(f"{runname}\n")
     if unit_sys == "SI":
-        f.write("      2017         0\n")
+        f.write("      2024         0\n")
         f.write("                  kg                  mm                  ms\n")
         f.write("                  kg                  mm                  ms\n")
     else:
-        f.write(f"        {DEFAULT_RAD_VERSION}\n")
-        f.write("                  1                  2                  3\n")
-        f.write("                  1                  2                  3\n")
+        f.write("      2024         0\n")
+        f.write("                  kg                  mm                  ms\n")
+        f.write("                  kg                  mm                  ms\n")
 
 def write_starter(
     nodes: Dict[int, List[float]],

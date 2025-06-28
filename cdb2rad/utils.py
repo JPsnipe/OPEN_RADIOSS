@@ -51,6 +51,65 @@ def element_summary(
     return etype_counts, keyword_counts
 
 
+def element_set_types(
+    elements: List[Tuple[int, int, List[int]]],
+    elem_sets: Dict[str, List[int]],
+    mapping_file: str | None = None,
+) -> Dict[str, Dict[str, int]]:
+    """Return Radioss keyword counts for each element set.
+
+    Parameters
+    ----------
+    elements : list of tuples
+        Sequence ``(eid, etype, node_ids)`` from :func:`parse_cdb`.
+    elem_sets : dict
+        Mapping ``{name: [elem_ids]}`` from :func:`parse_cdb`.
+    mapping_file : str, optional
+        Path to ``mapping.json``. When ``None`` uses the file next to this
+        module.
+
+    Returns
+    -------
+    dict
+        ``{set_name: {keyword: count}}`` mapping.
+    """
+
+    if mapping_file is None:
+        mapping_path = Path(__file__).with_name("mapping.json")
+    else:
+        mapping_path = Path(mapping_file)
+
+    with open(mapping_path, "r", encoding="utf-8") as mf:
+        mapping: Dict[str, str] = json.load(mf)
+
+    eid_map: Dict[int, tuple[int, int]] = {
+        eid: (etype, len(nids)) for eid, etype, nids in elements
+    }
+
+    result: Dict[str, Dict[str, int]] = {}
+    for name, ids in elem_sets.items():
+        counts: Dict[str, int] = {}
+        for eid in ids:
+            info = eid_map.get(eid)
+            if not info:
+                continue
+            etype, n = info
+            key = mapping.get(str(etype))
+            if not key:
+                if n in (4, 3):
+                    key = "SHELL"
+                elif n in (8, 20):
+                    key = "BRICK"
+                elif n in (4, 10):
+                    key = "TETRA"
+                else:
+                    key = "UNKNOWN"
+            counts[key] = counts.get(key, 0) + 1
+        result[name] = counts
+
+    return result
+
+
 def check_rad_inputs(
     use_cdb_mats: bool,
     materials: Dict[int, Dict[str, float]] | None,

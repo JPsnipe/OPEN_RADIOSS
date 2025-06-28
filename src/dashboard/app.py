@@ -256,6 +256,22 @@ def checkbox_input(label: str, value: int, key: str) -> int:
     return 1 if st.checkbox(label, value=bool(value), key=key) else 0
 
 
+def optional_number_input(label: str, value: float, key: str, **kwargs) -> float | None:
+    """Return numeric input ``label`` only when checkbox is selected.
+
+    The number input is disabled until the checkbox associated with ``label``
+    is marked. When unchecked, ``None`` is returned so the parameter is not
+    written to the ``.rad`` file.
+    """
+
+    use_param = st.checkbox(f"{label}", key=f"{key}_use")
+    return (
+        input_with_help(label, value, key, disabled=not use_param, **kwargs)
+        if use_param
+        else None
+    )
+
+
 def viewer_html(
 
     nodes: Dict[int, List[float]],
@@ -888,43 +904,20 @@ if file_path:
                                 key="prop_ishell",
                             )
                         )
-                        ip = int(
-                            st.number_input(
-                                "Iplas",
-                                value=1,
-                                step=1,
-                                key="prop_ip",
-                            )
-                        )
-                        ithick = int(
-                            st.number_input(
-                                "Ithick",
-                                value=1,
-                                step=1,
-                                key="prop_ithick",
-                            )
-                        )
-                        istr = int(
-                            st.number_input(
-                                "Istrain",
-                                value=0,
-                                step=1,
-                                key="prop_istrain",
-                            )
-                        )
-                        ashear = int(
-                            st.number_input(
-                                "Ashear",
-                                value=0,
-                                step=1,
-                                key="prop_ashear",
-                            )
-                        )
-                        hm = input_with_help("hm", 0.0, "prop_hm")
-                        hf = input_with_help("hf", 0.0, "prop_hf")
-                        hr = input_with_help("hr", 0.0, "prop_hr")
-                        dm = input_with_help("dm", 0.0, "prop_dm")
-                        dn = input_with_help("dn", 0.015, "prop_dn")
+                        ip = optional_number_input("Iplas", 1, "prop_ip")
+                        ithick = optional_number_input("Ithick", 1, "prop_ithick")
+                        istr = optional_number_input("Istrain", 0, "prop_istrain")
+                        ashear = optional_number_input("Ashear", 0, "prop_ashear")
+                        hm = hf = hr = None
+                        if ishell in {1, 2, 3, 4}:
+                            hm = optional_number_input("hm", 0.0, "prop_hm")
+                            hf = optional_number_input("hf", 0.0, "prop_hf")
+                            hr = optional_number_input("hr", 0.0, "prop_hr")
+                        dm = optional_number_input("dm", 0.0, "prop_dm")
+                        dn = None
+                        if ishell in {12, 24}:
+                            dn_default = 0.015 if ishell == 24 else 0.001
+                            dn = optional_number_input("dn", dn_default, "prop_dn")
                 elif ptype == "SOLID":
                     thick = None
                     with st.expander("Par\u00e1metros avanzados"):
@@ -937,14 +930,7 @@ if file_path:
                             )
                         )
                         ismstr = st.number_input("Ismstr", value=4, step=1, key="prop_ismstr")
-                        icpre = int(
-                            st.number_input(
-                                "Icpre",
-                                value=1,
-                                step=1,
-                                key="prop_icpre",
-                            )
-                        )
+                        icpre = optional_number_input("Icpre", 1, "prop_icpre")
                         iframe_default = 2 if isolid in {14, 24} else 1
                         iframe = int(
                             st.number_input(
@@ -956,46 +942,52 @@ if file_path:
                         )
                         inpts = None
                         if isolid in {14, 16}:
-                            inpts = st.number_input("Inpts", value=222, step=1, key="prop_inpts")
+                            inpts = optional_number_input("Inpts", 222, "prop_inpts")
                         qa = qb = None
                         if isolid in {1, 17}:
-                            qa = input_with_help("qa", 1.1, "prop_qa")
-                            qb = input_with_help("qb", 0.05, "prop_qb")
+                            qa = optional_number_input("qa", 1.1, "prop_qa")
+                            qb = optional_number_input("qb", 0.05, "prop_qb")
                         dn_s = None
                         if isolid == 24:
-                            dn_s = input_with_help("dn", 0.1, "prop_dn_s")
+                            dn_s = optional_number_input("dn", 0.1, "prop_dn_s")
                         h = None
                         if isolid in {1, 2}:
-                            h = input_with_help("h", 0.0, "prop_h")
+                            h = optional_number_input("h", 0.0, "prop_h")
                 else:
                     thick = None
                 if st.button("Añadir propiedad"):
                     data = {"id": int(pid), "name": pname, "type": ptype}
                     if ptype == "SHELL":
                         data["thickness"] = thick
-                        data.update(
-                            {
-                                "Ishell": int(ishell),
-                                "Iplas": int(ip),
-                                "Ithick": int(ithick),
-                                "Istrain": int(istr),
-                                "Ashear": int(ashear),
-                                "hm": float(hm),
-                                "hf": float(hf),
-                                "hr": float(hr),
-                                "dm": float(dm),
-                                "dn": float(dn),
-                            }
-                        )
+                        data["Ishell"] = int(ishell)
+                        if ip is not None:
+                            data["Iplas"] = int(ip)
+                        if ithick is not None:
+                            data["Ithick"] = int(ithick)
+                        if istr is not None:
+                            data["Istrain"] = int(istr)
+                        if ashear is not None:
+                            data["Ashear"] = int(ashear)
+                        if hm is not None:
+                            data["hm"] = float(hm)
+                        if hf is not None:
+                            data["hf"] = float(hf)
+                        if hr is not None:
+                            data["hr"] = float(hr)
+                        if dm is not None:
+                            data["dm"] = float(dm)
+                        if dn is not None:
+                            data["dn"] = float(dn)
                     elif ptype == "SOLID":
                         data.update(
                             {
                                 "Isolid": int(isolid),
                                 "Ismstr": int(ismstr),
-                                "Icpre": int(icpre),
                                 "Iframe": int(iframe),
                             }
                         )
+                        if icpre is not None:
+                            data["Icpre"] = int(icpre)
                         if inpts is not None:
                             data["Inpts"] = int(inpts)
                         if qa is not None:

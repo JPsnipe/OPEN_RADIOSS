@@ -72,7 +72,7 @@ def test_write_rad(tmp_path):
     assert content.startswith('#RADIOSS STARTER')
     assert '/BEGIN' in content
     assert '/END' in content
-    assert '100000.0' in content
+    assert '200000.0' in content
     assert '2024         0' not in content
     assert '2024' in content
     assert '1                  2                  3' in content

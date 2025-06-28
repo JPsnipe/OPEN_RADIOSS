@@ -178,13 +178,15 @@ DEFAULT_PROPERTIES = {
         "type": "SOLID",
 
         # Valores por defecto según la ayuda de Radioss
-        #   Isolid=1: formulación co-rotacional
-        #   Ismstr=2: deformaciones medias
-        #   Icpre=1: horquilla recomendada
+        #   Isolid=0: formulación clásica
+        #   Ismstr=1: tensiones plenas
+        #   Icpre=0: sin pre-cálculo
+        #   Itetra4=1000: control de deformación
         #   Iframe=0: sin rotación adicional
-        "Isolid": 1,
-        "Ismstr": 2,
-        "Icpre": 1,
+        "Isolid": 0,
+        "Ismstr": 1,
+        "Icpre": 0,
+        "Itetra4": 1000,
         "Iframe": 0,
 
     },

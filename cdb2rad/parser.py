@@ -143,6 +143,9 @@ def parse_cdb(filepath: str) -> Tuple[
                 try:
                     mid = int(parts[2])
                     prop = parts[3]
+                    if prop.strip().upper() in {"UMID", "UVID"}:
+                        i += 1
+                        continue
                     vals = [float(v) for v in parts[6:] if v]
                     if vals:
                         materials.setdefault(mid, {})[prop] = vals[0]

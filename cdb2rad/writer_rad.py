@@ -530,14 +530,22 @@ def write_starter(
                 for nid, wt in rb.get('independent', []):
                     f.write(f"   {nid}     {wt}\n")
 
+        all_subsets: Dict[str, List[int]] = dict(subsets or {})
+
         if parts:
             check_mats = None if not all_mats and default_material else all_mats
             mapped_parts = _map_parts(parts, mid_map, check_mats)
-            subset_map: Dict[str, int] = (
-                {n: i for i, n in enumerate(subsets.keys(), start=1)}
-                if subsets
-                else {}
-            )
+
+            used_sets = {p.get("set") for p in mapped_parts if p.get("set")}
+            auto_subsets = {
+                name: (elem_sets or {}).get(name, [])
+                for name in used_sets
+                if name not in all_subsets
+            }
+            all_subsets.update(auto_subsets)
+            subset_map: Dict[str, int] = {
+                n: i for i, n in enumerate(all_subsets.keys(), start=1)
+            }
 
             for p in mapped_parts:
                 pid = int(p.get("id", 1))
@@ -617,8 +625,8 @@ def write_starter(
                     f.write(f"{pname}\n")
                     f.write("# property parameters not defined\n")
 
-        if subsets:
-            for idx, (name, ids) in enumerate(subsets.items(), start=1):
+        if all_subsets:
+            for idx, (name, ids) in enumerate(all_subsets.items(), start=1):
                 f.write(f"/SUBSET/{idx}\n")
                 f.write(f"{name}\n")
                 line: List[str] = []
@@ -1178,14 +1186,23 @@ def write_rad(
 
         # 6. PARTS AND PROPERTIES
 
+        all_subsets: Dict[str, List[int]] = dict(subsets or {})
+
         if parts:
             check_mats = None if not all_mats and default_material else all_mats
             mapped_parts = _map_parts(parts, mid_map, check_mats)
-            subset_map: Dict[str, int] = (
-                {n: i for i, n in enumerate(subsets.keys(), start=1)}
-                if subsets
-                else {}
-            )
+
+            used_sets = {p.get("set") for p in mapped_parts if p.get("set")}
+            auto_subsets = {
+                name: (elem_sets or {}).get(name, [])
+                for name in used_sets
+                if name not in all_subsets
+            }
+            all_subsets.update(auto_subsets)
+            subset_map: Dict[str, int] = {
+                n: i for i, n in enumerate(all_subsets.keys(), start=1)
+            }
+
             for p in mapped_parts:
                 pid = int(p.get("id", 1))
                 name = p.get("name", f"PART_{pid}")
@@ -1273,8 +1290,8 @@ def write_rad(
                     f.write(f"{pname}\n")
                     f.write("# property parameters not defined\n")
 
-        if subsets:
-            for idx, (name, ids) in enumerate(subsets.items(), start=1):
+        if all_subsets:
+            for idx, (name, ids) in enumerate(all_subsets.items(), start=1):
                 f.write(f"/SUBSET/{idx}\n")
                 f.write(f"{name}\n")
                 line: List[str] = []

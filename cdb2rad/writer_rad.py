@@ -1214,7 +1214,7 @@ def write_rad(
                 f.write(f"/PART/{pid}\n")
                 f.write(f"{name}\n")
                 f.write(
-                    f"         {prop_id}         {mat_id}         {subset_id}         {thick_val}\n"
+                    f"         {prop_id}         {mat_id}         {subset_id}         \n"
                 )
 
         if properties:

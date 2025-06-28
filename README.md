@@ -13,9 +13,10 @@ Ansys a un *input deck* compatible con OpenRadioss.
    selecciones y los materiales se exportan en formato Radioss.
 4. Crea ``model_0000.rad`` que referencia ``mesh.inc`` mediante ``#include`` y define propiedades,
    materiales, condiciones de contorno y ejemplos de contacto y carga.
-5. Los grupos de elementos asignados a una parte se convierten
-   automáticamente en ``/SUBSET`` para que el ``subset_ID`` de ``/PART``
-   refleje el conjunto seleccionado en el dashboard.
+5. Los grupos de elementos asignados a una parte se pueden convertir en
+   ``/SUBSET`` para que el ``subset_ID`` de ``/PART`` apunte al conjunto
+   deseado. En el *dashboard* esta conversión solo se realiza si el usuario
+   define los subsets en la sección de grupos.
 
 ## Entrada requerida
 

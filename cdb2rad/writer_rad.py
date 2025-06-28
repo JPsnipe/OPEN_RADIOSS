@@ -216,6 +216,7 @@ def write_starter(
     properties: List[Dict[str, Any]] | None = None,
     parts: List[Dict[str, Any]] | None = None,
     subsets: Dict[str, List[int]] | None = None,
+    auto_subsets: bool = True,
     default_material: bool = True,
     unit_sys: str | None = None,
 ) -> None:
@@ -223,6 +224,8 @@ def write_starter(
 
     ``unit_sys`` can be set to ``"SI"`` to output the ``/BEGIN`` card with
     kilogram--millimeter--millisecond units as used in legacy examples.
+    Set ``auto_subsets=False`` to avoid generar automatically ``/SUBSET`` cards
+    from element groups referenced in ``parts``.
     """
 
     all_mats, mid_map = _merge_materials(materials, extra_materials)
@@ -536,13 +539,15 @@ def write_starter(
             check_mats = None if not all_mats and default_material else all_mats
             mapped_parts = _map_parts(parts, mid_map, check_mats)
 
-            used_sets = {p.get("set") for p in mapped_parts if p.get("set")}
-            auto_subsets = {
-                name: (elem_sets or {}).get(name, [])
-                for name in used_sets
-                if name not in all_subsets
-            }
-            all_subsets.update(auto_subsets)
+            if auto_subsets:
+                used_sets = {p.get("set") for p in mapped_parts if p.get("set")}
+                auto_subsets_dict = {
+                    name: (elem_sets or {}).get(name, [])
+                    for name in used_sets
+                    if name not in all_subsets
+                }
+                all_subsets.update(auto_subsets_dict)
+
             subset_map: Dict[str, int] = {
                 n: i for i, n in enumerate(all_subsets.keys(), start=1)
             }
@@ -800,6 +805,7 @@ def write_rad(
     properties: List[Dict[str, Any]] | None = None,
     parts: List[Dict[str, Any]] | None = None,
     subsets: Dict[str, List[int]] | None = None,
+    auto_subsets: bool = True,
     include_run: bool = True,
     default_material: bool = True,
     unit_sys: str | None = None,
@@ -816,7 +822,9 @@ def write_rad(
     skip control cards like ``/RUN`` and ``/STOP``. Set ``default_material``
     to ``False`` to avoid inserting a placeholder material when none are
     provided. ``unit_sys`` behaves like the same argument in
-    :func:`write_starter` and customizes the ``/BEGIN`` block.
+    :func:`write_starter` and customizes the ``/BEGIN`` block. Use
+    ``auto_subsets=False`` to skip the automatic creation of ``/SUBSET`` cards
+    from element groups when ``parts`` reference them.
     """
 
     all_mats, mid_map = _merge_materials(materials, extra_materials)
@@ -1192,13 +1200,15 @@ def write_rad(
             check_mats = None if not all_mats and default_material else all_mats
             mapped_parts = _map_parts(parts, mid_map, check_mats)
 
-            used_sets = {p.get("set") for p in mapped_parts if p.get("set")}
-            auto_subsets = {
-                name: (elem_sets or {}).get(name, [])
-                for name in used_sets
-                if name not in all_subsets
-            }
-            all_subsets.update(auto_subsets)
+            if auto_subsets:
+                used_sets = {p.get("set") for p in mapped_parts if p.get("set")}
+                auto_subsets_dict = {
+                    name: (elem_sets or {}).get(name, [])
+                    for name in used_sets
+                    if name not in all_subsets
+                }
+                all_subsets.update(auto_subsets_dict)
+
             subset_map: Dict[str, int] = {
                 n: i for i, n in enumerate(all_subsets.keys(), start=1)
             }

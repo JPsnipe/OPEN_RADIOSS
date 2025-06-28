@@ -578,11 +578,11 @@ def write_starter(
                     ismstr = int(prop.get("Ismstr", 4))
                     icpre = int(prop.get("Icpre", 1))
                     iframe = int(prop.get("Iframe", 1))
-                    inpts = int(prop.get("Inpts", 222))
-                    qa = float(prop.get("qa", 1.1))
-                    qb = float(prop.get("qb", 0.05))
-                    dn = float(prop.get("dn", 0.1))
-                    h = float(prop.get("h", 0.0))
+                    inpts = prop.get("Inpts")
+                    qa = prop.get("qa")
+                    qb = prop.get("qb")
+                    dn = prop.get("dn")
+                    h = prop.get("h")
 
                     f.write(f"/PROP/SOLID/{pid}\n")
                     f.write(f"{pname}\n")
@@ -590,10 +590,26 @@ def write_starter(
                     f.write(
                         f"       {isol}        {ismstr}        {icpre}        {iframe}\n"
                     )
-                    f.write("#  Inpts       qa        qb        dn         h\n")
-                    f.write(
-                        f"   {inpts:5d}   {qa:<8g}   {qb:<8g}   {dn:<8g}   {h:<8g}\n"
-                    )
+                    headers = []
+                    values = []
+                    if inpts is not None:
+                        headers.append("Inpts")
+                        values.append(f"{int(inpts):5d}")
+                    if qa is not None:
+                        headers.append("qa")
+                        values.append(f"{float(qa):<8g}")
+                    if qb is not None:
+                        headers.append("qb")
+                        values.append(f"{float(qb):<8g}")
+                    if dn is not None:
+                        headers.append("dn")
+                        values.append(f"{float(dn):<8g}")
+                    if h is not None and float(h) != 0.0:
+                        headers.append("h")
+                        values.append(f"{float(h):<8g}")
+                    if headers:
+                        f.write("#  " + "        ".join(headers) + "\n")
+                        f.write("   " + "   ".join(values) + "\n")
                 else:
                     f.write(f"/PROP/{ptype}/{pid}\n")
                     f.write(f"{pname}\n")
@@ -1208,11 +1224,11 @@ def write_rad(
                     ismstr = int(prop.get("Ismstr", 4))
                     icpre = int(prop.get("Icpre", 1))
                     iframe = int(prop.get("Iframe", 1))
-                    inpts = int(prop.get("Inpts", 222))
-                    qa = float(prop.get("qa", 1.1))
-                    qb = float(prop.get("qb", 0.05))
-                    dn = float(prop.get("dn", 0.1))
-                    h = float(prop.get("h", 0.0))
+                    inpts = prop.get("Inpts")
+                    qa = prop.get("qa")
+                    qb = prop.get("qb")
+                    dn = prop.get("dn")
+                    h = prop.get("h")
 
                     f.write(f"/PROP/SOLID/{pid}\n")
                     f.write(f"{pname}\n")
@@ -1220,10 +1236,26 @@ def write_rad(
                     f.write(
                         f"       {isol}        {ismstr}        {icpre}        {iframe}\n"
                     )
-                    f.write("#  Inpts       qa        qb        dn         h\n")
-                    f.write(
-                        f"   {inpts:5d}   {qa:<8g}   {qb:<8g}   {dn:<8g}   {h:<8g}\n"
-                    )
+                    headers = []
+                    values = []
+                    if inpts is not None:
+                        headers.append("Inpts")
+                        values.append(f"{int(inpts):5d}")
+                    if qa is not None:
+                        headers.append("qa")
+                        values.append(f"{float(qa):<8g}")
+                    if qb is not None:
+                        headers.append("qb")
+                        values.append(f"{float(qb):<8g}")
+                    if dn is not None:
+                        headers.append("dn")
+                        values.append(f"{float(dn):<8g}")
+                    if h is not None and float(h) != 0.0:
+                        headers.append("h")
+                        values.append(f"{float(h):<8g}")
+                    if headers:
+                        f.write("#  " + "        ".join(headers) + "\n")
+                        f.write("   " + "   ".join(values) + "\n")
                 else:
                     f.write(f"/PROP/{ptype}/{pid}\n")
                     f.write(f"{pname}\n")

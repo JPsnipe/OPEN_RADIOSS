@@ -596,32 +596,33 @@ def build_rad_text(
     if not use_default_mat and st.session_state.get("parts"):
         # Insert a generic LAW1 block when parts exist but no materials
         use_default_mat = True
-    write_starter(
-        all_nodes,
-        elements,
-        buf0,
-        mesh_inc="mesh.inc",
-        include_inc=include_inc,
-        node_sets=all_node_sets,
-        elem_sets=all_elem_sets,
-        materials=materials if use_cdb_mats else None,
-        extra_materials=extra,
-        default_material=use_default_mat,
-        runname=runname,
-        unit_sys=st.session_state.get("unit_sys", UNIT_OPTIONS[0]),
-        boundary_conditions=st.session_state.get("bcs"),
-        interfaces=st.session_state.get("interfaces"),
-        rbody=st.session_state.get("rbodies"),
-        rbe2=st.session_state.get("rbe2"),
-        rbe3=st.session_state.get("rbe3"),
-        init_velocity=st.session_state.get("init_vel"),
-        gravity=st.session_state.get("gravity"),
-        properties=st.session_state.get("properties"),
-        parts=st.session_state.get("parts"),
-        subsets=st.session_state.get("subsets"),
-        auto_subsets=False,
-        auto_parts=False,
-    )
+        write_starter(
+            all_nodes,
+            elements,
+            buf0,
+            mesh_inc="mesh.inc",
+            include_inc=include_inc,
+            node_sets=all_node_sets,
+            elem_sets=all_elem_sets,
+            materials=materials if use_cdb_mats else None,
+            extra_materials=extra,
+            default_material=use_default_mat,
+            runname=runname,
+            unit_sys=st.session_state.get("unit_sys", UNIT_OPTIONS[0]),
+            boundary_conditions=st.session_state.get("bcs"),
+            interfaces=st.session_state.get("interfaces"),
+            rbody=st.session_state.get("rbodies"),
+            rbe2=st.session_state.get("rbe2"),
+            rbe3=st.session_state.get("rbe3"),
+            init_velocity=st.session_state.get("init_vel"),
+            gravity=st.session_state.get("gravity"),
+            properties=st.session_state.get("properties"),
+            parts=st.session_state.get("parts"),
+            subsets=st.session_state.get("subsets"),
+            auto_subsets=False,
+            auto_properties=False,
+            auto_parts=False,
+        )
     starter_text = buf0.getvalue()
 
     buf1 = StringIO()
@@ -1866,6 +1867,7 @@ if file_path:
                         parts=st.session_state.get("parts"),
                         subsets=st.session_state.get("subsets"),
                         auto_subsets=False,
+                        auto_properties=False,
                         auto_parts=False,
                     )
                 try:

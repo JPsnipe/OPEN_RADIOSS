@@ -499,9 +499,12 @@ def build_rad_text(
     elements: List[Tuple[int, int, List[int]]],
     node_sets: Dict[str, List[int]],
     elem_sets: Dict[str, List[int]],
-    materials: Dict[int, Dict[str, float]],
+    materials: Dict[int, Dict[str, float]] | None = None,
 ) -> tuple[str, str]:
     """Return starter and engine text built from current session state."""
+
+    if materials is None:
+        materials = st.session_state.get("cdb_materials", {})
 
     extra_nodes = {
         rp["id"]: list(rp["coords"])
@@ -731,6 +734,7 @@ if file_path:
     if "subsets" not in st.session_state:
         st.session_state["subsets"] = {}
     nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
+    st.session_state["cdb_materials"] = materials
 
     info_tab, preview_tab, inp_tab, rad_tab, editor_tab, help_tab = st.tabs(
         [
@@ -1932,7 +1936,6 @@ if file_path:
             elements,
             node_sets,
             elem_sets,
-            materials,
         )
 
         auto_upd = st.checkbox(

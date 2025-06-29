@@ -592,6 +592,10 @@ def build_rad_text(
         adyrel_stop = ctrl.get("adyrel_stop", adyrel_stop)
 
     buf0 = StringIO()
+    use_default_mat = use_cdb_mats or use_impact
+    if not use_default_mat and st.session_state.get("parts"):
+        # Insert a generic LAW1 block when parts exist but no materials
+        use_default_mat = True
     write_starter(
         all_nodes,
         elements,
@@ -602,7 +606,7 @@ def build_rad_text(
         elem_sets=all_elem_sets,
         materials=materials if use_cdb_mats else None,
         extra_materials=extra,
-        default_material=use_cdb_mats or use_impact,
+        default_material=use_default_mat,
         runname=runname,
         unit_sys=st.session_state.get("unit_sys", UNIT_OPTIONS[0]),
         boundary_conditions=st.session_state.get("bcs"),
@@ -1827,6 +1831,9 @@ if file_path:
                 if not include_inc:
                     write_mesh_inc(all_nodes, elements, str(mesh_path), node_sets=all_node_sets)
                 all_elem_sets = {**elem_sets, **st.session_state.get("subsets", {})}
+                use_default_mat = use_cdb_mats or use_impact
+                if not use_default_mat and st.session_state.get("parts"):
+                    use_default_mat = True
                 write_starter(
                         all_nodes,
                         elements,
@@ -1837,7 +1844,7 @@ if file_path:
                         elem_sets=all_elem_sets,
                         materials=materials if use_cdb_mats else None,
                         extra_materials=extra,
-                        default_material=use_cdb_mats or use_impact,
+                        default_material=use_default_mat,
                         runname=runname,
                         unit_sys=unit_sel,
 

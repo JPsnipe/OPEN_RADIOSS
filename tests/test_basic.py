@@ -305,6 +305,15 @@ def test_write_rad_no_materials(tmp_path):
     assert '/MAT/' not in text
 
 
+def test_write_rad_auto_parts(tmp_path):
+    nodes, elements, _, _, mats = parse_cdb(DATA)
+    rad = tmp_path / 'auto_0000.rad'
+    write_starter(nodes, elements, str(rad), materials=mats)
+    txt = rad.read_text()
+    assert '/PROP/' in txt
+    assert '/PART/1' in txt
+
+
 def test_write_rad_skip_controls(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
     starter = tmp_path / 'skip_0000.rad'

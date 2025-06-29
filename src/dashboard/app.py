@@ -130,6 +130,10 @@ from cdb2rad.writer_rad import (
     DEFAULT_STOP_NTH,
     DEFAULT_STOP_NANIM,
     DEFAULT_STOP_NERR,
+    DEFAULT_SHELL_ANIM_DT,
+    DEFAULT_BRICK_ANIM_DT,
+    DEFAULT_HISNODA_DT,
+    DEFAULT_RFILE_DT,
     DEFAULT_THICKNESS,
 )
 from cdb2rad.writer_inc import write_mesh_inc

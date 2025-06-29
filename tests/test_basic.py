@@ -73,7 +73,7 @@ def test_write_rad(tmp_path):
     assert '/BEGIN' in content
     assert '/END' in content
     assert '200000.0' in content
-    assert '2022         0' not in content
+    assert '2022         0' in content
     assert '2022' in content
     assert '1                  2                  3' in content
 
@@ -450,7 +450,7 @@ def test_write_starter_si_units(tmp_path):
         unit_sys="SI",
     )
     txt = rad.read_text()
-    assert '2017         0' in txt
+    assert '2022         0' in txt
     assert 'kg                  mm                  ms' in txt
 
 

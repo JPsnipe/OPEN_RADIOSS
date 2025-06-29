@@ -25,20 +25,48 @@ _BASIC_ELEMS = [(1, 2, [1, 2, 3, 4])]
 
 
 def _extract_block(text: str, start: str) -> str:
+    """Return a short snippet starting at ``start`` until the next keyword."""
+
     lines = text.splitlines()
     out: List[str] = []
     capture = False
-    for ln in lines:
+    skipping = False
+
+    for i, ln in enumerate(lines):
         if ln.startswith(start):
             capture = True
-        if capture:
-            if ln.startswith("/GRNOD") or ln.startswith("/SET") or ln.startswith("/SUBSET"):
+        if not capture:
+            continue
+
+        if skipping:
+            if ln.startswith("/FRICTION"):
+                out.append("...")
                 out.append(ln)
+                if i + 1 < len(lines):
+                    out.append(lines[i + 1])
                 out.append("...")
                 break
-            out.append(ln)
-            if ln.startswith("/") and not ln.startswith(start) and not ln.startswith("#"):
-                break
+            continue
+
+        out.append(ln)
+
+        if ln.startswith("/GRNOD") or ln.startswith("/SET") or ln.startswith("/SUBSET"):
+            skipping = True
+            continue
+
+        if ln.startswith("/FRICTION"):
+            if i + 1 < len(lines):
+                out.append(lines[i + 1])
+            out.append("...")
+            break
+
+        if (
+            ln.startswith("/")
+            and not ln.startswith(start)
+            and not ln.startswith("#")
+        ):
+            break
+
     return "\n".join(out)
 
 

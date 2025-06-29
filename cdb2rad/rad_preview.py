@@ -63,6 +63,7 @@ def _extract_block(text: str, start: str) -> str:
         if (
             ln.startswith("/")
             and not ln.startswith(start)
+            and not ln.startswith("/FAIL")
             and not ln.startswith("#")
         ):
             break

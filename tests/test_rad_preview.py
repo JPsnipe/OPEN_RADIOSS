@@ -13,3 +13,23 @@ def test_preview_part_no_material():
     txt = rad_preview.preview_part(part)
     assert "/PART/1" in txt
     assert "P1" in txt
+
+
+
+def test_preview_bc_types():
+    bc_fix = {"type": "BCS", "name": "Fix", "tra": "111", "rot": "111"}
+    txt_fix = rad_preview.preview_bc(bc_fix)
+    assert "/BCS/1" in txt_fix
+    assert "Fix" in txt_fix
+
+    bc_motion = {
+        "type": "PRESCRIBED_MOTION",
+        "name": "Move",
+        "dir": 1,
+        "value": 5.0,
+        "nodes": [1],
+    }
+    txt_mov = rad_preview.preview_bc(bc_motion)
+    assert "/BOUNDARY/PRESCRIBED_MOTION/1" in txt_mov
+    assert "Move" in txt_mov
+

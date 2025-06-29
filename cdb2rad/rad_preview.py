@@ -91,7 +91,8 @@ def preview_bc(bc: Dict[str, Any]) -> str:
         include_inc=False,
         default_material=False,
     )
-    key = "/BOUNDARY" if bc.get("type") else "/BCS/"
+    bc_type = str(bc.get("type", "BCS")).upper()
+    key = "/BOUNDARY" if bc_type != "BCS" else "/BCS/"
     return _extract_block(buf.getvalue(), key)
 
 

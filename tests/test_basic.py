@@ -3,7 +3,6 @@ from cdb2rad.parser import parse_cdb
 from cdb2rad.writer_inc import write_mesh_inc
 from cdb2rad.writer_rad import write_starter, write_engine
 from cdb2rad.utils import element_summary, element_set_etypes
-from cdb2rad.material_defaults import apply_default_materials
 
 DATA = os.path.join(os.path.dirname(__file__), '..', 'data', 'model.cdb')
 

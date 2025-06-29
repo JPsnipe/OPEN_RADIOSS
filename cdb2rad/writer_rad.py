@@ -571,7 +571,6 @@ def write_starter(
                 mat_id = int(p.get("mid", 1))
                 set_name = p.get("set")
                 subset_id = subset_map.get(str(set_name), 0) if set_name else 0
-                thick_val = float(p.get("thick", 0.0))
 
                 f.write(f"/PART/{pid}\n")
                 f.write(f"{name}\n")
@@ -1108,8 +1107,14 @@ def write_rad(
                         f.write(f"  {alpha}   {beta}   {m}   {n_fail}\n")
                     elif ftype:
                         f.write(f"/FAIL/{ftype}/{mid}\n")
-                        f.write(f"{fname}\n")
-                        vals = [str(v) for k, v in fail.items() if k not in {"TYPE", "NAME"}]
+                        fname = fail.get("NAME")
+                        if fname:
+                            f.write(f"{fname}\n")
+                        vals = [
+                            str(v)
+                            for k, v in fail.items()
+                            if k not in {"TYPE", "NAME"}
+                        ]
                         if vals:
                             f.write(" ".join(vals) + "\n")
 
@@ -1245,7 +1250,6 @@ def write_rad(
                 mat_id = int(p.get("mid", 1))
                 set_name = p.get("set")
                 subset_id = subset_map.get(str(set_name), 0) if set_name else 0
-                thick_val = float(p.get("thick", 0.0))
                 f.write(f"/PART/{pid}\n")
                 f.write(f"{name}\n")
                 f.write(

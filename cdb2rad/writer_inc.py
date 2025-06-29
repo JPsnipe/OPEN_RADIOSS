@@ -3,6 +3,7 @@
 from typing import Dict, List, Tuple
 import json
 from pathlib import Path
+import os
 
 # Material definitions used to be written here, which duplicated them between
 # ``mesh.inc`` and the starter file.  That logic now lives in ``writer_rad``,
@@ -82,3 +83,5 @@ def write_mesh_inc(
         # They are instead handled exclusively by ``writer_rad`` when
         # generating the starter.  The ``materials`` argument is kept for
         # backward compatibility but is ignored.
+
+    os.chmod(outfile, 0o644)

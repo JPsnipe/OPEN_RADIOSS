@@ -36,6 +36,11 @@ def main() -> None:
         action="store_true",
         help="Do not insert a default material when none are provided",
     )
+    parser.add_argument(
+        "--no-cdb-materials",
+        action="store_true",
+        help="Ignore material definitions extracted from the .cdb file",
+    )
 
     args = parser.parse_args()
 
@@ -53,7 +58,7 @@ def main() -> None:
             args.inc,
             node_sets=node_sets,
             elem_sets=elem_sets,
-            materials=materials,
+            materials=None if args.no_cdb_materials else materials,
         )
     if args.starter:
         write_starter(
@@ -64,7 +69,7 @@ def main() -> None:
             include_inc=not args.skip_include,
             node_sets=node_sets,
             elem_sets=elem_sets,
-            materials=materials,
+            materials=None if args.no_cdb_materials else materials,
             default_material=not args.no_default_material,
         )
     if args.engine:

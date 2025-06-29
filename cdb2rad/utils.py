@@ -217,7 +217,8 @@ def check_rad_inputs(
         used = {pt.get("set") for pt in parts or [] if pt.get("set")}
         unused = [name for name in subsets.keys() if name not in used]
         for sub in unused:
-            results.append((False, f"Subset sin uso: {sub}"))
+            # Unused subsets should not fail the check; report as a warning
+            results.append((True, f"WARNING: Subset sin uso: {sub}"))
 
     # 6. Node set existence
     if bcs and node_sets and nodes:

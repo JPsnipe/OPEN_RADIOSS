@@ -4,6 +4,7 @@ import sys
 import json
 import math
 import subprocess
+from io import StringIO
 from typing import Dict, List, Tuple, Optional, Set
 
 # Ensure repository root is on the Python path before importing local modules
@@ -489,6 +490,159 @@ def load_cdb(path: str):
     return parse_cdb(path)
 
 
+def build_rad_text(
+    nodes: Dict[int, List[float]],
+    elements: List[Tuple[int, int, List[int]]],
+    node_sets: Dict[str, List[int]],
+    elem_sets: Dict[str, List[int]],
+    materials: Dict[int, Dict[str, float]],
+) -> tuple[str, str]:
+    """Return starter and engine text built from current session state."""
+
+    extra_nodes = {
+        rp["id"]: list(rp["coords"])
+        for rp in st.session_state.get("remote_points", [])
+    }
+    all_nodes = {**nodes, **extra_nodes}
+
+    extra_sets = {
+        f"REMOTE_{rp['id']}": [rp['id']] for rp in st.session_state.get("remote_points", [])
+    }
+    all_node_sets = {**node_sets, **extra_sets}
+    all_elem_sets = {**elem_sets, **st.session_state.get("subsets", {})}
+
+    part_node_sets: Dict[str, List[int]] = {}
+    for part in st.session_state.get("parts", []):
+        set_name = part.get("set")
+        eids = all_elem_sets.get(set_name, [])
+        nodes_in_part = {
+            nid for eid, _et, ns in elements if eid in eids for nid in ns
+        }
+        if nodes_in_part:
+            part_node_sets[part["name"]] = sorted(nodes_in_part)
+    all_node_sets.update(part_node_sets)
+
+    use_cdb_mats = st.session_state.get("Incluir materiales del CDB", False)
+    use_impact = st.session_state.get("Incluir materiales de impacto", False)
+    include_inc = st.session_state.get("include_inc_rad", True)
+
+    extra = None
+    if use_impact and st.session_state.get("impact_materials"):
+        extra = {
+            m["id"]: {k: v for k, v in m.items() if k != "id"}
+            for m in st.session_state["impact_materials"]
+        }
+
+    ctrl = st.session_state.get("control_settings")
+    runname = DEFAULT_RUNNAME
+    t_end = DEFAULT_FINAL_TIME
+    t_init = 0.0
+    anim_dt = DEFAULT_ANIM_DT
+    shell_anim_dt = DEFAULT_SHELL_ANIM_DT
+    brick_anim_dt = DEFAULT_BRICK_ANIM_DT
+    tfile_dt = DEFAULT_HISTORY_DT
+    hisnoda_dt = DEFAULT_HISNODA_DT
+    dt_ratio = DEFAULT_DT_RATIO
+    rfile_dt = DEFAULT_RFILE_DT
+    print_n = DEFAULT_PRINT_N
+    print_line = DEFAULT_PRINT_LINE
+    rfile_cycle = None
+    rfile_n = None
+    out_ascii = False
+    h3d_dt = None
+    stop_emax = DEFAULT_STOP_EMAX
+    stop_mmax = DEFAULT_STOP_MMAX
+    stop_nmax = DEFAULT_STOP_NMAX
+    stop_nth = DEFAULT_STOP_NTH
+    stop_nanim = DEFAULT_STOP_NANIM
+    stop_nerr = DEFAULT_STOP_NERR
+    adyrel_start = None
+    adyrel_stop = None
+    if ctrl:
+        runname = ctrl.get("runname", runname)
+        t_end = ctrl.get("t_end", t_end)
+        t_init = ctrl.get("t_init", t_init)
+        anim_dt = ctrl.get("anim_dt", anim_dt)
+        shell_anim_dt = ctrl.get("shell_anim_dt", shell_anim_dt)
+        brick_anim_dt = ctrl.get("brick_anim_dt", brick_anim_dt)
+        tfile_dt = ctrl.get("tfile_dt", tfile_dt)
+        hisnoda_dt = ctrl.get("hisnoda_dt", hisnoda_dt)
+        dt_ratio = ctrl.get("dt_ratio", dt_ratio)
+        rfile_dt = ctrl.get("rfile_dt", rfile_dt)
+        print_n = ctrl.get("print_n", print_n)
+        print_line = ctrl.get("print_line", print_line)
+        rfile_cycle = ctrl.get("rfile_cycle", rfile_cycle)
+        rfile_n = ctrl.get("rfile_n", rfile_n)
+        out_ascii = ctrl.get("out_ascii", out_ascii)
+        h3d_dt = ctrl.get("h3d_dt", h3d_dt)
+        stop_emax = ctrl.get("stop_emax", stop_emax)
+        stop_mmax = ctrl.get("stop_mmax", stop_mmax)
+        stop_nmax = ctrl.get("stop_nmax", stop_nmax)
+        stop_nth = ctrl.get("stop_nth", stop_nth)
+        stop_nanim = ctrl.get("stop_nanim", stop_nanim)
+        stop_nerr = ctrl.get("stop_nerr", stop_nerr)
+        adyrel_start = ctrl.get("adyrel_start", adyrel_start)
+        adyrel_stop = ctrl.get("adyrel_stop", adyrel_stop)
+
+    buf0 = StringIO()
+    write_starter(
+        all_nodes,
+        elements,
+        buf0,
+        mesh_inc="mesh.inc",
+        include_inc=include_inc,
+        node_sets=all_node_sets,
+        elem_sets=all_elem_sets,
+        materials=materials if use_cdb_mats else None,
+        extra_materials=extra,
+        runname=runname,
+        unit_sys=st.session_state.get("unit_sys", UNIT_OPTIONS[0]),
+        boundary_conditions=st.session_state.get("bcs"),
+        interfaces=st.session_state.get("interfaces"),
+        rbody=st.session_state.get("rbodies"),
+        rbe2=st.session_state.get("rbe2"),
+        rbe3=st.session_state.get("rbe3"),
+        init_velocity=st.session_state.get("init_vel"),
+        gravity=st.session_state.get("gravity"),
+        properties=st.session_state.get("properties"),
+        parts=st.session_state.get("parts"),
+        subsets=st.session_state.get("subsets"),
+        auto_subsets=False,
+    )
+    starter_text = buf0.getvalue()
+
+    buf1 = StringIO()
+    write_engine(
+        buf1,
+        runname=runname,
+        t_end=t_end,
+        t_init=t_init,
+        anim_dt=anim_dt,
+        shell_anim_dt=shell_anim_dt,
+        brick_anim_dt=brick_anim_dt,
+        tfile_dt=tfile_dt,
+        hisnoda_dt=hisnoda_dt,
+        dt_ratio=dt_ratio,
+        rfile_dt=rfile_dt,
+        print_n=int(print_n) if print_n is not None else None,
+        print_line=int(print_line) if print_line is not None else None,
+        rfile_cycle=int(rfile_cycle) if rfile_cycle else None,
+        rfile_n=int(rfile_n) if rfile_n else None,
+        out_ascii=out_ascii,
+        h3d_dt=h3d_dt if (h3d_dt is not None and h3d_dt > 0) else None,
+        stop_emax=stop_emax,
+        stop_mmax=stop_mmax,
+        stop_nmax=stop_nmax,
+        stop_nth=int(stop_nth),
+        stop_nanim=int(stop_nanim),
+        stop_nerr=int(stop_nerr),
+        adyrel=(adyrel_start, adyrel_stop),
+    )
+    engine_text = buf1.getvalue()
+
+    return starter_text, engine_text
+
+
 SDEA_BLUE = "#1989FB"
 SDEA_ORANGE = "#FFBC7D"
 SDEA_DARK = "#1B1825"
@@ -573,12 +727,13 @@ if file_path:
         st.session_state["subsets"] = {}
     nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
 
-    info_tab, preview_tab, inp_tab, rad_tab, help_tab = st.tabs(
+    info_tab, preview_tab, inp_tab, rad_tab, editor_tab, help_tab = st.tabs(
         [
             "Información",
             "Vista 3D",
             "Generar INC",
             "Generar RAD",
+            "Editor RAD",
             "Ayuda",
         ]
     )
@@ -1763,6 +1918,47 @@ if file_path:
             st.success(f"Ficheros generados en: {eng_path}")
             with st.expander("Ver engine"):
                 st.text_area("model_0001.rad", eng_path.read_text(), height=400)
+
+    with editor_tab:
+        st.subheader("Editor RAD")
+        starter_txt, engine_txt = build_rad_text(
+            nodes,
+            elements,
+            node_sets,
+            elem_sets,
+            materials,
+        )
+
+        auto_upd = st.checkbox(
+            "Actualizar automáticamente", value=True, key="rad_editor_autoupdate"
+        )
+        if "rad_editor_starter" not in st.session_state or auto_upd:
+            st.session_state["rad_editor_starter"] = starter_txt
+        if "rad_editor_engine" not in st.session_state or auto_upd:
+            st.session_state["rad_editor_engine"] = engine_txt
+
+        st.text_area(
+            "model_0000.rad",
+            key="rad_editor_starter",
+            height=300,
+        )
+        st.text_area(
+            "model_0001.rad",
+            key="rad_editor_engine",
+            height=300,
+        )
+
+        if st.button("Guardar .rad", key="save_rad_editor"):
+            out_dir = Path(
+                st.session_state.get("rad_dir", st.session_state.get("work_dir", str(Path.cwd())))
+            ).expanduser()
+            out_dir.mkdir(parents=True, exist_ok=True)
+            name = st.session_state.get("rad_name", "model")
+            starter_path = out_dir / f"{name}_0000.rad"
+            engine_path = out_dir / f"{name}_0001.rad"
+            starter_path.write_text(st.session_state["rad_editor_starter"])
+            engine_path.write_text(st.session_state["rad_editor_engine"])
+            st.success(f"Archivos guardados en: {starter_path} y {engine_path}")
 
     with help_tab:
         st.subheader("Documentación")

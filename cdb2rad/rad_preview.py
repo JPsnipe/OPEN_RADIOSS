@@ -37,7 +37,7 @@ def _extract_block(text: str, start: str) -> str:
                 out.append("...")
                 break
             out.append(ln)
-            if ln.startswith("/") and ln != start and not ln.startswith("#"):
+            if ln.startswith("/") and not ln.startswith(start) and not ln.startswith("#"):
                 break
     return "\n".join(out)
 
@@ -76,7 +76,7 @@ def preview_part(part: Dict[str, Any]) -> str:
         buf,
         parts=[part],
         include_inc=False,
-        default_material=False,
+        default_material=True,
     )
     return _extract_block(buf.getvalue(), f"/PART/{part.get('id',1)}")
 
@@ -91,7 +91,8 @@ def preview_bc(bc: Dict[str, Any]) -> str:
         include_inc=False,
         default_material=False,
     )
-    key = "/BOUNDARY" if bc.get("type") else "/BCS/"
+    bc_type = str(bc.get("type", "BCS")).upper()
+    key = "/BOUNDARY" if bc_type != "BCS" else "/BCS/"
     return _extract_block(buf.getvalue(), key)
 
 

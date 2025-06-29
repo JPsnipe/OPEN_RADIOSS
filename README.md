@@ -125,6 +125,10 @@ añadir ``--no-cdb-materials``:
 python scripts/run_all.py data_files/model.cdb --rad sin_mats.rad --no-cdb-materials --no-default-material
 ```
 
+Si se omite ``--no-default-material`` y existen tarjetas ``/PART``, el script
+añade de forma automática un material genérico ``/MAT/LAW1`` para evitar
+errores por IDs no definidos.
+
 Para generar un ``.rad`` limpio sin tarjetas de control ni material por defecto
 pueden emplearse las opciones ``--no-run-cards`` y ``--no-default-material``:
 

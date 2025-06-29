@@ -202,13 +202,14 @@ def check_rad_inputs(
 
     # 4. Part references
     if parts:
+        auto_default_mat = use_cdb_mats or use_impact or (not mat_ids and parts)
         for pt in parts:
             pid = int(pt.get("pid", 0))
             mid = int(pt.get("mid", 0))
             if pid not in prop_ids:
                 results.append((False, f"PART {pt.get('id')} referencia PROP {pid} inexistente"))
                 break
-            if mid not in mat_ids:
+            if mid not in mat_ids and not auto_default_mat:
                 results.append((False, f"PART {pt.get('id')} referencia MAT {mid} inexistente"))
                 break
 

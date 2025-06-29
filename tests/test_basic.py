@@ -297,6 +297,14 @@ def test_write_rad_without_include(tmp_path):
     assert '#include' not in content
 
 
+def test_write_rad_no_materials(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'nomat_0000.rad'
+    write_starter(nodes, elements, str(rad), default_material=False)
+    text = rad.read_text()
+    assert '/MAT/' not in text
+
+
 def test_write_rad_skip_controls(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
     starter = tmp_path / 'skip_0000.rad'

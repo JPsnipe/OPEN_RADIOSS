@@ -216,6 +216,8 @@ Se incluyen casillas opcionales para **sobrescribir** los archivos
 ``.inc`` o ``.rad`` si ya existen en el directorio de salida.
 - La opción **Incluir materiales del CDB** está desactivada por defecto;
   actívala si deseas copiar al starter los materiales extraídos del `.cdb`.
+  Si permanece desactivada y no se definen materiales de impacto,
+  el archivo resultante no contendrá tarjetas `/MAT`.
 
 
 La pestaña *Generar RAD* también permite definir condiciones de contorno

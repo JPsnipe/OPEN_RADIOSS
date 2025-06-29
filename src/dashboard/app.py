@@ -599,6 +599,7 @@ def build_rad_text(
         elem_sets=all_elem_sets,
         materials=materials if use_cdb_mats else None,
         extra_materials=extra,
+        default_material=use_cdb_mats or use_impact,
         runname=runname,
         unit_sys=st.session_state.get("unit_sys", UNIT_OPTIONS[0]),
         boundary_conditions=st.session_state.get("bcs"),
@@ -1832,6 +1833,7 @@ if file_path:
                         elem_sets=all_elem_sets,
                         materials=materials if use_cdb_mats else None,
                         extra_materials=extra,
+                        default_material=use_cdb_mats or use_impact,
                         runname=runname,
                         unit_sys=unit_sel,
 

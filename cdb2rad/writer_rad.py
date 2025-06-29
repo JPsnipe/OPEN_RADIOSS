@@ -8,6 +8,7 @@ function parameters.
 
 from typing import Dict, List, Tuple, Any, TextIO
 import math
+import os
 
 from .writer_inc import write_mesh_inc
 from .material_defaults import apply_default_materials
@@ -692,6 +693,8 @@ def write_starter(
     finally:
         if close_it:
             f.close()
+        if isinstance(outfile, str):
+            os.chmod(outfile, 0o644)
 
 
 def write_engine(
@@ -776,6 +779,8 @@ def write_engine(
     finally:
         if close_it:
             f.close()
+        if isinstance(outfile, str):
+            os.chmod(outfile, 0o644)
 
 
 def write_rad(
@@ -1375,4 +1380,6 @@ def write_rad(
     finally:
         if close_it:
             f.close()
+        if isinstance(outfile, str):
+            os.chmod(outfile, 0o644)
 

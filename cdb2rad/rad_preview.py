@@ -188,7 +188,12 @@ def preview_subset(name: str, ids: List[int], idx: int) -> str:
 
 def preview_control(settings: Dict[str, Any]) -> str:
     buf = StringIO()
-    write_engine(buf, **settings)
+    ctrl_args = dict(settings)
+    if "adyrel_start" in ctrl_args or "adyrel_stop" in ctrl_args:
+        start = ctrl_args.pop("adyrel_start", None)
+        stop = ctrl_args.pop("adyrel_stop", None)
+        ctrl_args["adyrel"] = (start, stop)
+    write_engine(buf, **ctrl_args)
     text = buf.getvalue()
     lines = text.splitlines()
     return "\n".join(lines[1:])

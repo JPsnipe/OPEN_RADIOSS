@@ -229,6 +229,8 @@ def write_starter(
     subsets: Dict[str, List[int]] | None = None,
     auto_subsets: bool = True,
     default_material: bool = True,
+    auto_properties: bool = True,
+    auto_parts: bool = True,
     unit_sys: str | None = None,
 ) -> None:
     """Write a Radioss starter file (``*_0000.rad``).
@@ -236,7 +238,9 @@ def write_starter(
     ``unit_sys`` can be set to ``"SI"`` to output the ``/BEGIN`` card with
     kilogram--millimeter--millisecond units as used in legacy examples.
     Set ``auto_subsets=False`` to avoid generating ``/SUBSET`` cards
-    from element groups referenced in ``parts``.
+    from element groups referenced in ``parts``. ``auto_properties`` and
+    ``auto_parts`` control whether placeholder ``/PROP`` and ``/PART`` cards
+    are inserted when no definitions are provided but materials exist.
     """
 
     all_mats, mid_map = _merge_materials(materials, extra_materials)
@@ -246,11 +250,11 @@ def write_starter(
     if all_mats:
         all_mats = apply_default_materials(all_mats)
 
-    if (not properties or not parts) and all_mats:
-        from .utils import element_summary
-        _, kw_counts = element_summary(elements)
-        is_shell = kw_counts.get("SHELL", 0) >= kw_counts.get("BRICK", 0)
-        if not properties:
+    if all_mats:
+        if auto_properties and not properties:
+            from .utils import element_summary
+            _, kw_counts = element_summary(elements)
+            is_shell = kw_counts.get("SHELL", 0) >= kw_counts.get("BRICK", 0)
             if is_shell:
                 properties = [
                     {
@@ -269,7 +273,8 @@ def write_starter(
                         "Isolid": 24,
                     }
                 ]
-        if not parts:
+
+        if auto_parts and not parts and properties:
             mat_id = next(iter(all_mats.keys()), 1)
             parts = [
                 {
@@ -872,6 +877,8 @@ def write_rad(
     auto_subsets: bool = True,
     include_run: bool = True,
     default_material: bool = True,
+    auto_properties: bool = True,
+    auto_parts: bool = True,
     unit_sys: str | None = None,
 ) -> None:
     """Generate ``model_0000.rad`` with optional solver controls.
@@ -888,7 +895,8 @@ def write_rad(
     provided. ``unit_sys`` behaves like the same argument in
     :func:`write_starter` and customizes the ``/BEGIN`` block. Use
     ``auto_subsets=False`` to skip the automatic creation of ``/SUBSET`` cards
-    from element groups when ``parts`` reference them.
+    from element groups when ``parts`` reference them. ``auto_properties`` and
+    ``auto_parts`` have the same meaning as in :func:`write_starter`.
     """
 
     all_mats, mid_map = _merge_materials(materials, extra_materials)
@@ -898,11 +906,11 @@ def write_rad(
     if all_mats:
         all_mats = apply_default_materials(all_mats)
 
-    if (not properties or not parts) and all_mats:
-        from .utils import element_summary
-        _, kw_counts = element_summary(elements)
-        is_shell = kw_counts.get("SHELL", 0) >= kw_counts.get("BRICK", 0)
-        if not properties:
+    if all_mats:
+        if auto_properties and not properties:
+            from .utils import element_summary
+            _, kw_counts = element_summary(elements)
+            is_shell = kw_counts.get("SHELL", 0) >= kw_counts.get("BRICK", 0)
             if is_shell:
                 properties = [
                     {
@@ -921,7 +929,8 @@ def write_rad(
                         "Isolid": 24,
                     }
                 ]
-        if not parts:
+
+        if auto_parts and not parts and properties:
             mat_id = next(iter(all_mats.keys()), 1)
             parts = [
                 {

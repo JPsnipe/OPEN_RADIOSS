@@ -620,6 +620,7 @@ def build_rad_text(
         parts=st.session_state.get("parts"),
         subsets=st.session_state.get("subsets"),
         auto_subsets=False,
+        auto_parts=False,
     )
     starter_text = buf0.getvalue()
 
@@ -1865,6 +1866,7 @@ if file_path:
                         parts=st.session_state.get("parts"),
                         subsets=st.session_state.get("subsets"),
                         auto_subsets=False,
+                        auto_parts=False,
                     )
                 try:
                     validate_rad_format(str(rad_path))

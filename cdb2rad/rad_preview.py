@@ -73,6 +73,8 @@ def preview_material(mat: Dict[str, Any]) -> str:
         materials={int(mat.get("id", 1)): mat},
         include_inc=False,
         default_material=False,
+        auto_properties=False,
+        auto_parts=False,
     )
     return _extract_block(buf.getvalue(), "/MAT/")
 

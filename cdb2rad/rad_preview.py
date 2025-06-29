@@ -203,6 +203,13 @@ def preview_gravity(data: Dict[str, Any]) -> str:
     return _extract_block(buf.getvalue(), "/GRAV")
 
 
+def preview_remote_point(rp: Dict[str, Any]) -> str:
+    """Return ``/NODE`` lines for a remote point preview."""
+    nid = int(rp.get("id", 0))
+    x, y, z = rp.get("coords", (0.0, 0.0, 0.0))
+    return f"/NODE\n{nid:10d}{x:15.6f}{y:15.6f}{z:15.6f}"
+
+
 def preview_subset(name: str, ids: List[int], idx: int) -> str:
     buf = StringIO()
     write_starter(

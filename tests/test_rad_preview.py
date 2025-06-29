@@ -49,3 +49,12 @@ def test_preview_material_with_fail():
     fail_idx = next(i for i, l in enumerate(lines) if l.startswith("/FAIL/JOHNSON/1"))
     assert fail_idx + 1 < len(lines)
 
+
+def test_preview_remote_point():
+    rp = {"id": 10, "coords": (1.0, 2.0, 3.0)}
+    txt = rad_preview.preview_remote_point(rp)
+    lines = txt.splitlines()
+    assert lines[0] == "/NODE"
+    assert "10" in lines[1]
+    assert "1.000000" in lines[1]
+

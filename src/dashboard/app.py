@@ -1212,7 +1212,7 @@ if file_path:
             for i, rp in enumerate(st.session_state.get("remote_points", [])):
                 cols = st.columns([4, 1])
                 with cols[0]:
-                    st.write(f"ID {rp['id']} → {rp['coords']}")
+                    st.code(rad_preview.preview_remote_point(rp))
                 with cols[1]:
                     if st.button("Eliminar", key=f"del_rp_{i}"):
                         st.session_state["remote_points"].pop(i)

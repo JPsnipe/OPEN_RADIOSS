@@ -235,7 +235,7 @@ def write_starter(
 
     ``unit_sys`` can be set to ``"SI"`` to output the ``/BEGIN`` card with
     kilogram--millimeter--millisecond units as used in legacy examples.
-    Set ``auto_subsets=False`` to avoid generar automatically ``/SUBSET`` cards
+    Set ``auto_subsets=False`` to avoid generating ``/SUBSET`` cards
     from element groups referenced in ``parts``.
     """
 

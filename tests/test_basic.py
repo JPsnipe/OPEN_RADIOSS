@@ -1,7 +1,8 @@
 import os
 from cdb2rad.parser import parse_cdb
 from cdb2rad.writer_inc import write_mesh_inc
-from cdb2rad.writer_rad import write_starter, write_engine
+from cdb2rad.writer_rad import write_starter, write_engine, write_rad
+from cdb2rad.rad_validator import validate_rad_format
 from cdb2rad.utils import element_summary, element_set_etypes
 
 DATA = os.path.join(os.path.dirname(__file__), '..', 'data', 'model.cdb')
@@ -451,6 +452,25 @@ def test_write_starter_si_units(tmp_path):
     txt = rad.read_text()
     assert '2017         0' in txt
     assert 'kg                  mm                  ms' in txt
+
+
+def test_write_rad_combined(tmp_path):
+    nodes, elements, node_sets, elem_sets, materials = parse_cdb(DATA)
+    rad = tmp_path / 'combined.rad'
+    write_rad(
+        nodes,
+        elements,
+        str(rad),
+        node_sets=node_sets,
+        elem_sets=elem_sets,
+        materials=materials,
+        t_end=0.02,
+        print_n=-100,
+    )
+    txt = rad.read_text()
+    assert '/RUN/' in txt
+    assert '/END' in txt
+    validate_rad_format(str(rad))
 
 
 def test_element_set_etypes():

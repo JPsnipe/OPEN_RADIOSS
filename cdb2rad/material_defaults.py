@@ -1,6 +1,6 @@
 """Default material parameters for automotive steels."""
 
-from typing import Dict, Any
+from typing import Dict
 
 DEFAULT_STEEL_MATERIALS: Dict[str, Dict[str, float]] = {
     "LAW1": {

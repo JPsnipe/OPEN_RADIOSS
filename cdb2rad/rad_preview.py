@@ -8,16 +8,9 @@ keep the preview compact.
 from __future__ import annotations
 
 from io import StringIO
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Any
 
-from .writer_rad import (
-    write_starter,
-    write_engine,
-    DEFAULT_THICKNESS,
-    DEFAULT_E,
-    DEFAULT_NU,
-    DEFAULT_RHO,
-)
+from .writer_rad import write_starter, write_engine
 
 
 _BASIC_NODES = {1: [0.0, 0.0, 0.0], 2: [1.0, 0.0, 0.0], 3: [1.0, 1.0, 0.0], 4: [0.0, 1.0, 0.0]}

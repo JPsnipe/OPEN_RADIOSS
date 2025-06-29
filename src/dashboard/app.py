@@ -529,8 +529,8 @@ def build_rad_text(
             part_node_sets[part["name"]] = sorted(nodes_in_part)
     all_node_sets.update(part_node_sets)
 
-    use_cdb_mats = st.session_state.get("Incluir materiales del CDB", False)
-    use_impact = st.session_state.get("Incluir materiales de impacto", False)
+    use_cdb_mats = st.session_state.get("use_cdb_mats", False)
+    use_impact = st.session_state.get("use_impact", False)
     include_inc = st.session_state.get("include_inc_rad", True)
 
     extra = None
@@ -984,10 +984,16 @@ if file_path:
         all_node_sets.update(part_node_sets)
 
         with st.expander("Definición de materiales"):
-            use_cdb_mats = st.checkbox("Incluir materiales del CDB", value=False)
+            use_cdb_mats = st.checkbox(
+                "Incluir materiales del CDB",
+                value=False,
+                key="use_cdb_mats",
+            )
             # Desactivado por defecto para evitar añadir tarjetas vacías
             use_impact = st.checkbox(
-                "Incluir materiales de impacto", value=False
+                "Incluir materiales de impacto",
+                value=False,
+                key="use_impact",
             )
 
             if use_impact:

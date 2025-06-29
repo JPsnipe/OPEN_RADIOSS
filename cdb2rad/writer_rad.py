@@ -240,8 +240,45 @@ def write_starter(
     """
 
     all_mats, mid_map = _merge_materials(materials, extra_materials)
+    if not all_mats and default_material:
+        all_mats = {1: {}}
+        mid_map = {1: 1}
     if all_mats:
         all_mats = apply_default_materials(all_mats)
+
+    if (not properties or not parts) and all_mats:
+        from .utils import element_summary
+        _, kw_counts = element_summary(elements)
+        is_shell = kw_counts.get("SHELL", 0) >= kw_counts.get("BRICK", 0)
+        if not properties:
+            if is_shell:
+                properties = [
+                    {
+                        "id": 1,
+                        "name": "AutoProp",
+                        "type": "SHELL",
+                        "thickness": thickness,
+                    }
+                ]
+            else:
+                properties = [
+                    {
+                        "id": 1,
+                        "name": "AutoProp",
+                        "type": "SOLID",
+                        "Isolid": 24,
+                    }
+                ]
+        if not parts:
+            mat_id = next(iter(all_mats.keys()), 1)
+            parts = [
+                {
+                    "id": 1,
+                    "name": "AutoPart",
+                    "pid": properties[0]["id"],
+                    "mid": mat_id,
+                }
+            ]
 
     if include_inc:
         write_mesh_inc(
@@ -855,8 +892,45 @@ def write_rad(
     """
 
     all_mats, mid_map = _merge_materials(materials, extra_materials)
+    if not all_mats and default_material:
+        all_mats = {1: {}}
+        mid_map = {1: 1}
     if all_mats:
         all_mats = apply_default_materials(all_mats)
+
+    if (not properties or not parts) and all_mats:
+        from .utils import element_summary
+        _, kw_counts = element_summary(elements)
+        is_shell = kw_counts.get("SHELL", 0) >= kw_counts.get("BRICK", 0)
+        if not properties:
+            if is_shell:
+                properties = [
+                    {
+                        "id": 1,
+                        "name": "AutoProp",
+                        "type": "SHELL",
+                        "thickness": thickness,
+                    }
+                ]
+            else:
+                properties = [
+                    {
+                        "id": 1,
+                        "name": "AutoProp",
+                        "type": "SOLID",
+                        "Isolid": 24,
+                    }
+                ]
+        if not parts:
+            mat_id = next(iter(all_mats.keys()), 1)
+            parts = [
+                {
+                    "id": 1,
+                    "name": "AutoPart",
+                    "pid": properties[0]["id"],
+                    "mid": mat_id,
+                }
+            ]
 
     if include_inc:
         write_mesh_inc(

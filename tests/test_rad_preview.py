@@ -15,6 +15,12 @@ def test_preview_part_no_material():
     assert "P1" in txt
 
 
+def test_preview_part_custom_mid():
+    part = {"id": 1, "name": "P1", "pid": 1, "mid": 2}
+    txt = rad_preview.preview_part(part)
+    assert "/PART/1" in txt
+
+
 
 def test_preview_bc_types():
     bc_fix = {"type": "BCS", "name": "Fix", "tra": "111", "rot": "111"}

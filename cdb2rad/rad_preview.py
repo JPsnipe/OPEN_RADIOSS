@@ -94,13 +94,15 @@ def preview_property(prop: Dict[str, Any]) -> str:
 
 def preview_part(part: Dict[str, Any]) -> str:
     buf = StringIO()
+    mid = int(part.get("mid", 1))
     write_starter(
         _BASIC_NODES,
         _BASIC_ELEMS,
         buf,
         parts=[part],
+        materials={mid: {}},
         include_inc=False,
-        default_material=True,
+        default_material=False,
     )
     return _extract_block(buf.getvalue(), f"/PART/{part.get('id',1)}")
 

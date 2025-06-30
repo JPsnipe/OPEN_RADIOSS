@@ -95,6 +95,7 @@ def test_write_rad_part_subset(tmp_path):
     subset_id = int(lines[idx + 2].split()[-1])
     assert subset_id == 1
 
+
 def test_two_parts_two_subsets(tmp_path):
     nodes, elements, node_sets, elem_sets, mats = parse_cdb(DATA)
     props = [{'id': 1, 'name': 'shell_p', 'type': 'SHELL', 'thickness': 1.0}]
@@ -111,6 +112,7 @@ def test_two_parts_two_subsets(tmp_path):
         nodes,
         elements,
         str(rad),
+
         node_sets=node_sets,
         elem_sets=elem_sets,
         materials=mats,
@@ -118,6 +120,7 @@ def test_two_parts_two_subsets(tmp_path):
         parts=parts,
         subsets=subsets,
         auto_subsets=False,
+
     )
     lines = rad.read_text().splitlines()
     idx1 = lines.index('/PART/1')
@@ -144,6 +147,7 @@ def test_two_parts_two_subsets_write_rad(tmp_path):
         nodes,
         elements,
         str(rad),
+
         node_sets=node_sets,
         elem_sets=elem_sets,
         materials=mats,
@@ -151,6 +155,7 @@ def test_two_parts_two_subsets_write_rad(tmp_path):
         parts=parts,
         subsets=subsets,
         auto_subsets=False,
+
     )
     lines = rad.read_text().splitlines()
     idx1 = lines.index('/PART/1')
@@ -159,3 +164,4 @@ def test_two_parts_two_subsets_write_rad(tmp_path):
     subset_id2 = int(lines[idx2 + 2].split()[-1])
     assert subset_id1 == 1
     assert subset_id2 == 2
+

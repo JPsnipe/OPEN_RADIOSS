@@ -16,7 +16,12 @@ Ansys a un *input deck* compatible con OpenRadioss.
 5. Los grupos de elementos asignados a una parte se pueden convertir en
    ``/SUBSET`` para que el ``subset_ID`` de ``/PART`` apunte al conjunto
    deseado. En el *dashboard* esta conversión solo se realiza si el usuario
-   define los subsets en la sección de grupos.
+   define los subsets en la sección de grupos. Los IDs de subset se asignan de
+   forma secuencial según el orden en que se añaden. Tanto las previsualizaciones
+   del dashboard como ``write_starter`` y ``write_rad`` respetan esta secuencia,
+   por lo que el ID mostrado en la interfaz coincide con el escrito en el
+   fichero ``.rad``.
+
 
 ## Entrada requerida
 

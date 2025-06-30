@@ -232,7 +232,8 @@ def write_starter(
     auto_properties: bool = True,
     auto_parts: bool = False,
     unit_sys: str | None = None,
-) -> None:
+    return_subset_map: bool = False,
+) -> None | Tuple[None, Dict[str, int]]:
     """Write a Radioss starter file (``*_0000.rad``).
 
     ``unit_sys`` can be set to ``"SI"`` to output the ``/BEGIN`` card with
@@ -242,6 +243,9 @@ def write_starter(
     whether placeholder ``/PROP`` cards are inserted when no properties are
     provided but materials exist. ``auto_parts`` (``False`` by default) creates
     a default ``/PART`` only when set to ``True`` and no parts are supplied.
+    Set ``return_subset_map=True`` to retrieve the mapping from subset names to
+    the numeric IDs written in the file. The function then returns a tuple
+    ``(None, subset_map)`` instead of ``None``.
     """
 
     all_mats, mid_map = _merge_materials(materials, extra_materials)
@@ -588,6 +592,7 @@ def write_starter(
                 for nid, wt in rb.get('independent', []):
                     f.write(f"   {nid}     {wt}\n")
 
+        subset_map: Dict[str, int] = {}
         all_subsets: Dict[str, List[int]] = dict(subsets or {})
 
         if parts:
@@ -738,7 +743,19 @@ def write_starter(
             f.close()
         if isinstance(outfile, str):
             os.chmod(outfile, 0o644)
+    if return_subset_map:
+        return None, subset_map
+    return None
 
+    if return_subset_map:
+        return None, subset_map
+    return None
+    if return_subset_map:
+        return None, subset_map
+    return None
+    if return_subset_map:
+        return None, subset_map
+    return None
 
 def write_engine(
     outfile: str | TextIO,
@@ -824,8 +841,6 @@ def write_engine(
             f.close()
         if isinstance(outfile, str):
             os.chmod(outfile, 0o644)
-
-
 def write_rad(
     nodes: Dict[int, List[float]],
     elements: List[Tuple[int, int, List[int]]],
@@ -882,7 +897,8 @@ def write_rad(
     auto_properties: bool = True,
     auto_parts: bool = False,
     unit_sys: str | None = None,
-) -> None:
+    return_subset_map: bool = False,
+) -> None | Tuple[None, Dict[str, int]]:
     """Generate ``model_0000.rad`` with optional solver controls.
 
     Parameters allow customizing material properties and basic engine
@@ -900,7 +916,9 @@ def write_rad(
     from element groups when ``parts`` reference them. ``auto_properties`` has
     the same meaning as in :func:`write_starter`. ``auto_parts`` (``False`` by
     default) inserts a placeholder ``/PART`` only when set to ``True`` and no
-    parts are defined.
+    parts are defined. Specify ``return_subset_map=True`` to get back a mapping
+    from subset names to the numeric IDs used in the file; the return value will
+    then be ``(None, subset_map)`` instead of ``None``.
     """
 
     all_mats, mid_map = _merge_materials(materials, extra_materials)
@@ -1315,6 +1333,7 @@ def write_rad(
 
         # 6. PARTS AND PROPERTIES
 
+        subset_map: Dict[str, int] = {}
         all_subsets: Dict[str, List[int]] = dict(subsets or {})
 
         if parts:
@@ -1470,3 +1489,6 @@ def write_rad(
         if isinstance(outfile, str):
             os.chmod(outfile, 0o644)
 
+    if return_subset_map:
+        return None, subset_map
+    return None

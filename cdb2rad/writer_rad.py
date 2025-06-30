@@ -603,6 +603,7 @@ def write_starter(
                 }
                 all_subsets.update(auto_subsets_dict)
 
+            # convert subset names to strings so numeric keys map correctly
             subset_map: Dict[str, int] = {
                 str(n): i for i, n in enumerate(all_subsets.keys(), start=1)
             }
@@ -1328,6 +1329,7 @@ def write_rad(
                     if name not in all_subsets
                 }
                 all_subsets.update(auto_subsets_dict)
+            # convert subset names to strings so numeric keys map correctly
 
             subset_map: Dict[str, int] = {
                 str(n): i for i, n in enumerate(all_subsets.keys(), start=1)

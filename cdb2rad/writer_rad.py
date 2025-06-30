@@ -604,7 +604,7 @@ def write_starter(
                 all_subsets.update(auto_subsets_dict)
 
             subset_map: Dict[str, int] = {
-                n: i for i, n in enumerate(all_subsets.keys(), start=1)
+                str(n): i for i, n in enumerate(all_subsets.keys(), start=1)
             }
 
             for p in mapped_parts:
@@ -1330,7 +1330,7 @@ def write_rad(
                 all_subsets.update(auto_subsets_dict)
 
             subset_map: Dict[str, int] = {
-                n: i for i, n in enumerate(all_subsets.keys(), start=1)
+                str(n): i for i, n in enumerate(all_subsets.keys(), start=1)
             }
 
             for p in mapped_parts:

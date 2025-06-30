@@ -623,9 +623,9 @@ def build_rad_text(
             auto_subsets=False,
             auto_parts=False,
         )
-    except ValueError:
+    except ValueError as e:
         st.error(
-            "Material ID no definido. Activa 'Incluir materiales del CDB' o define el material en la sección de impacto."
+            f"{e}. Activa 'Incluir materiales del CDB' o define el material en la sección de impacto."
         )
         return "", ""
     starter_text = buf0.getvalue()
@@ -1875,9 +1875,9 @@ if file_path:
                         auto_subsets=False,
                         auto_parts=False,
                     )
-                except ValueError:
+                except ValueError as e:
                     st.error(
-                        "Material ID no definido. Activa 'Incluir materiales del CDB' o define el material en la sección de impacto."
+                        f"{e}. Activa 'Incluir materiales del CDB' o define el material en la sección de impacto."
                     )
                 else:
                     try:

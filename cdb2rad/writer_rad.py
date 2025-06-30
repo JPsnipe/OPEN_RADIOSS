@@ -230,7 +230,7 @@ def write_starter(
     auto_subsets: bool = True,
     default_material: bool = True,
     auto_properties: bool = True,
-    auto_parts: bool = True,
+    auto_parts: bool = False,
     unit_sys: str | None = None,
 ) -> None:
     """Write a Radioss starter file (``*_0000.rad``).
@@ -238,9 +238,10 @@ def write_starter(
     ``unit_sys`` can be set to ``"SI"`` to output the ``/BEGIN`` card with
     kilogram--millimeter--millisecond units as used in legacy examples.
     Set ``auto_subsets=False`` to avoid generating ``/SUBSET`` cards
-    from element groups referenced in ``parts``. ``auto_properties`` and
-    ``auto_parts`` control whether placeholder ``/PROP`` and ``/PART`` cards
-    are inserted when no definitions are provided but materials exist.
+    from element groups referenced in ``parts``. ``auto_properties`` controls
+    whether placeholder ``/PROP`` cards are inserted when no properties are
+    provided but materials exist. ``auto_parts`` (``False`` by default) creates
+    a default ``/PART`` only when set to ``True`` and no parts are supplied.
     """
 
     all_mats, mid_map = _merge_materials(materials, extra_materials)
@@ -878,7 +879,7 @@ def write_rad(
     include_run: bool = True,
     default_material: bool = True,
     auto_properties: bool = True,
-    auto_parts: bool = True,
+    auto_parts: bool = False,
     unit_sys: str | None = None,
 ) -> None:
     """Generate ``model_0000.rad`` with optional solver controls.
@@ -895,8 +896,10 @@ def write_rad(
     provided. ``unit_sys`` behaves like the same argument in
     :func:`write_starter` and customizes the ``/BEGIN`` block. Use
     ``auto_subsets=False`` to skip the automatic creation of ``/SUBSET`` cards
-    from element groups when ``parts`` reference them. ``auto_properties`` and
-    ``auto_parts`` have the same meaning as in :func:`write_starter`.
+    from element groups when ``parts`` reference them. ``auto_properties`` has
+    the same meaning as in :func:`write_starter`. ``auto_parts`` (``False`` by
+    default) inserts a placeholder ``/PART`` only when set to ``True`` and no
+    parts are defined.
     """
 
     all_mats, mid_map = _merge_materials(materials, extra_materials)

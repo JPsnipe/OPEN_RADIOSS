@@ -1988,6 +1988,12 @@ if file_path:
             height=300,
         )
 
+        export_name = st.text_input(
+            "Guardar como",
+            value="",
+            key="rad_export_name",
+        )
+
         if st.button("Guardar .rad", key="save_rad_editor"):
             out_dir = Path(
                 st.session_state.get("rad_dir", st.session_state.get("work_dir", str(Path.cwd())))
@@ -1999,6 +2005,19 @@ if file_path:
             starter_path.write_text(st.session_state["rad_editor_starter"])
             engine_path.write_text(st.session_state["rad_editor_engine"])
             st.success(f"Archivos guardados en: {starter_path} y {engine_path}")
+
+        if st.button("Exportar copia", key="export_rad_editor") and export_name:
+            out_dir = Path(
+                st.session_state.get("rad_dir", st.session_state.get("work_dir", str(Path.cwd())))
+            ).expanduser()
+            out_dir.mkdir(parents=True, exist_ok=True)
+            starter_copy = out_dir / f"{export_name}_0000.rad"
+            engine_copy = out_dir / f"{export_name}_0001.rad"
+            starter_copy.write_text(st.session_state["rad_editor_starter"])
+            engine_copy.write_text(st.session_state["rad_editor_engine"])
+            st.success(
+                f"Archivos exportados en: {starter_copy} y {engine_copy}"
+            )
 
     with help_tab:
         st.subheader("Documentación")

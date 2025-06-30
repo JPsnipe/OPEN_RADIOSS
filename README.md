@@ -233,6 +233,10 @@ pestañas principales:
 
 - **Generar RAD** para introducir parámetros de cálculo, definir **Propiedades** y obtener
   ``model_0000.rad``.
+
+- **Editor RAD** permite revisar los ficheros generados y editarlos manualmente.
+  Con el campo *Guardar como* y el botón **Exportar copia** se puede crear una
+  copia con otro nombre en el mismo directorio de salida.
 Dentro de esta pestaña se incluye un bloque **Propiedades** donde se pueden crear tarjetas `/PROP` y asignarlas a `/PART` mediante el ID de material. Las tablas de propiedades y partes se muestran antes de generar el archivo. Además, existen botones rápidos para generar propiedades **Hexa8**, **Tetra4** y **Quad4** con parámetros recomendados por la ayuda de Radioss.
 Se incluyen casillas opcionales para **sobrescribir** los archivos
 ``.inc`` o ``.rad`` si ya existen en el directorio de salida.

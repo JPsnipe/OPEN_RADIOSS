@@ -96,30 +96,23 @@ def test_write_rad_part_subset(tmp_path):
     assert subset_id == 1
 
 
-def test_return_subset_map(tmp_path):
+def test_two_parts_two_subsets(tmp_path):
     nodes, elements, node_sets, elem_sets, mats = parse_cdb(DATA)
-    props = [{'id': 1, 'name': 'p', 'type': 'SHELL', 'thickness': 1.0}]
-    parts = [{'id': 1, 'name': 'p', 'pid': 1, 'mid': 1, 'set': 'BALL'}]
-    subsets = {'BALL': [elements[0][0]]}
-    _, subset_map = write_starter(
+    props = [{'id': 1, 'name': 'shell_p', 'type': 'SHELL', 'thickness': 1.0}]
+    parts = [
+        {'id': 1, 'name': 'p1', 'pid': 1, 'mid': 1, 'set': 1},
+        {'id': 2, 'name': 'p2', 'pid': 1, 'mid': 1, 'set': 2},
+    ]
+    subsets = {
+        1: [elements[0][0]],
+        2: [elements[1][0]],
+    }
+    rad = tmp_path / 'multi_subset.rad'
+    write_starter(
         nodes,
         elements,
-        str(tmp_path / 'ret_0000.rad'),
-        node_sets=node_sets,
-        elem_sets=elem_sets,
-        materials=mats,
-        properties=props,
-        parts=parts,
-        subsets=subsets,
-        auto_subsets=False,
-        return_subset_map=True,
-    )
-    assert subset_map == {'BALL': 1}
+        str(rad),
 
-    _, subset_map = write_rad(
-        nodes,
-        elements,
-        str(tmp_path / 'ret_full.rad'),
         node_sets=node_sets,
         elem_sets=elem_sets,
         materials=mats,
@@ -127,6 +120,48 @@ def test_return_subset_map(tmp_path):
         parts=parts,
         subsets=subsets,
         auto_subsets=False,
-        return_subset_map=True,
+
     )
-    assert subset_map == {'BALL': 1}
+    lines = rad.read_text().splitlines()
+    idx1 = lines.index('/PART/1')
+    idx2 = lines.index('/PART/2')
+    subset_id1 = int(lines[idx1 + 2].split()[-1])
+    subset_id2 = int(lines[idx2 + 2].split()[-1])
+    assert subset_id1 == 1
+    assert subset_id2 == 2
+
+
+def test_two_parts_two_subsets_write_rad(tmp_path):
+    nodes, elements, node_sets, elem_sets, mats = parse_cdb(DATA)
+    props = [{'id': 1, 'name': 'shell_p', 'type': 'SHELL', 'thickness': 1.0}]
+    parts = [
+        {'id': 1, 'name': 'p1', 'pid': 1, 'mid': 1, 'set': 1},
+        {'id': 2, 'name': 'p2', 'pid': 1, 'mid': 1, 'set': 2},
+    ]
+    subsets = {
+        1: [elements[0][0]],
+        2: [elements[1][0]],
+    }
+    rad = tmp_path / 'multi_subset_full.rad'
+    write_rad(
+        nodes,
+        elements,
+        str(rad),
+
+        node_sets=node_sets,
+        elem_sets=elem_sets,
+        materials=mats,
+        properties=props,
+        parts=parts,
+        subsets=subsets,
+        auto_subsets=False,
+
+    )
+    lines = rad.read_text().splitlines()
+    idx1 = lines.index('/PART/1')
+    idx2 = lines.index('/PART/2')
+    subset_id1 = int(lines[idx1 + 2].split()[-1])
+    subset_id2 = int(lines[idx2 + 2].split()[-1])
+    assert subset_id1 == 1
+    assert subset_id2 == 2
+

@@ -1879,6 +1879,10 @@ if file_path:
                     st.error(
                         "Material ID no definido. Activa 'Incluir materiales del CDB' o define el material en la sección de impacto."
                     )
+                    Path(rad_path).unlink(missing_ok=True)
+                    if not include_inc:
+                        Path(mesh_path).unlink(missing_ok=True)
+                    st.stop()
                 else:
                     try:
                         validate_rad_format(str(rad_path))

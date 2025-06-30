@@ -18,8 +18,18 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Process .cdb file")
     parser.add_argument("cdb_file", help="Input .cdb file")
     parser.add_argument("--starter", dest="starter", help="Output starter file")
+    parser.add_argument(
+        "--rad",
+        dest="starter",
+        help="Deprecated alias for --starter",
+    )
     parser.add_argument("--engine", dest="engine", help="Output engine file")
     parser.add_argument("--inc", dest="inc", help="Output mesh.inc file")
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Generate starter, engine and inc with default names",
+    )
     parser.add_argument("--exec", dest="exec_path", help="Run OpenRadioss starter after generation")
     parser.add_argument(
         "--skip-include",
@@ -44,10 +54,10 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    if not args.starter and not args.engine and not args.inc:
-        args.inc = "mesh.inc"
-        args.starter = "model_0000.rad"
-        args.engine = "model_0001.rad"
+    if args.all or not (args.starter or args.engine or args.inc):
+        args.inc = args.inc or "mesh.inc"
+        args.starter = args.starter or "model_0000.rad"
+        args.engine = args.engine or "model_0001.rad"
 
     nodes, elements, node_sets, elem_sets, materials = parse_cdb(args.cdb_file)
 

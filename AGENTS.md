@@ -69,7 +69,9 @@ cdb2rad/
 ├── mapping.json      # Maps Ansys ETYPES to Radioss keywords
 
 scripts/
-└── run_all.py        # CLI wrapper (--rad, --inc, --all)
+└── run_all.py        # CLI wrapper (--starter, --engine, --inc)
+                       # --rad is a deprecated alias for --starter
+                       # --all generates default output files
 ```
 
 ## 📌 Expected agent behavior

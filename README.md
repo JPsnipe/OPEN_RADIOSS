@@ -108,21 +108,24 @@ del ``starter`` y los ficheros ``engine``.
 ## Ejemplo de uso
 
 ```bash
-python scripts/run_all.py data_files/model.cdb --inc mesh.inc --rad model_0000.rad
+python scripts/run_all.py data_files/model.cdb --inc mesh.inc --starter model_0000.rad
 ```
+
+El parámetro `--rad` sigue funcionando como alias de `--starter`, pero está
+deprecado y se mantiene solo para compatibilidad.
 
 Por defecto, ``model_0000.rad`` incluye la línea ``#include mesh.inc``. Con la
 opción ``--skip-include`` se genera el ``.rad`` sin esa referencia:
 
 ```bash
-python scripts/run_all.py data_files/model.cdb --rad model.rad --skip-include
+python scripts/run_all.py data_files/model.cdb --starter model.rad --skip-include
 ```
 
 Si se desea ignorar completamente los materiales leídos del ``.cdb`` basta con
 añadir ``--no-cdb-materials``:
 
 ```bash
-python scripts/run_all.py data_files/model.cdb --rad sin_mats.rad --no-cdb-materials --no-default-material
+python scripts/run_all.py data_files/model.cdb --starter sin_mats.rad --no-cdb-materials --no-default-material
 ```
 
 Si se omite ``--no-default-material`` y existen tarjetas ``/PART``, el script
@@ -133,7 +136,15 @@ Para generar un ``.rad`` limpio sin tarjetas de control ni material por defecto
 pueden emplearse las opciones ``--no-run-cards`` y ``--no-default-material``:
 
 ```bash
-python scripts/run_all.py data_files/model.cdb --rad vacio.rad --no-run-cards --no-default-material
+python scripts/run_all.py data_files/model.cdb --starter vacio.rad --no-run-cards --no-default-material
+```
+
+La opción `--all` permite generar automáticamente los tres ficheros básicos
+(``mesh.inc``, ``model_0000.rad`` y ``model_0001.rad``) si no se indican rutas
+de salida:
+
+```bash
+python scripts/run_all.py data_files/model.cdb --all
 ```
 
 ### Entorno virtual y OpenRadioss
@@ -149,7 +160,7 @@ python scripts/download_openradioss.py
 Después se puede ejecutar OpenRadioss sobre el fichero generado:
 
 ```bash
-python scripts/run_all.py data_files/model.cdb --rad model.rad \
+python scripts/run_all.py data_files/model.cdb --starter model.rad \
     --exec openradioss_bin/OpenRadioss/exec/starter_linux64_gf
 ```
 

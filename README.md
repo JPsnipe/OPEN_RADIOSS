@@ -240,6 +240,9 @@ Se incluyen casillas opcionales para **sobrescribir** los archivos
   actívala si deseas copiar al starter los materiales extraídos del `.cdb`.
   Si permanece desactivada y no se definen materiales de impacto,
   el archivo resultante no contendrá tarjetas `/MAT`.
+- Si aparece el mensaje de error "Material ID no definido..." al generar el
+  ``starter``, activa esta opción o define el material manualmente en la sección
+  de **impacto**.
 
 
 La pestaña *Generar RAD* también permite definir condiciones de contorno

@@ -17,6 +17,9 @@ Ansys a un *input deck* compatible con OpenRadioss.
    ``/SUBSET`` para que el ``subset_ID`` de ``/PART`` apunte al conjunto
    deseado. En el *dashboard* esta conversión solo se realiza si el usuario
    define los subsets en la sección de grupos.
+6. Las funciones ``write_starter`` y ``write_rad`` devuelven ``None`` de
+   manera habitual, pero con ``return_subset_map=True`` retornan también un
+   diccionario con los IDs asignados a cada ``/SUBSET``.
 
 ## Entrada requerida
 

@@ -94,3 +94,39 @@ def test_write_rad_part_subset(tmp_path):
     idx = lines.index('/PART/1')
     subset_id = int(lines[idx + 2].split()[-1])
     assert subset_id == 1
+
+
+def test_return_subset_map(tmp_path):
+    nodes, elements, node_sets, elem_sets, mats = parse_cdb(DATA)
+    props = [{'id': 1, 'name': 'p', 'type': 'SHELL', 'thickness': 1.0}]
+    parts = [{'id': 1, 'name': 'p', 'pid': 1, 'mid': 1, 'set': 'BALL'}]
+    subsets = {'BALL': [elements[0][0]]}
+    _, subset_map = write_starter(
+        nodes,
+        elements,
+        str(tmp_path / 'ret_0000.rad'),
+        node_sets=node_sets,
+        elem_sets=elem_sets,
+        materials=mats,
+        properties=props,
+        parts=parts,
+        subsets=subsets,
+        auto_subsets=False,
+        return_subset_map=True,
+    )
+    assert subset_map == {'BALL': 1}
+
+    _, subset_map = write_rad(
+        nodes,
+        elements,
+        str(tmp_path / 'ret_full.rad'),
+        node_sets=node_sets,
+        elem_sets=elem_sets,
+        materials=mats,
+        properties=props,
+        parts=parts,
+        subsets=subsets,
+        auto_subsets=False,
+        return_subset_map=True,
+    )
+    assert subset_map == {'BALL': 1}

@@ -124,6 +124,36 @@ def _map_parts(
     return mapped
 
 
+def _build_subset_map(all_subsets: Dict[str | int, List[int]]) -> Dict[str, int]:
+    """Return mapping from subset names to their numeric IDs.
+
+    Numeric names are preserved as their integer value. Non-numeric names are
+    assigned the next available integer ID starting after the highest numeric
+    one found in ``all_subsets``.
+    """
+
+    subset_map: Dict[str, int | None] = {}
+    used_ids: set[int] = set()
+    for name in all_subsets.keys():
+        try:
+            sid = int(name)
+            subset_map[str(name)] = sid
+            used_ids.add(sid)
+        except (TypeError, ValueError):
+            subset_map[str(name)] = None
+
+    next_id = max(used_ids, default=0) + 1
+    for key, sid in subset_map.items():
+        if sid is None:
+            while next_id in used_ids:
+                next_id += 1
+            subset_map[key] = next_id
+            used_ids.add(next_id)
+            next_id += 1
+
+    return {k: int(v) for k, v in subset_map.items() if v is not None}
+
+
 
 def _write_interfaces(f, interfaces: List[Dict[str, object]] | None) -> None:
     """Write ``/INTER`` blocks to ``f`` if any interfaces are defined."""
@@ -608,10 +638,7 @@ def write_starter(
                 }
                 all_subsets.update(auto_subsets_dict)
 
-            # convert subset names to strings so numeric keys map correctly
-            subset_map: Dict[str, int] = {
-                str(n): i for i, n in enumerate(all_subsets.keys(), start=1)
-            }
+            subset_map = _build_subset_map(all_subsets)
 
             for p in mapped_parts:
                 pid = int(p.get("id", 1))
@@ -626,6 +653,9 @@ def write_starter(
                 f.write(
                     f"         {prop_id}         {mat_id}         {subset_id}         \n"
                 )
+
+        else:
+            subset_map = _build_subset_map(all_subsets)
 
         if properties:
             for prop in properties:
@@ -696,7 +726,8 @@ def write_starter(
                     f.write("# property parameters not defined\n")
 
         if all_subsets:
-            for idx, (name, ids) in enumerate(all_subsets.items(), start=1):
+            for name, ids in all_subsets.items():
+                idx = subset_map.get(str(name), 0)
                 f.write(f"/SUBSET/{idx}\n")
                 f.write(f"{name}\n")
                 line: List[str] = []
@@ -1348,11 +1379,7 @@ def write_rad(
                     if name not in all_subsets
                 }
                 all_subsets.update(auto_subsets_dict)
-            # convert subset names to strings so numeric keys map correctly
-
-            subset_map: Dict[str, int] = {
-                str(n): i for i, n in enumerate(all_subsets.keys(), start=1)
-            }
+            subset_map = _build_subset_map(all_subsets)
 
             for p in mapped_parts:
                 pid = int(p.get("id", 1))
@@ -1366,6 +1393,9 @@ def write_rad(
                 f.write(
                     f"         {prop_id}         {mat_id}         {subset_id}         \n"
                 )
+
+        else:
+            subset_map = _build_subset_map(all_subsets)
 
         if properties:
             for prop in properties:
@@ -1441,7 +1471,8 @@ def write_rad(
                     f.write("# property parameters not defined\n")
 
         if all_subsets:
-            for idx, (name, ids) in enumerate(all_subsets.items(), start=1):
+            for name, ids in all_subsets.items():
+                idx = subset_map.get(str(name), 0)
                 f.write(f"/SUBSET/{idx}\n")
                 f.write(f"{name}\n")
                 line: List[str] = []

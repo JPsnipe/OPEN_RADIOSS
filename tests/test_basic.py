@@ -308,7 +308,7 @@ def test_write_rad_no_materials(tmp_path):
 def test_write_rad_auto_parts(tmp_path):
     nodes, elements, _, _, mats = parse_cdb(DATA)
     rad = tmp_path / 'auto_0000.rad'
-    write_starter(nodes, elements, str(rad), materials=mats)
+    write_starter(nodes, elements, str(rad), materials=mats, auto_parts=True)
     txt = rad.read_text()
     assert '/PROP/' in txt
     assert '/PART/1' in txt

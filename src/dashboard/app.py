@@ -620,7 +620,7 @@ def build_rad_text(
             properties=st.session_state.get("properties"),
             parts=st.session_state.get("parts"),
             subsets=st.session_state.get("subsets"),
-            auto_subsets=False,
+            auto_subsets=True,
             auto_parts=False,
         )
     except ValueError as e:
@@ -1872,7 +1872,7 @@ if file_path:
                         properties=st.session_state.get("properties"),
                         parts=st.session_state.get("parts"),
                         subsets=st.session_state.get("subsets"),
-                        auto_subsets=False,
+                        auto_subsets=True,
                         auto_parts=False,
                     )
                 except ValueError as e:

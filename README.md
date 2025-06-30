@@ -22,6 +22,7 @@ Ansys a un *input deck* compatible con OpenRadioss.
    por lo que el ID mostrado en la interfaz coincide con el escrito en el
    fichero ``.rad``.
 
+
 ## Entrada requerida
 
 Archivo ``.cdb`` con los bloques de nodos y elementos. En ``data_files/model.cdb`` se incluye un ejemplo mínimo. Este mismo fichero se emplea en las pruebas

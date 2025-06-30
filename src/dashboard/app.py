@@ -596,32 +596,38 @@ def build_rad_text(
     if not use_default_mat and st.session_state.get("parts"):
         # Insert a generic LAW1 block when parts exist but no materials
         use_default_mat = True
-    write_starter(
-        all_nodes,
-        elements,
-        buf0,
-        mesh_inc="mesh.inc",
-        include_inc=include_inc,
-        node_sets=all_node_sets,
-        elem_sets=all_elem_sets,
-        materials=materials if use_cdb_mats else None,
-        extra_materials=extra,
-        default_material=use_default_mat,
-        runname=runname,
-        unit_sys=st.session_state.get("unit_sys", UNIT_OPTIONS[0]),
-        boundary_conditions=st.session_state.get("bcs"),
-        interfaces=st.session_state.get("interfaces"),
-        rbody=st.session_state.get("rbodies"),
-        rbe2=st.session_state.get("rbe2"),
-        rbe3=st.session_state.get("rbe3"),
-        init_velocity=st.session_state.get("init_vel"),
-        gravity=st.session_state.get("gravity"),
-        properties=st.session_state.get("properties"),
-        parts=st.session_state.get("parts"),
-        subsets=st.session_state.get("subsets"),
-        auto_subsets=False,
-        auto_parts=False,
-    )
+    try:
+        write_starter(
+            all_nodes,
+            elements,
+            buf0,
+            mesh_inc="mesh.inc",
+            include_inc=include_inc,
+            node_sets=all_node_sets,
+            elem_sets=all_elem_sets,
+            materials=materials if use_cdb_mats else None,
+            extra_materials=extra,
+            default_material=use_default_mat,
+            runname=runname,
+            unit_sys=st.session_state.get("unit_sys", UNIT_OPTIONS[0]),
+            boundary_conditions=st.session_state.get("bcs"),
+            interfaces=st.session_state.get("interfaces"),
+            rbody=st.session_state.get("rbodies"),
+            rbe2=st.session_state.get("rbe2"),
+            rbe3=st.session_state.get("rbe3"),
+            init_velocity=st.session_state.get("init_vel"),
+            gravity=st.session_state.get("gravity"),
+            properties=st.session_state.get("properties"),
+            parts=st.session_state.get("parts"),
+            subsets=st.session_state.get("subsets"),
+            auto_subsets=False,
+            auto_parts=False,
+        )
+    except ValueError:
+        st.error(
+            "Material ID no definido. Activa 'Incluir materiales del CDB' o define el material en la sección de impacto."
+        )
+        return "", ""
     starter_text = buf0.getvalue()
 
     buf1 = StringIO()
@@ -1841,7 +1847,8 @@ if file_path:
                 use_default_mat = use_cdb_mats or use_impact
                 if not use_default_mat and st.session_state.get("parts"):
                     use_default_mat = True
-                write_starter(
+                try:
+                    write_starter(
                         all_nodes,
                         elements,
                         str(rad_path),
@@ -1868,16 +1875,21 @@ if file_path:
                         auto_subsets=False,
                         auto_parts=False,
                     )
-                try:
-                    validate_rad_format(str(rad_path))
-                    st.info("Formato RAD OK")
-                except ValueError as e:
-                    st.error(f"Error formato: {e}")
-                st.success(f"Ficheros generados en: {rad_path}")
-                with st.expander("Ver .rad completo"):
-                    st.text_area(
-                        "model_0000.rad", rad_path.read_text(), height=400
+                except ValueError:
+                    st.error(
+                        "Material ID no definido. Activa 'Incluir materiales del CDB' o define el material en la sección de impacto."
                     )
+                else:
+                    try:
+                        validate_rad_format(str(rad_path))
+                        st.info("Formato RAD OK")
+                    except ValueError as e:
+                        st.error(f"Error formato: {e}")
+                    st.success(f"Ficheros generados en: {rad_path}")
+                    with st.expander("Ver .rad completo"):
+                        st.text_area(
+                            "model_0000.rad", rad_path.read_text(), height=400
+                        )
 
         if st.button("Generar engine", disabled=disable_gen):
             out_dir = Path(rad_dir).expanduser()

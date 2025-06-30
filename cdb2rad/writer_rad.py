@@ -778,16 +778,6 @@ def write_starter(
         return None, subset_map
     return None
 
-    if return_subset_map:
-        return None, subset_map
-    return None
-    if return_subset_map:
-        return None, subset_map
-    return None
-    if return_subset_map:
-        return None, subset_map
-    return None
-
 def write_engine(
     outfile: str | TextIO,
     *,

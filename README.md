@@ -14,13 +14,13 @@ Ansys a un *input deck* compatible con OpenRadioss.
 4. Crea ``model_0000.rad`` que referencia ``mesh.inc`` mediante ``#include`` y define propiedades,
    materiales, condiciones de contorno y ejemplos de contacto y carga.
 5. Los grupos de elementos asignados a una parte se pueden convertir en
-   ``/SUBSET`` para que el ``subset_ID`` de ``/PART`` apunte al conjunto
-   deseado. En el *dashboard* esta conversión solo se realiza si el usuario
-   define los subsets en la sección de grupos. Si el nombre del subset es
-   numérico, ese valor se usa como ID de ``/SUBSET``; de lo contrario los IDs
-   se asignan de forma secuencial según el orden de creación. Tanto las
-   previsualizaciones del dashboard como ``write_starter`` y ``write_rad``
-   muestran exactamente el mismo ID que se escribe en el fichero ``.rad``.
+   ``/SUBSET`` para que ``subset_ID`` de ``/PART`` apunte al conjunto
+   deseado. Esta conversión solo ocurre si el usuario define subsets en la
+   sección de grupos del *dashboard*. Si el nombre de un subset es numérico se
+   conserva como ID; los demás se numeran de forma secuencial empezando tras el
+   mayor ID numérico existente. Tanto las previsualizaciones del dashboard como
+   ``write_starter`` y ``write_rad`` muestran exactamente el mismo ID que se
+   escribe en ``.rad``.
 
 
 ## Entrada requerida

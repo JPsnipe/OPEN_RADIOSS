@@ -190,3 +190,28 @@ def test_subset_id_preserved(tmp_path):
     assert subset_id == 5
     assert '/SUBSET/5' in lines
 
+
+def test_subset_id_preserved_write_rad(tmp_path):
+    nodes, elements, node_sets, elem_sets, mats = parse_cdb(DATA)
+    props = [{'id': 1, 'name': 'shell_p', 'type': 'SHELL', 'thickness': 1.0}]
+    parts = [{'id': 1, 'name': 'p1', 'pid': 1, 'mid': 1, 'set': 5}]
+    subsets = {5: [elements[0][0]]}
+    rad = tmp_path / 'subset5_full.rad'
+    write_rad(
+        nodes,
+        elements,
+        str(rad),
+        node_sets=node_sets,
+        elem_sets=elem_sets,
+        materials=mats,
+        properties=props,
+        parts=parts,
+        subsets=subsets,
+        auto_subsets=False,
+    )
+    lines = rad.read_text().splitlines()
+    idx = lines.index('/PART/1')
+    subset_id = int(lines[idx + 2].split()[-1])
+    assert subset_id == 5
+    assert '/SUBSET/5' in lines
+

@@ -1,7 +1,7 @@
 import os
 import pytest
 from cdb2rad.parser import parse_cdb
-from cdb2rad.writer_rad import write_starter, write_rad
+from cdb2rad.writer_rad import write_starter, write_rad, _build_subset_map
 
 DATA = os.path.join(os.path.dirname(__file__), '..', 'data', 'model.cdb')
 
@@ -214,4 +214,30 @@ def test_subset_id_preserved_write_rad(tmp_path):
     subset_id = int(lines[idx + 2].split()[-1])
     assert subset_id == 5
     assert '/SUBSET/5' in lines
+
+
+def test_existing_group_id_reused(tmp_path):
+    nodes, elements, node_sets, elem_sets, mats = parse_cdb(DATA)
+    group = next(iter(elem_sets))
+    expected_map = _build_subset_map(elem_sets)
+    expected_id = expected_map[group]
+    props = [{'id': 1, 'name': 'shell_p', 'type': 'SHELL', 'thickness': 1.0}]
+    parts = [{'id': 1, 'name': 'p1', 'pid': 1, 'mid': 1, 'set': group}]
+    rad = tmp_path / 'group_reuse.rad'
+    _, subset_map = write_starter(
+        nodes,
+        elements,
+        str(rad),
+        node_sets=node_sets,
+        elem_sets=elem_sets,
+        materials=mats,
+        properties=props,
+        parts=parts,
+        return_subset_map=True,
+    )
+    assert subset_map[group] == expected_id
+    lines = rad.read_text().splitlines()
+    idx = lines.index('/PART/1')
+    subset_id = int(lines[idx + 2].split()[-1])
+    assert subset_id == expected_id
 

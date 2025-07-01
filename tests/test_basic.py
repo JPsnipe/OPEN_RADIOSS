@@ -75,7 +75,7 @@ def test_write_rad(tmp_path):
     assert '200000.0' in content
     assert '2022         0' in content
     assert '2022' in content
-    assert '1                  2                  3' in content
+    assert 'kg                  mm                  ms' in content
 
     eng_txt = engine.read_text()
     assert '/RUN/demo/1' in eng_txt

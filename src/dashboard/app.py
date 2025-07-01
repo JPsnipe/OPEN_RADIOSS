@@ -135,6 +135,7 @@ from cdb2rad.writer_rad import (
     DEFAULT_HISNODA_DT,
     DEFAULT_RFILE_DT,
     DEFAULT_THICKNESS,
+    _build_subset_map,
 )
 from cdb2rad.writer_inc import write_mesh_inc
 from cdb2rad.rad_validator import validate_rad_format
@@ -1284,8 +1285,14 @@ if file_path:
             part_name = st.text_input("Nombre parte", value=f"PART_{part_id}", key="part_name")
             prop_opts = [p["id"] for p in st.session_state["properties"]]
             pid_sel = st.selectbox("Propiedad", prop_opts, disabled=not prop_opts, key="part_pid")
+
+            subset_map = _build_subset_map(all_elem_sets)
             sel_set = st.selectbox(
-                "Subset o conjunto", list(all_elem_sets.keys()), key="part_set", disabled=not all_elem_sets
+                "Subset o conjunto",
+                list(all_elem_sets.keys()),
+                key="part_set",
+                disabled=not all_elem_sets,
+                format_func=lambda n: f"{n} ({subset_map.get(str(n),0)})",
             )
             mid_sel = st.number_input("Material ID", value=1, key="part_mid")
             if st.button("Añadir parte") and part_name and sel_set:

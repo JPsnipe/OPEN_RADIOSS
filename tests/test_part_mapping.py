@@ -241,3 +241,27 @@ def test_existing_group_id_reused(tmp_path):
     subset_id = int(lines[idx + 2].split()[-1])
     assert subset_id == expected_id
 
+
+def test_auto_subset_from_elem_sets(tmp_path):
+    nodes, elements, node_sets, elem_sets, mats = parse_cdb(DATA)
+    elem_id = elements[0][0]
+    elem_sets = {1: [elem_id]}
+    props = [{'id': 1, 'name': 'shell_p', 'type': 'SHELL', 'thickness': 1.0}]
+    parts = [{'id': 1, 'name': 'p1', 'pid': 1, 'mid': 1, 'set': 1}]
+    rad = tmp_path / 'auto_subset.rad'
+    write_starter(
+        nodes,
+        elements,
+        str(rad),
+        node_sets=node_sets,
+        elem_sets=elem_sets,
+        materials=mats,
+        properties=props,
+        parts=parts,
+    )
+    lines = rad.read_text().splitlines()
+    idx = lines.index('/PART/1')
+    subset_id = int(lines[idx + 2].split()[-1])
+    assert subset_id == 1
+    assert '/SUBSET/1' in lines
+

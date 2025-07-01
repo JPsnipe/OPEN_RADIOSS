@@ -168,6 +168,7 @@ def _write_interfaces(f, interfaces: List[Dict[str, object]] | None) -> None:
         name = inter.get("name", f"INTER_{idx}")
         fric = inter.get("fric", 0.0)
         fric_stiff = inter.get("stf")
+        fric_id = inter.get("fric_ID")
         slave_id = 200 + idx
         master_id = 300 + idx
 
@@ -210,11 +211,40 @@ def _write_interfaces(f, interfaces: List[Dict[str, object]] | None) -> None:
         for nid in m_nodes:
             f.write(f"{nid:10d}\n")
 
-        f.write("/FRICTION\n")
-        if fric_stiff is None:
-            f.write(f"{fric}\n")
+        if fric_id is not None:
+            f.write(f"/FRICTION/{fric_id}\n")
         else:
-            f.write(f"{fric} {fric_stiff}\n")
+            f.write("/FRICTION\n")
+            if fric_stiff is None:
+                f.write(f"{fric}\n")
+            else:
+                f.write(f"{fric} {fric_stiff}\n")
+
+
+def _write_frictions(f, frictions: List[Dict[str, object]] | None) -> None:
+    """Write ``/FRICTION`` definition blocks."""
+
+    if not frictions:
+        return
+
+    for fr in frictions:
+        fid = fr.get("id", 1)
+        title = fr.get("title", "test no 1")
+        cf = fr.get("fric", 0.2)
+        f.write(f"/FRICTION/{fid}\n")
+        f.write(f"{title}\n")
+        f.write("#\n")
+        f.write("Ifric\nIfiltr\nXfreq\nIform\n")
+        f.write("0\n0\n0\n2\n")
+        f.write("# default friction for rest parts which not specifically defined below\n")
+        f.write("#\n")
+        f.write("C1\nC2\nC3\nC4\nC5\n")
+        f.write("0\n0\n0\n0\n0\n")
+        f.write("#\n")
+        f.write("C6\nFric\nVisF\n")
+        f.write("0\n")
+        f.write(f"{cf}\n")
+        f.write("0\n")
 
 
 def _write_begin(f, runname: str, unit_sys: str | None) -> None:
@@ -249,6 +279,7 @@ def write_starter(
     runname: str = DEFAULT_RUNNAME,
     boundary_conditions: List[Dict[str, object]] | None = None,
     interfaces: List[Dict[str, object]] | None = None,
+    frictions: List[Dict[str, object]] | None = None,
     rbody: List[Dict[str, object]] | None = None,
     rbe2: List[Dict[str, object]] | None = None,
     rbe3: List[Dict[str, object]] | None = None,
@@ -273,6 +304,8 @@ def write_starter(
     whether placeholder ``/PROP`` cards are inserted when no properties are
     provided but materials exist. ``auto_parts`` (``False`` by default) creates
     a default ``/PART`` only when set to ``True`` and no parts are supplied.
+    Define global friction laws via ``frictions`` and reference them in
+    ``interfaces`` using ``fric_ID``.
     Set ``return_subset_map=True`` to retrieve the mapping from subset names to
     the numeric IDs written in the file. The function then returns a tuple
     ``(None, subset_map)`` instead of ``None``.
@@ -569,6 +602,9 @@ def write_starter(
                     f.write(f"{name}_nodes\n")
                     for nid in nodes_bc:
                         f.write(f"{nid:10d}\n")
+
+        if frictions:
+            _write_frictions(f, frictions)
 
         if interfaces:
             _write_interfaces(f, interfaces)
@@ -904,6 +940,7 @@ def write_rad(
     adyrel: Tuple[float | None, float | None] | None = None,
     boundary_conditions: List[Dict[str, object]] | None = None,
     interfaces: List[Dict[str, object]] | None = None,
+    frictions: List[Dict[str, object]] | None = None,
     rbody: List[Dict[str, object]] | None = None,
     rbe2: List[Dict[str, object]] | None = None,
     rbe3: List[Dict[str, object]] | None = None,
@@ -1294,13 +1331,11 @@ def write_rad(
 
                 if not use_existing_gid:
                     f.write(f"/GRNOD/NODE/{gid}\n")
-                    f.write(f"{name}_nodes\n")
-                    for nid in nodes_bc:
-                        f.write(f"{nid:10d}\n")
+        if frictions:
+            _write_frictions(f, frictions)
 
         if interfaces:
             _write_interfaces(f, interfaces)
-
         # 5. RIGID CONNECTORS
 
         if rbody:

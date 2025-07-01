@@ -166,11 +166,19 @@ def validate_rad_format(filepath: str) -> None:
             continue
 
         if line.startswith("/INTER/TYPE7"):
+            fric_id = None
+            if i + 4 < len(lines):
+                cand = lines[i + 4].strip()
+                if cand.isdigit():
+                    fric_id = cand
             j = i + 1
             while j < len(lines) and not lines[j].startswith("/FRICTION"):
                 j += 1
             if j >= len(lines):
                 raise ValueError("TYPE7 missing /FRICTION")
+            if fric_id is not None:
+                if not any(l.startswith(f"/FRICTION/{fric_id}") for l in lines):
+                    raise ValueError(f"Missing /FRICTION/{fric_id} block")
             if j + 1 >= len(lines):
                 raise ValueError("Incomplete TYPE7 block")
             i = j + 2

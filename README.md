@@ -258,6 +258,18 @@ La pestaña *Generar RAD* también permite definir condiciones de contorno
 gravedad (``/GRAV``) seleccionando las *name selections* de nodos en un
 desplegable. Estos campos se pueden editar, añadir o eliminar en el panel
 correspondiente antes de generar el archivo.
+Para contactos ``TYPE7`` se puede especificar ``fric_ID`` para enlazar una
+tarjeta ``/FRICTION`` separada:
+
+```python
+inter = [{
+    'type': 'TYPE7',
+    'slave': [1, 2],
+    'master': [3, 4],
+    'fric_ID': 10,
+    'friction': {'Ifric': 1, 'C1': 0.3},
+}]
+```
 El panel de gravedad está junto a **Velocidad inicial** y permite indicar la magnitud `g` y la dirección `(nx, ny, nz)`.
 
 

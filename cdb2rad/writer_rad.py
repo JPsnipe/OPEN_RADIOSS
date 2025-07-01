@@ -154,6 +154,33 @@ def _build_subset_map(all_subsets: Dict[str | int, List[int]]) -> Dict[str, int]
     return {k: int(v) for k, v in subset_map.items() if v is not None}
 
 
+def _write_friction_block(f, fric_id: int, data: Dict[str, object]) -> None:
+    """Write a ``/FRICTION`` block with ID ``fric_id``."""
+
+    name = data.get("name", f"fric_{fric_id}")
+    ifric = data.get("Ifric", 0)
+    ifiltr = data.get("Ifiltr", 0)
+    xfreq = data.get("Xfreq", 0)
+    iform = data.get("Iform", 2)
+    c1 = data.get("C1", 0.0)
+    c2 = data.get("C2", 0.0)
+    c3 = data.get("C3", 0.0)
+    c4 = data.get("C4", 0.0)
+    c5 = data.get("C5", 0.0)
+    c6 = data.get("C6", 0.0)
+    fric = data.get("Fric", 0.0)
+    visf = data.get("VisF", 0.0)
+
+    f.write(f"/FRICTION/{fric_id}\n")
+    f.write(f"{name}\n")
+    f.write("# Ifric Ifiltr Xfreq Iform\n")
+    f.write(f"{ifric} {ifiltr} {xfreq} {iform}\n")
+    f.write("# C1 C2 C3 C4 C5\n")
+    f.write(f"{c1} {c2} {c3} {c4} {c5}\n")
+    f.write("# C6 Fric VisF\n")
+    f.write(f"{c6} {fric} {visf}\n")
+
+
 
 def _write_interfaces(f, interfaces: List[Dict[str, object]] | None) -> None:
     """Write ``/INTER`` blocks to ``f`` if any interfaces are defined."""
@@ -169,6 +196,9 @@ def _write_interfaces(f, interfaces: List[Dict[str, object]] | None) -> None:
         fric = inter.get("fric", 0.0)
         fric_stiff = inter.get("stf")
         fric_id = inter.get("fric_ID")
+
+        fric_data = inter.get("friction", {})
+
         slave_id = 200 + idx
         master_id = 300 + idx
 
@@ -192,6 +222,8 @@ def _write_interfaces(f, interfaces: List[Dict[str, object]] | None) -> None:
             f.write(f"{name}\n")
             f.write(f"{slave_id} {master_id} {stiff} {gap} {igap}\n")
             f.write(f"{istf} {idel} {ibag} {inacti} {bumult}\n")
+            if fric_id is not None:
+                f.write(f"{fric_id}\n")
             f.write(f"{stfac}\n")
             f.write(f"{tstart} {tstop}\n")
             f.write(f"{vis_s} {vis_f}\n")
@@ -211,40 +243,15 @@ def _write_interfaces(f, interfaces: List[Dict[str, object]] | None) -> None:
         for nid in m_nodes:
             f.write(f"{nid:10d}\n")
 
-        if fric_id is not None:
-            f.write(f"/FRICTION/{fric_id}\n")
-        else:
+
+        if fric_id is None:
             f.write("/FRICTION\n")
             if fric_stiff is None:
                 f.write(f"{fric}\n")
             else:
                 f.write(f"{fric} {fric_stiff}\n")
-
-
-def _write_frictions(f, frictions: List[Dict[str, object]] | None) -> None:
-    """Write ``/FRICTION`` definition blocks."""
-
-    if not frictions:
-        return
-
-    for fr in frictions:
-        fid = fr.get("id", 1)
-        title = fr.get("title", "test no 1")
-        cf = fr.get("fric", 0.2)
-        f.write(f"/FRICTION/{fid}\n")
-        f.write(f"{title}\n")
-        f.write("#\n")
-        f.write("Ifric\nIfiltr\nXfreq\nIform\n")
-        f.write("0\n0\n0\n2\n")
-        f.write("# default friction for rest parts which not specifically defined below\n")
-        f.write("#\n")
-        f.write("C1\nC2\nC3\nC4\nC5\n")
-        f.write("0\n0\n0\n0\n0\n")
-        f.write("#\n")
-        f.write("C6\nFric\nVisF\n")
-        f.write("0\n")
-        f.write(f"{cf}\n")
-        f.write("0\n")
+        else:
+            _write_friction_block(f, fric_id, fric_data or {"C1": fric, "Fric": fric_stiff})
 
 
 def _write_begin(f, runname: str, unit_sys: str | None) -> None:

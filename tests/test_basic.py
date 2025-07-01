@@ -203,6 +203,24 @@ def test_write_rad_with_type7_contact(tmp_path):
             assert not line.startswith(' ')
 
 
+def test_write_rad_with_type7_fric_id(tmp_path):
+    nodes, elements, *_ = parse_cdb(DATA)
+    rad = tmp_path / 'contact7_fricid.rad'
+    inter = [{
+        'type': 'TYPE7',
+        'name': 'cnt7',
+        'slave': [1, 2],
+        'master': [3, 4],
+        'fric_ID': 7,
+        'friction': {'Ifric': 1, 'C1': 0.3},
+    }]
+    write_starter(nodes, elements, str(rad), interfaces=inter)
+    txt = rad.read_text()
+    assert '/INTER/TYPE7/1' in txt
+    assert '/FRICTION/7' in txt
+    validate_rad_format(str(rad))
+
+
 def test_write_rad_with_type2_contact(tmp_path):
     nodes, elements, *_ = parse_cdb(DATA)
     rad = tmp_path / 'contact2_0000.rad'

@@ -227,11 +227,7 @@ pestañas principales:
   `C:\JAVIER\OPEN_RADIOSS\paraview\data` como directorio de salida.
 - **Propiedades** permite definir propiedades y partes que luego se incluirán en
   el ``starter``.
-- **Generar INC** permite crear ``mesh.inc`` y muestra sus primeras líneas. \
-
-
-- **Generar INC** permite crear ``mesh.inc`` y muestra sus primeras líneas. \
-
+- **Generar INC** permite crear ``mesh.inc`` y muestra sus primeras líneas.
   Incluye casillas para decidir si exportar las selecciones nombradas y los
   materiales. La tabla **Grupos importados** indica el tipo de elemento en
   Radioss y el nombre Ansys asociado a cada conjunto.

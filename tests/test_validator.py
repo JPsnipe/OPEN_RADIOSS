@@ -52,3 +52,19 @@ def test_validate_subset(tmp_path):
     rad = tmp_path / "subset.rad"
     rad.write_text("/SUBSET/1\nset1\n1 2 3\n/END\n")
     validate_rad_format(str(rad))
+
+
+def test_invalid_friction_simple(tmp_path):
+    rad = tmp_path / "bad_fric.rad"
+    rad.write_text("/FRICTION\n1 2 3\n")
+    with pytest.raises(ValueError):
+        validate_rad_format(str(rad))
+
+
+def test_invalid_friction_multi(tmp_path):
+    rad = tmp_path / "bad_fric_multi.rad"
+    rad.write_text(
+        "/FRICTION\ntitle\n0 0 0 2\n0 0 0 0 0\n0 0\n"
+    )
+    with pytest.raises(ValueError):
+        validate_rad_format(str(rad))

@@ -115,6 +115,63 @@ def _validate_subset(lines: list[str], idx: int) -> int:
     return i - 1
 
 
+def _validate_friction(lines: list[str], idx: int) -> int:
+    """Validate a ``/FRICTION`` block starting at ``idx``.
+
+    The function supports the single-line variant (coefficient only or
+    coefficient plus stiffness) and the multi-line form with ``Ifric``,
+    ``Ifiltr``, ``Xfreq``, ``Iform`` followed by ``C1``--``C5`` and
+    ``C6``, ``Fric``, ``VISF`` as described in the 2022 Reference Guide.
+    It returns the index of the last line belonging to the block.
+    """
+
+    if idx + 1 >= len(lines):
+        raise ValueError("Incomplete /FRICTION block")
+
+    j = idx + 1
+    first = lines[j].strip()
+    if not first:
+        raise ValueError("Missing /FRICTION data")
+
+    tokens = first.split()
+    if all(_is_number(t) for t in tokens):
+        if len(tokens) not in (1, 2):
+            raise ValueError("Invalid /FRICTION values")
+        return j
+
+    # multi-line form: first line is a title
+    j += 1
+    def _skip_comments(k: int) -> int:
+        while k < len(lines) and (not lines[k].strip() or lines[k].lstrip().startswith("#")):
+            k += 1
+        return k
+
+    j = _skip_comments(j)
+    if j >= len(lines):
+        raise ValueError("Incomplete /FRICTION block")
+    parts = lines[j].split()
+    if len(parts) != 4 or not all(_is_number(t) for t in parts):
+        raise ValueError("Invalid /FRICTION header values")
+
+    j += 1
+    j = _skip_comments(j)
+    if j >= len(lines):
+        raise ValueError("Incomplete /FRICTION block")
+    parts = lines[j].split()
+    if len(parts) != 5 or not all(_is_number(t) for t in parts):
+        raise ValueError("Invalid /FRICTION coefficients")
+
+    j += 1
+    j = _skip_comments(j)
+    if j >= len(lines):
+        raise ValueError("Incomplete /FRICTION block")
+    parts = lines[j].split()
+    if len(parts) != 3 or not all(_is_number(t) for t in parts):
+        raise ValueError("Invalid /FRICTION footer values")
+
+    return j
+
+
 def validate_rad_format(filepath: str) -> None:
     """Validate the structure of ``filepath``.
 
@@ -176,20 +233,29 @@ def validate_rad_format(filepath: str) -> None:
                 j += 1
             if j >= len(lines):
                 raise ValueError("TYPE7 missing /FRICTION")
+
             if fric_id is not None:
                 if not any(l.startswith(f"/FRICTION/{fric_id}") for l in lines):
                     raise ValueError(f"Missing /FRICTION/{fric_id} block")
             if j + 1 >= len(lines):
                 raise ValueError("Incomplete TYPE7 block")
             i = j + 2
+
             continue
 
         if line.startswith("/INTER/TYPE2"):
-            if i + 4 >= len(lines):
-                raise ValueError("Incomplete TYPE2 block")
-            if not lines[i + 3].startswith("/FRICTION"):
+            j = i + 1
+            while j < len(lines) and not lines[j].startswith("/FRICTION"):
+                j += 1
+            if j >= len(lines):
                 raise ValueError("TYPE2 missing /FRICTION")
-            i += 5
+            if lines[j].strip() == "/FRICTION":
+                if j + 1 >= len(lines):
+                    raise ValueError("Incomplete TYPE2 block")
+                i = j + 2
+            else:
+                i = j + 1
+
             continue
 
         if line.startswith("/RBODY/"):
@@ -229,6 +295,11 @@ def validate_rad_format(filepath: str) -> None:
             if not all(_is_number(t) for t in lines[i + 2].split()):
                 raise ValueError("Invalid gravity vector")
             i += 3
+            continue
+
+        if line.startswith("/FRICTION"):
+            i = _validate_friction(lines, i)
+            i += 1
             continue
 
         if line.startswith("/"):

@@ -9,3 +9,4 @@ def test_convert_to_vtk(tmp_path):
     convert_to_vtk(str(DATA), str(out))
     text = out.read_text()
     assert 'UNSTRUCTURED_GRID' in text
+    assert 'POINT_DATA' in text

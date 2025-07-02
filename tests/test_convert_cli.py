@@ -10,3 +10,5 @@ def test_convert_cli(tmp_path):
     result = subprocess.run(['python', str(script), str(DATA), str(out)], capture_output=True, text=True)
     assert out.exists()
     assert 'Written' in result.stdout
+    text = out.read_text()
+    assert 'POINT_DATA' in text

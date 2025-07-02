@@ -23,6 +23,7 @@ def test_write_vtk():
     assert 'DATASET UNSTRUCTURED_GRID' in content
     assert 'POINT_DATA' in content
     assert 'CELL_DATA' in content
+
     assert 'SUFACE_BALL' in content
     assert 'BALL' in content
 

@@ -23,6 +23,8 @@ def test_write_vtk():
     assert 'DATASET UNSTRUCTURED_GRID' in content
     assert 'POINT_DATA' in content
     assert 'CELL_DATA' in content
+    assert 'SUFACE_BALL' in content
+    assert 'BALL' in content
 
 
 def test_write_vtp(tmp_path):
@@ -36,4 +38,9 @@ def test_write_vtp(tmp_path):
         elem_sets=elem_sets,
     )
     assert out.exists() and out.stat().st_size > 0
+    xml = out.read_text()
+    assert 'PointData' in xml
+    assert 'CellData' in xml
+    assert 'SUFACE_BALL' in xml
+    assert 'BALL' in xml
 

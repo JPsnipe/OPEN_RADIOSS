@@ -10,3 +10,12 @@ def test_convert_to_vtk(tmp_path):
     text = out.read_text()
     assert 'UNSTRUCTURED_GRID' in text
     assert 'POINT_DATA' in text
+
+
+
+def test_convert_to_vtp(tmp_path):
+    out = tmp_path / 'mesh.vtp'
+    convert_to_vtk(str(DATA), str(out))
+    txt = out.read_text()
+    assert '<VTKFile' in txt or 'UNSTRUCTURED_GRID' in txt
+    assert 'POINT_DATA' in txt or '<PointData>' in txt

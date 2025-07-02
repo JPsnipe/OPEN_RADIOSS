@@ -28,13 +28,25 @@ def convert_to_vtk(infile: str, outfile: str) -> None:
     ext = Path(infile).suffix.lower()
     if ext == ".cdb":
         nodes, elements, node_sets, elem_sets, _ = parse_cdb(infile)
-        write_vtk(
-            nodes,
-            elements,
-            outfile,
-            node_sets=node_sets,
-            elem_sets=elem_sets,
-        )
+
+        out_ext = Path(outfile).suffix.lower()
+        if out_ext == ".vtp":
+            write_vtp(
+                nodes,
+                elements,
+                outfile,
+                node_sets=node_sets,
+                elem_sets=elem_sets,
+            )
+        else:
+            write_vtk(
+                nodes,
+                elements,
+                outfile,
+                node_sets=node_sets,
+                elem_sets=elem_sets,
+            )
+
         return
 
     if meshio is None:

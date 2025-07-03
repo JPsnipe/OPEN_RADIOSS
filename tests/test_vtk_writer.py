@@ -7,19 +7,40 @@ DATA = os.path.join(os.path.dirname(__file__), '..', 'data', 'model.cdb')
 
 
 def test_write_vtk():
-    nodes, elements, *_ = parse_cdb(DATA)
+    nodes, elements, node_sets, elem_sets, _ = parse_cdb(DATA)
     with tempfile.NamedTemporaryFile(delete=False, suffix='.vtk') as tmp:
-        write_vtk(nodes, elements, tmp.name)
+        write_vtk(
+            nodes,
+            elements,
+            tmp.name,
+            node_sets=node_sets,
+            elem_sets=elem_sets,
+        )
         tmp.close()
         with open(tmp.name, 'r') as f:
             content = f.read()
     assert content.startswith('# vtk DataFile')
     assert 'DATASET UNSTRUCTURED_GRID' in content
+    assert 'POINT_DATA' in content
+    assert 'CELL_DATA' in content
+    assert 'SUFACE_BALL' in content
+    assert 'BALL' in content
 
 
 def test_write_vtp(tmp_path):
-    nodes, elements, *_ = parse_cdb(DATA)
+    nodes, elements, node_sets, elem_sets, _ = parse_cdb(DATA)
     out = tmp_path / "mesh.vtp"
-    write_vtp(nodes, elements, str(out))
+    write_vtp(
+        nodes,
+        elements,
+        str(out),
+        node_sets=node_sets,
+        elem_sets=elem_sets,
+    )
     assert out.exists() and out.stat().st_size > 0
+    xml = out.read_text()
+    assert 'PointData' in xml
+    assert 'CellData' in xml
+    assert 'SUFACE_BALL' in xml
+    assert 'BALL' in xml
 

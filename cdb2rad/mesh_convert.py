@@ -27,8 +27,24 @@ def convert_to_vtk(infile: str, outfile: str) -> None:
     """
     ext = Path(infile).suffix.lower()
     if ext == ".cdb":
-        nodes, elements, *_ = parse_cdb(infile)
-        write_vtk(nodes, elements, outfile)
+        nodes, elements, node_sets, elem_sets, _ = parse_cdb(infile)
+        out_ext = Path(outfile).suffix.lower()
+        if out_ext == ".vtp":
+            write_vtp(
+                nodes,
+                elements,
+                outfile,
+                node_sets=node_sets,
+                elem_sets=elem_sets,
+            )
+        else:
+            write_vtk(
+                nodes,
+                elements,
+                outfile,
+                node_sets=node_sets,
+                elem_sets=elem_sets,
+            )
         return
 
     if meshio is None:
@@ -44,12 +60,14 @@ def mesh_to_temp_vtk(
     nodes: Dict[int, List[float]],
     elements: List[Tuple[int, int, List[int]]],
     suffix: str = ".vtk",
+    node_sets: Dict[str, List[int]] | None = None,
+    elem_sets: Dict[str, List[int]] | None = None,
 ) -> str:
-    """Return path to a temporary VTK/VTP file for *nodes* and *elements*."""
+    """Return path to a temporary VTK/VTP file with optional groups."""
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
     tmp.close()
     if suffix.endswith(".vtp"):
-        write_vtp(nodes, elements, tmp.name)
+        write_vtp(nodes, elements, tmp.name, node_sets=node_sets, elem_sets=elem_sets)
     else:
-        write_vtk(nodes, elements, tmp.name)
+        write_vtk(nodes, elements, tmp.name, node_sets=node_sets, elem_sets=elem_sets)
     return tmp.name

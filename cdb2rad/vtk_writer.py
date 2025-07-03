@@ -57,7 +57,9 @@ def write_vtk(
                 nid_set = set(nids)
                 for nid in sorted(nodes):
                     f.write(f"{1 if nid in nid_set else 0}\n")
+
                 f.write("\n")
+
 
         if elem_sets:
             f.write(f"\nCELL_DATA {len(elements)}\n")
@@ -67,6 +69,7 @@ def write_vtk(
                 eid_set = set(eids)
                 for eid, _, _ in elements:
                     f.write(f"{1 if eid in eid_set else 0}\n")
+
                 f.write("\n")
 
 

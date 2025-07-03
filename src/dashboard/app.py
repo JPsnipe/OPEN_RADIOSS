@@ -67,6 +67,8 @@ def launch_paraview_server(
     *,
     nodes: Dict[int, List[float]] | None = None,
     elements: List[Tuple[int, int, List[int]]] | None = None,
+    node_sets: Dict[str, List[int]] | None = None,
+    elem_sets: Dict[str, List[int]] | None = None,
     port: int = 12345,
     host: str = "127.0.0.1",
     verbose: bool = False,
@@ -81,7 +83,12 @@ def launch_paraview_server(
         convert_to_vtk(mesh_path, tmp.name)
         data_path = tmp.name
     elif nodes is not None and elements is not None:
-        data_path = mesh_to_temp_vtk(nodes, elements)
+        data_path = mesh_to_temp_vtk(
+            nodes,
+            elements,
+            node_sets=node_sets,
+            elem_sets=elem_sets,
+        )
     else:
         raise ValueError("mesh_path or nodes/elements must be provided")
 
@@ -826,6 +833,8 @@ if file_path:
             url = launch_paraview_server(
                 nodes=nodes,
                 elements=elements,
+                node_sets=node_sets,
+                elem_sets=elem_sets,
                 port=int(port),
                 verbose=True,
             )
@@ -855,9 +864,21 @@ if file_path:
                 st.error("El archivo ya existe. Elija otro nombre o active sobrescribir")
             else:
                 if vtk_format == ".vtp":
-                    write_vtp(nodes, elements, str(vtk_path))
+                    write_vtp(
+                        nodes,
+                        elements,
+                        str(vtk_path),
+                        node_sets=node_sets,
+                        elem_sets=elem_sets,
+                    )
                 else:
-                    write_vtk(nodes, elements, str(vtk_path))
+                    write_vtk(
+                        nodes,
+                        elements,
+                        str(vtk_path),
+                        node_sets=node_sets,
+                        elem_sets=elem_sets,
+                    )
                 st.success(f"Archivo guardado en: {vtk_path}")
 
 

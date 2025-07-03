@@ -294,6 +294,8 @@ posible generar el fichero VTK en memoria desde la propia aplicación:
 
 Además, desde la pestaña *Vista 3D* se puede guardar el archivo con el botón
 **Generar VTK**, especificando la ruta y el nombre deseado.
+Los conjuntos leídos del ``.cdb`` se exportan como arrays de nodos y elementos
+en los ficheros ``.vtk`` o ``.vtp`` para poder filtrarlos en ParaView.
 
 
 ```bash

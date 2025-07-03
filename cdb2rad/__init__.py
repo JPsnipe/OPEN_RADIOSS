@@ -3,6 +3,7 @@
 from .parser import parse_cdb
 from .writer_inc import write_mesh_inc
 from .writer_rad import write_rad, write_starter, write_engine
+from .writer_inp import write_inp
 
 from .utils import element_summary, element_set_types, element_set_etypes
 
@@ -16,6 +17,7 @@ __all__ = [
     "write_rad",
     "write_starter",
     "write_engine",
+    "write_inp",
     "element_summary",
     "element_set_types",
 

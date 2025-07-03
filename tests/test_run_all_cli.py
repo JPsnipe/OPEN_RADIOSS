@@ -21,3 +21,11 @@ def test_all_flag(tmp_path):
     assert (tmp_path / 'model_0000.rad').exists()
     assert (tmp_path / 'model_0001.rad').exists()
 
+
+def test_inp_flag(tmp_path):
+    out = tmp_path / 'mesh.inp'
+    result = subprocess.run([
+        'python', str(SCRIPT), str(DATA), '--inp', str(out)
+    ], capture_output=True, text=True, cwd=tmp_path)
+    assert out.exists()
+

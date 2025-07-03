@@ -145,6 +145,7 @@ from cdb2rad.writer_rad import (
     _build_subset_map,
 )
 from cdb2rad.writer_inc import write_mesh_inc
+from cdb2rad.writer_inp import write_inp
 from cdb2rad.rad_validator import validate_rad_format
 from cdb2rad.utils import check_rad_inputs
 from cdb2rad.remote import add_remote_point, next_free_node_id
@@ -754,11 +755,12 @@ if file_path:
     nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
     st.session_state["cdb_materials"] = materials
 
-    info_tab, preview_tab, inp_tab, rad_tab, editor_tab, help_tab = st.tabs(
+    info_tab, preview_tab, inc_tab, abaqus_tab, rad_tab, editor_tab, help_tab = st.tabs(
         [
             "Información",
             "Vista 3D",
             "Generar INC",
+            "Generar INP",
             "Generar RAD",
             "Editor RAD",
             "Ayuda",
@@ -883,7 +885,7 @@ if file_path:
 
 
 
-    with inp_tab:
+    with inc_tab:
         st.subheader("Generar mesh.inc")
 
         all_elem_sets = {**elem_sets, **st.session_state.get("subsets", {})}
@@ -946,6 +948,40 @@ if file_path:
                     st.text_area(
                         "mesh.inc", inp_path.read_text(), height=400
                     )
+
+    with abaqus_tab:
+        st.subheader("Generar INP")
+        use_sets_inp = st.checkbox(
+            "Incluir name selections", value=True, key="inp_use_sets"
+        )
+        inp_dir = st.text_input(
+            "Directorio de salida",
+            value=st.session_state.get("work_dir", str(Path.cwd())),
+            key="inp_dir",
+        )
+        inp_name = st.text_input("Nombre de archivo", value="model", key="inp_name")
+        overwrite_inp = st.checkbox(
+            "Sobrescribir si existe", value=False, key="overwrite_inp"
+        )
+
+        if st.button("Generar .inp"):
+            out_dir = Path(inp_dir).expanduser()
+            out_dir.mkdir(parents=True, exist_ok=True)
+            inp_path = out_dir / f"{inp_name}.inp"
+            if inp_path.exists() and not overwrite_inp:
+                st.error("El archivo ya existe. Elija otro nombre o directorio")
+            else:
+                all_elem_sets = {**elem_sets, **st.session_state.get("subsets", {})}
+                write_inp(
+                    nodes,
+                    elements,
+                    str(inp_path),
+                    node_sets=node_sets if use_sets_inp else None,
+                    elem_sets=all_elem_sets if use_sets_inp else None,
+                )
+                st.success(f"Fichero generado en: {inp_path}")
+                with st.expander("Ver .inp completo"):
+                    st.text_area("model.inp", inp_path.read_text(), height=400)
 
     with rad_tab:
         st.subheader("Generar RAD")

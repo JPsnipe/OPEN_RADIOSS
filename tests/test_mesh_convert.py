@@ -12,7 +12,6 @@ def test_convert_to_vtk(tmp_path):
     assert 'POINT_DATA' in text
 
 
-
 def test_convert_to_vtp(tmp_path):
     out = tmp_path / 'mesh.vtp'
     convert_to_vtk(str(DATA), str(out))

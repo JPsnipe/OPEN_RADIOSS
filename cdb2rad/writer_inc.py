@@ -18,8 +18,14 @@ def write_mesh_inc(
     node_sets: Dict[str, List[int]] | None = None,
     elem_sets: Dict[str, List[int]] | None = None,
     materials: Dict[int, Dict[str, float]] | None = None,
+    dummy_part: int = 2000001,
 ) -> None:
-    """Write ``mesh.inc`` with element blocks derived from ``mapping.json``.
+    """Write ``mesh.inc`` with Radioss element blocks.
+
+    ``dummy_part`` provides a temporary part ID used for all elements so that
+    the resulting include file is valid on its own.  This avoids the solver
+    assigning ``part 0`` when the file is imported without an accompanying
+    starter.
 
     Parameters other than ``nodes`` and ``elements`` are optional.  Material
     definitions supplied via ``materials`` are ignored and kept only for
@@ -60,7 +66,7 @@ def write_mesh_inc(
             f.write(f"{nid:10d}{x:15.6f}{y:15.6f}{z:15.6f}\n")
 
         for key, items in categorized.items():
-            f.write(f"\n/{key}\n")
+            f.write(f"\n/{key}/{dummy_part}\n")
             for eid, nids in items:
                 line = f"{eid:10d}" + "".join(f"{nid:10d}" for nid in nids)
                 f.write(line + "\n")

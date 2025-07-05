@@ -40,7 +40,9 @@ def test_write_mesh(tmp_path):
     )
     text = out.read_text()
     assert '/NODE' in text
-    assert '/BRICK' in text
+    assert '/BRICK' in text or '/SHELL' in text
+    assert '/PART/2000001' not in text
+    assert '/SHELL/2000001' in text or '/BRICK/2000001' in text
 
 
 def test_write_rad(tmp_path):
@@ -72,6 +74,7 @@ def test_write_rad(tmp_path):
     assert content.startswith('#RADIOSS STARTER')
     assert '/BEGIN' in content
     assert '/END' in content
+    assert '/PART/2000001' in content
     assert '200000.0' in content
     assert '2022         0' in content
     assert '2022' in content

@@ -35,6 +35,10 @@ def test_output_files(tmp_path):
     text = mesh.read_text()
     assert text.startswith('/NODE')
     assert ('/SHELL' in text) or ('/BRICK' in text)
+    assert '/SHELL/2000001' in text or '/BRICK/2000001' in text
+
+    rad_text = starter.read_text()
+    assert '/PART/2000001' in rad_text
 
     validate_rad_format(str(starter))
     validate_rad_format(str(engine))

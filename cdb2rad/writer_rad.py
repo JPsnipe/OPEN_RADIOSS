@@ -309,6 +309,7 @@ def write_starter(
     auto_parts: bool = False,
     unit_sys: str | None = None,
     return_subset_map: bool = False,
+    dummy_part: int = 2000001,
 ) -> None | Tuple[None, Dict[str, int]]:
     """Write a Radioss starter file (``*_0000.rad``).
 
@@ -324,6 +325,9 @@ def write_starter(
     Set ``return_subset_map=True`` to retrieve the mapping from subset names to
     the numeric IDs written in the file. The function then returns a tuple
     ``(None, subset_map)`` instead of ``None``.
+    ``dummy_part`` defines the temporary part ID used for all elements written
+    to ``mesh.inc`` and is also declared here so the include file is valid when
+    imported on its own.
     """
 
     all_mats, mid_map = _merge_materials(materials, extra_materials)
@@ -375,6 +379,7 @@ def write_starter(
             mesh_inc,
             node_sets=node_sets,
             elem_sets=elem_sets,
+            dummy_part=dummy_part,
         )
 
     # Validate connector inputs
@@ -707,6 +712,18 @@ def write_starter(
 
         else:
             subset_map = _build_subset_map(all_subsets)
+
+        # Always declare the dummy part used in ``mesh.inc`` so the include can
+        # be imported without errors due to missing part IDs.
+        existing_ids = {int(p.get("id", 0)) for p in (parts or [])}
+        if dummy_part not in existing_ids:
+            prop_id = (
+                int(properties[0].get("id", 1)) if properties else 1
+            )
+            mat_id = next(iter(all_mats.keys()), 1) if all_mats else 1
+            f.write(f"/PART/{dummy_part}\n")
+            f.write("DUMMY\n")
+            f.write(f"         {prop_id}         {mat_id}         0\n")
 
         if properties:
             for prop in properties:

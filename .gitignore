@@ -6,3 +6,7 @@ openradioss_bin/
 mesh.inc
 sample.rad
 docs/*.pdf
+
+model_*.rad
+model_*.out
+model.inp

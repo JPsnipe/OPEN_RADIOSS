@@ -6,6 +6,7 @@ import json
 import math
 import subprocess
 from io import StringIO
+import platform
 from typing import Dict, List, Tuple, Optional, Set
 
 # Ensure repository root is on the Python path before importing local modules
@@ -2031,8 +2032,65 @@ if file_path:
         repo_root = Path(__file__).resolve().parents[2]
         def_path_starter = repo_root / "openradioss_bin" / "OpenRadioss" / "exec" / "starter_linux64_gf"
         def_path_engine = repo_root / "openradioss_bin" / "OpenRadioss" / "exec" / "engine_linux64_gf"
-        def_lib = repo_root / "openradioss_bin" / "OpenRadioss" / "extlib" / "hm_reader" / "linux64"
+        def_lib_linux = repo_root / "openradioss_bin" / "OpenRadioss" / "extlib" / "hm_reader" / "linux64"
+        def_lib_win = repo_root / "openradioss_bin" / "OpenRadioss" / "extlib" / "hm_reader" / "win64"
         def_cfg = repo_root / "openradioss_bin" / "OpenRadioss" / "hm_cfg_files"
+
+        def _auto_find_execs() -> tuple[str | None, str | None, str | None, str | None]:
+            """Try to locate Starter/Engine and hm_reader+cfg folders.
+
+            Scans common layouts:
+              - openradioss_bin/OpenRadioss/exec (download script)
+              - OpenRadioss/exec (manual copy)
+            Supports Linux and Windows executable names.
+            """
+            candidates_exec_dirs = [
+                repo_root / "openradioss_bin" / "OpenRadioss" / "exec",
+                repo_root / "OpenRadioss" / "exec",
+            ]
+            starter_names = [
+                "starter_linux64_gf",
+                "starter_linux64_gf_sp",
+                "starter_win64_gf.exe",
+                "starter_win64.exe",
+                "starter.exe",
+            ]
+            engine_names = [
+                "engine_linux64_gf",
+                "engine_linux64_gf_sp",
+                "engine_win64_gf.exe",
+                "engine_win64.exe",
+                "engine.exe",
+            ]
+            found_starter = found_engine = None
+            found_lib = found_cfg = None
+            for d in candidates_exec_dirs:
+                if not d.exists():
+                    continue
+                for n in starter_names:
+                    p = d / n
+                    if p.exists():
+                        found_starter = str(p)
+                        break
+                for n in engine_names:
+                    p = d / n
+                    if p.exists():
+                        found_engine = str(p)
+                        break
+                # infer hm_reader and cfg
+                base = d.parents[0]
+                hm = base / "extlib" / "hm_reader"
+                cand_libs = [hm / "linux64", hm / "win64"]
+                for libd in cand_libs:
+                    if libd.exists():
+                        found_lib = str(libd)
+                        break
+                cfgd = base / "hm_cfg_files"
+                if cfgd.exists():
+                    found_cfg = str(cfgd)
+                if found_starter or found_engine:
+                    break
+            return found_starter, found_engine, found_lib, found_cfg
 
         run_dir = Path(st.session_state.get("rad_dir", st.session_state.get("work_dir", str(Path.cwd())))).expanduser()
         run_name = st.text_input("Nombre base (runname)", value=st.session_state.get("rad_name", "model"), key="run_runname")
@@ -2056,10 +2114,24 @@ if file_path:
             key="run_exec_mode",
         )
         if exec_mode == "Usar binarios descargados":
-            starter_exec = str(def_path_starter) if def_path_starter.exists() else st.session_state.get("run_starter_exec", "")
-            engine_exec = str(def_path_engine) if def_path_engine.exists() else st.session_state.get("run_engine_exec", "")
+            auto_s, auto_e, auto_lib, auto_cfg = _auto_find_execs()
+            starter_exec = auto_s or (str(def_path_starter) if def_path_starter.exists() else st.session_state.get("run_starter_exec", ""))
+            engine_exec = auto_e or (str(def_path_engine) if def_path_engine.exists() else st.session_state.get("run_engine_exec", ""))
             st.caption(f"Starter: {starter_exec or 'No encontrado'}")
             st.caption(f"Engine: {engine_exec or 'No encontrado'}")
+            if st.button("Buscar ejecutables"):
+                auto_s, auto_e, auto_lib, auto_cfg = _auto_find_execs()
+                if auto_s:
+                    st.session_state["run_starter_exec"] = auto_s
+                    starter_exec = auto_s
+                if auto_e:
+                    st.session_state["run_engine_exec"] = auto_e
+                    engine_exec = auto_e
+                if auto_lib:
+                    st.session_state["run_ld_path"] = auto_lib
+                if auto_cfg:
+                    st.session_state["run_cfg_path"] = auto_cfg
+                st.experimental_rerun() if hasattr(st, "experimental_rerun") else (_ for _ in ()).throw(StopIteration)
         else:
             col1, col2 = st.columns(2)
             with col1:
@@ -2081,9 +2153,9 @@ if file_path:
         with col_env1:
             ld_path = st.text_input(
                 "LD_LIBRARY_PATH",
-                value=str(def_lib) if def_lib.exists() else st.session_state.get("run_ld_path", ""),
+                value=(str(def_lib_linux) if def_lib_linux.exists() else (str(def_lib_win) if def_lib_win.exists() else st.session_state.get("run_ld_path", ""))),
                 key="run_ld_path",
-                help="Directorio de bibliotecas hm_reader",
+                help="Directorio de bibliotecas hm_reader (linux64 o win64)",
             )
         with col_env2:
             cfg_path = st.text_input(
@@ -2120,10 +2192,16 @@ if file_path:
                             except Exception as e:
                                 st.warning(f"Formato starter: {e}")
                         env = dict(**os.environ)
-                        if ld_path:
-                            env["LD_LIBRARY_PATH"] = str(ld_path)
-                        if cfg_path:
-                            env["RAD_CFG_PATH"] = str(cfg_path)
+                        if platform.system() == "Windows":
+                            if ld_path:
+                                env["PATH"] = f"{str(ld_path)};{env.get('PATH','')}"
+                            if cfg_path:
+                                env["RAD_CFG_PATH"] = str(cfg_path)
+                        else:
+                            if ld_path:
+                                env["LD_LIBRARY_PATH"] = str(ld_path)
+                            if cfg_path:
+                                env["RAD_CFG_PATH"] = str(cfg_path)
                         if not starter_exec:
                             st.error("Indica la ruta al starter")
                         else:
@@ -2144,10 +2222,16 @@ if file_path:
                             except Exception as e:
                                 st.warning(f"Formato engine: {e}")
                         env = dict(**os.environ)
-                        if ld_path:
-                            env["LD_LIBRARY_PATH"] = str(ld_path)
-                        if cfg_path:
-                            env["RAD_CFG_PATH"] = str(cfg_path)
+                        if platform.system() == "Windows":
+                            if ld_path:
+                                env["PATH"] = f"{str(ld_path)};{env.get('PATH','')}"
+                            if cfg_path:
+                                env["RAD_CFG_PATH"] = str(cfg_path)
+                        else:
+                            if ld_path:
+                                env["LD_LIBRARY_PATH"] = str(ld_path)
+                            if cfg_path:
+                                env["RAD_CFG_PATH"] = str(cfg_path)
                         if not engine_exec:
                             st.error("Indica la ruta al engine")
                         else:
@@ -2203,10 +2287,16 @@ if file_path:
                 if st.button("Ejecutar Starter (ejemplo)"):
                     try:
                         env = dict(**os.environ)
-                        if ld_path:
-                            env["LD_LIBRARY_PATH"] = str(ld_path)
-                        if cfg_path:
-                            env["RAD_CFG_PATH"] = str(cfg_path)
+                        if platform.system() == "Windows":
+                            if ld_path:
+                                env["PATH"] = f"{str(ld_path)};{env.get('PATH','')}"
+                            if cfg_path:
+                                env["RAD_CFG_PATH"] = str(cfg_path)
+                        else:
+                            if ld_path:
+                                env["LD_LIBRARY_PATH"] = str(ld_path)
+                            if cfg_path:
+                                env["RAD_CFG_PATH"] = str(cfg_path)
                         if not starter_exec:
                             st.error("Indica la ruta al starter")
                         else:
@@ -2221,10 +2311,16 @@ if file_path:
                 if st.button("Ejecutar Engine (ejemplo)"):
                     try:
                         env = dict(**os.environ)
-                        if ld_path:
-                            env["LD_LIBRARY_PATH"] = str(ld_path)
-                        if cfg_path:
-                            env["RAD_CFG_PATH"] = str(cfg_path)
+                        if platform.system() == "Windows":
+                            if ld_path:
+                                env["PATH"] = f"{str(ld_path)};{env.get('PATH','')}"
+                            if cfg_path:
+                                env["RAD_CFG_PATH"] = str(cfg_path)
+                        else:
+                            if ld_path:
+                                env["LD_LIBRARY_PATH"] = str(ld_path)
+                            if cfg_path:
+                                env["RAD_CFG_PATH"] = str(cfg_path)
                         if not engine_exec:
                             st.error("Indica la ruta al engine")
                         else:
@@ -2254,10 +2350,16 @@ if file_path:
                 if st.button("Ejecutar Starter (manual)"):
                     try:
                         env = dict(**os.environ)
-                        if ld_path:
-                            env["LD_LIBRARY_PATH"] = str(ld_path)
-                        if cfg_path:
-                            env["RAD_CFG_PATH"] = str(cfg_path)
+                        if platform.system() == "Windows":
+                            if ld_path:
+                                env["PATH"] = f"{str(ld_path)};{env.get('PATH','')}"
+                            if cfg_path:
+                                env["RAD_CFG_PATH"] = str(cfg_path)
+                        else:
+                            if ld_path:
+                                env["LD_LIBRARY_PATH"] = str(ld_path)
+                            if cfg_path:
+                                env["RAD_CFG_PATH"] = str(cfg_path)
                         if not starter_exec:
                             st.error("Indica la ruta al starter")
                         else:

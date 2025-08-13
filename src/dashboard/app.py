@@ -756,7 +756,7 @@ if file_path:
     nodes, elements, node_sets, elem_sets, materials = load_cdb(file_path)
     st.session_state["cdb_materials"] = materials
 
-    info_tab, preview_tab, inc_tab, abaqus_tab, rad_tab, editor_tab, help_tab = st.tabs(
+    info_tab, preview_tab, inc_tab, abaqus_tab, rad_tab, editor_tab, run_tab, help_tab = st.tabs(
         [
             "Información",
             "Vista 3D",
@@ -764,6 +764,7 @@ if file_path:
             "Generar INP",
             "Generar RAD",
             "Editor RAD",
+            "Ejecutar",
             "Ayuda",
         ]
     )
@@ -2022,6 +2023,118 @@ if file_path:
             st.success(f"Ficheros generados en: {eng_path}")
             with st.expander("Ver engine"):
                 st.text_area("model_0001.rad", eng_path.read_text(), height=400)
+
+    with run_tab:
+        st.subheader("Ejecutar OpenRadioss")
+        repo_root = Path(__file__).resolve().parents[2]
+        def_path_starter = repo_root / "openradioss_bin" / "OpenRadioss" / "exec" / "starter_linux64_gf"
+        def_path_engine = repo_root / "openradioss_bin" / "OpenRadioss" / "exec" / "engine_linux64_gf"
+        def_lib = repo_root / "openradioss_bin" / "OpenRadioss" / "extlib" / "hm_reader" / "linux64"
+        def_cfg = repo_root / "openradioss_bin" / "OpenRadioss" / "hm_cfg_files"
+
+        col1, col2 = st.columns(2)
+        with col1:
+            starter_exec = st.text_input(
+                "Ruta starter_linux64_gf",
+                value=str(def_path_starter) if def_path_starter.exists() else st.session_state.get("run_starter_exec", ""),
+                key="run_starter_exec",
+            )
+            ld_path = st.text_input(
+                "LD_LIBRARY_PATH",
+                value=str(def_lib) if def_lib.exists() else st.session_state.get("run_ld_path", ""),
+                key="run_ld_path",
+            )
+        with col2:
+            engine_exec = st.text_input(
+                "Ruta engine_linux64_gf",
+                value=str(def_path_engine) if def_path_engine.exists() else st.session_state.get("run_engine_exec", ""),
+                key="run_engine_exec",
+            )
+            cfg_path = st.text_input(
+                "RAD_CFG_PATH",
+                value=str(def_cfg) if def_cfg.exists() else st.session_state.get("run_cfg_path", ""),
+                key="run_cfg_path",
+            )
+
+        run_dir = Path(st.session_state.get("rad_dir", st.session_state.get("work_dir", str(Path.cwd())))).expanduser()
+        run_name = st.text_input("Nombre base (runname)", value=st.session_state.get("rad_name", "model"), key="run_runname")
+        starter_path = run_dir / f"{run_name}_0000.rad"
+        engine_path = run_dir / f"{run_name}_0001.rad"
+        mesh_path = run_dir / "mesh.inc"
+
+        auto_validate = st.checkbox("Validar .rad antes de ejecutar", value=True, key="run_auto_validate")
+        auto_generate = st.checkbox("Generar RAD si falta", value=True, key="run_auto_generate")
+
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            if st.button("Generar y ejecutar Starter"):
+                try:
+                    if auto_generate and (not starter_path.exists() or not engine_path.exists()):
+                        s_txt, e_txt = build_rad_text(
+                            nodes,
+                            elements,
+                            node_sets,
+                            {**elem_sets, **st.session_state.get("subsets", {})},
+                            materials,
+                        )
+                        run_dir.mkdir(parents=True, exist_ok=True)
+                        starter_path.write_text(s_txt)
+                        engine_path.write_text(e_txt)
+                        if not (run_dir / "mesh.inc").exists():
+                            write_mesh_inc(nodes, elements, str(mesh_path), node_sets=node_sets)
+                    if auto_validate:
+                        try:
+                            validate_rad_format(str(starter_path))
+                            st.info("Formato starter OK")
+                        except Exception as e:
+                            st.warning(f"Formato starter: {e}")
+                    env = dict(**os.environ)
+                    if ld_path:
+                        env["LD_LIBRARY_PATH"] = str(ld_path)
+                    if cfg_path:
+                        env["RAD_CFG_PATH"] = str(cfg_path)
+                    if not starter_exec:
+                        st.error("Indica la ruta al starter")
+                    else:
+                        res = subprocess.run([str(starter_exec), "-i", str(starter_path)], capture_output=True, text=True, cwd=str(run_dir), env=env)
+                        st.text_area("Starter stdout", res.stdout, height=220)
+                        if res.stderr:
+                            st.text_area("Starter stderr", res.stderr, height=160)
+                        st.write(f"Return code: {res.returncode}")
+                except Exception as e:
+                    st.error(f"Error ejecutando starter: {e}")
+        with c2:
+            if st.button("Ejecutar Engine"):
+                try:
+                    if auto_validate:
+                        try:
+                            validate_rad_format(str(engine_path))
+                            st.info("Formato engine OK")
+                        except Exception as e:
+                            st.warning(f"Formato engine: {e}")
+                    env = dict(**os.environ)
+                    if ld_path:
+                        env["LD_LIBRARY_PATH"] = str(ld_path)
+                    if cfg_path:
+                        env["RAD_CFG_PATH"] = str(cfg_path)
+                    if not engine_exec:
+                        st.error("Indica la ruta al engine")
+                    else:
+                        res = subprocess.run([str(engine_exec), "-i", str(engine_path)], capture_output=True, text=True, cwd=str(run_dir), env=env)
+                        st.text_area("Engine stdout", res.stdout, height=220)
+                        if res.stderr:
+                            st.text_area("Engine stderr", res.stderr, height=160)
+                        st.write(f"Return code: {res.returncode}")
+                except Exception as e:
+                    st.error(f"Error ejecutando engine: {e}")
+        with c3:
+            if st.button("Refrescar salida"):
+                out_file = run_dir / f"{run_name}_0000.out"
+                if out_file.exists():
+                    st.text_area("Listing (.out)", out_file.read_text()[-10000:], height=400)
+                else:
+                    st.info("Aún no existe el archivo .out")
+
 
         with st.expander("Probar en OpenRadioss"):
             repo_root = Path(__file__).resolve().parents[2]

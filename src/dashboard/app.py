@@ -1,4 +1,5 @@
 import tempfile
+import os
 from pathlib import Path
 import sys
 import json
@@ -2021,6 +2022,96 @@ if file_path:
             st.success(f"Ficheros generados en: {eng_path}")
             with st.expander("Ver engine"):
                 st.text_area("model_0001.rad", eng_path.read_text(), height=400)
+
+        with st.expander("Probar en OpenRadioss"):
+            repo_root = Path(__file__).resolve().parents[2]
+            default_exec = repo_root / "openradioss_bin" / "OpenRadioss" / "exec" / "starter_linux64_gf"
+            default_lib = repo_root / "openradioss_bin" / "OpenRadioss" / "extlib" / "hm_reader" / "linux64"
+            default_cfg = repo_root / "openradioss_bin" / "OpenRadioss" / "hm_cfg_files"
+
+            exec_path = st.text_input(
+                "Ruta a starter_linux64_gf",
+                value=str(default_exec) if default_exec.exists() else st.session_state.get("or_exec", ""),
+                key="or_exec",
+            )
+            colA, colB = st.columns(2)
+            with colA:
+                ld_path = st.text_input(
+                    "LD_LIBRARY_PATH",
+                    value=str(default_lib) if default_lib.exists() else st.session_state.get("or_ld", ""),
+                    key="or_ld",
+                )
+            with colB:
+                cfg_path = st.text_input(
+                    "RAD_CFG_PATH",
+                    value=str(default_cfg) if default_cfg.exists() else st.session_state.get("or_cfg", ""),
+                    key="or_cfg",
+                )
+
+            run_dir = Path(st.session_state.get("rad_dir", st.session_state.get("work_dir", str(Path.cwd())))).expanduser()
+            run_name = st.session_state.get("rad_name", "model")
+            starter_path = run_dir / f"{run_name}_0000.rad"
+            engine_path = run_dir / f"{run_name}_0001.rad"
+            mesh_path = run_dir / "mesh.inc"
+
+            st.caption(f"Starter esperado: {starter_path}")
+
+            if st.button("Validar .rad"):
+                try:
+                    validate_rad_format(str(starter_path))
+                    st.success("Formato .rad válido")
+                except Exception as e:
+                    st.error(f"Validación falló: {e}")
+
+            if st.button("Ejecutar Starter"):
+                # Asegurar que existen los ficheros necesarios
+                try:
+                    # Regenerar si faltan
+                    if not starter_path.exists() or not engine_path.exists():
+                        # Usar build_rad_text para construir desde el estado actual
+                        s_txt, e_txt = build_rad_text(
+                            all_nodes,
+                            elements,
+                            node_sets,
+                            {**elem_sets, **st.session_state.get("subsets", {})},
+                            materials if use_cdb_mats else None,
+                        )
+                        run_dir.mkdir(parents=True, exist_ok=True)
+                        starter_path.write_text(s_txt)
+                        engine_path.write_text(e_txt)
+                        if not include_inc:
+                            write_mesh_inc(all_nodes, elements, str(mesh_path), node_sets=node_sets)
+
+                    # Validación rápida antes de ejecutar
+                    try:
+                        validate_rad_format(str(starter_path))
+                    except Exception as e:
+                        st.warning(f"Advertencia de formato: {e}")
+
+                    env = dict(**os.environ)
+                    if ld_path:
+                        env["LD_LIBRARY_PATH"] = str(ld_path)
+                    if cfg_path:
+                        env["RAD_CFG_PATH"] = str(cfg_path)
+                    if not exec_path:
+                        st.error("Debes indicar la ruta al binario starter_linux64_gf")
+                    else:
+                        result = subprocess.run(
+                            [str(exec_path), "-i", str(starter_path)],
+                            capture_output=True,
+                            text=True,
+                            cwd=str(run_dir),
+                            env=env,
+                        )
+                        st.text_area("Salida OpenRadioss (stdout)", result.stdout, height=240)
+                        if result.stderr:
+                            st.text_area("Errores (stderr)", result.stderr, height=180)
+                        if result.returncode == 0:
+                            st.success("Starter ejecutado (returncode 0)")
+                        else:
+                            st.warning(f"Starter terminó con código {result.returncode}")
+                except Exception as e:
+                    st.error(f"Ejecución falló: {e}")
 
     with editor_tab:
         st.subheader("Editor RAD")

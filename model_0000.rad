@@ -1,0 +1,22 @@
+#RADIOSS STARTER
+/BEGIN
+model
+      2022         0
+                  kg                  mm                  ms
+                  kg                  mm                  ms
+/MAT/LAW1/1
+MAT_1
+#              RHO
+7.85e-09
+#                  E                  Nu
+200000.0 0.3
+#include mesh.inc
+/PROP/SHELL/1
+AutoProp
+#   Ishell    Ismstr     Ish3n    Idrill              P_thick_fail
+        24         0         0        0                            0.0
+#                 hm                  hf            hr                  dm                  dn
+                   0.0                   0.0            0.0                   0.0                   0.0
+#        N   Istrain               Thick   Ashear              Ithick     Iplas
+         5         0                 1.0                   0                   1         1
+/END

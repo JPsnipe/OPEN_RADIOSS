@@ -630,7 +630,7 @@ def build_rad_text(
             properties=st.session_state.get("properties"),
             parts=st.session_state.get("parts"),
             subsets=st.session_state.get("subsets"),
-            auto_parts=False,
+            auto_parts=bool(st.session_state.get("auto_parts", False)),
         )
     except ValueError as e:
         st.error(
@@ -1822,6 +1822,8 @@ if file_path:
 
 
 
+        st.checkbox("Crear PROP/PART por defecto (auto)", key="auto_parts")
+
         rad_dir = st.text_input(
             "Directorio de salida",
             value=st.session_state.get("work_dir", str(Path.cwd())),
@@ -1937,7 +1939,7 @@ if file_path:
                         properties=st.session_state.get("properties"),
                         parts=st.session_state.get("parts"),
                         subsets=st.session_state.get("subsets"),
-                        auto_parts=False,
+                        auto_parts=bool(st.session_state.get("auto_parts", False)),
                     )
                 except ValueError as e:
                     st.error(

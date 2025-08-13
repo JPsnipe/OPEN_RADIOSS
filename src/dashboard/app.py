@@ -2092,7 +2092,16 @@ if file_path:
                     break
             return found_starter, found_engine, found_lib, found_cfg
 
-        run_dir = Path(st.session_state.get("rad_dir", st.session_state.get("work_dir", str(Path.cwd())))).expanduser()
+        # Run directory and base name
+        default_run_dir = Path(st.session_state.get("rad_dir", st.session_state.get("work_dir", str(Path.cwd())))).expanduser()
+        run_dir_str = st.text_input(
+            "Directorio de ejecución",
+            value=str(st.session_state.get("run_dir_override", default_run_dir)),
+            key="run_run_dir",
+            help="Carpeta donde se guardan/leen model_0000.rad, model_0001.rad y mesh.inc",
+        )
+        st.session_state["run_dir_override"] = run_dir_str
+        run_dir = Path(run_dir_str).expanduser()
         run_name = st.text_input("Nombre base (runname)", value=st.session_state.get("rad_name", "model"), key="run_runname")
         starter_path = run_dir / f"{run_name}_0000.rad"
         engine_path = run_dir / f"{run_name}_0001.rad"
@@ -2131,7 +2140,10 @@ if file_path:
                     st.session_state["run_ld_path"] = auto_lib
                 if auto_cfg:
                     st.session_state["run_cfg_path"] = auto_cfg
-                st.experimental_rerun() if hasattr(st, "experimental_rerun") else (_ for _ in ()).throw(StopIteration)
+                try:
+                    st.experimental_rerun()
+                except Exception:
+                    pass
         else:
             col1, col2 = st.columns(2)
             with col1:
@@ -2166,6 +2178,26 @@ if file_path:
             )
 
         auto_validate = st.checkbox("Validar .rad antes de ejecutar", value=True, key="run_auto_validate")
+
+        def _preflight(starter_exec: str | None, engine_exec: str | None, ld: str | None, cfg: str | None) -> tuple[list[str], list[str]]:
+            errs: list[str] = []
+            warns: list[str] = []
+            if not starter_exec or not Path(str(starter_exec)).exists():
+                warns.append("Starter no encontrado. Algunas acciones se deshabilitarán.")
+            if not engine_exec or not Path(str(engine_exec)).exists():
+                warns.append("Engine no encontrado. Algunas acciones se deshabilitarán.")
+            sysname = platform.system()
+            if sysname == "Windows":
+                if ld and not Path(ld).exists():
+                    warns.append("Ruta hm_reader (PATH) no existe.")
+                if cfg and not Path(cfg).exists():
+                    warns.append("RAD_CFG_PATH no existe.")
+            else:
+                if ld and not Path(ld).exists():
+                    warns.append("LD_LIBRARY_PATH no existe.")
+                if cfg and not Path(cfg).exists():
+                    warns.append("RAD_CFG_PATH no existe.")
+            return errs, warns
 
         if mode == "Generado en dashboard":
             st.caption("Usa el .rad generado en 'Generar RAD' con el nombre base y directorio actuales.")

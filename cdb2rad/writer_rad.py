@@ -855,6 +855,7 @@ def write_engine(
     stop_nerr: int = DEFAULT_STOP_NERR,
     out_ascii: bool = False,
     adyrel: Tuple[float | None, float | None] | None = None,
+    anim_presets: bool = False,
 ) -> None:
     """Write a Radioss engine file (``*_0001.rad``)."""
 
@@ -880,6 +881,12 @@ def write_engine(
         if anim_dt is not None:
             f.write("/ANIM/DT\n")
             f.write(f"0 {anim_dt}\n")
+        if anim_presets:
+            # Common stress/strain outputs following Altair examples
+            f.write("/ANIM/SHELL/TENS/STRESS/ALL\n")
+            f.write("/ANIM/SHELL/TENS/STRAIN/ALL\n")
+            f.write("/ANIM/BRICK/TENS/STRESS/ALL\n")
+            f.write("/ANIM/BRICK/TENS/STRAIN/ALL\n")
         if shell_anim_dt is not None:
             f.write("/ANIM/SHELL/DT\n")
             f.write(f"0 {shell_anim_dt}\n")

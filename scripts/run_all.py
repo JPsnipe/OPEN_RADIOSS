@@ -1,5 +1,10 @@
-"""CLI to convert .cdb files."""
+"""CLI to convert .cdb files and optionally run OpenRadioss.
+
+Adds convenience flags to execute the Starter/Engine and set required
+environment variables following the OpenRadioss installation layout.
+"""
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -32,7 +37,37 @@ def main() -> None:
         action="store_true",
         help="Generate starter, engine, inc and inp with default names",
     )
-    parser.add_argument("--exec", dest="exec_path", help="Run OpenRadioss starter after generation")
+    # Execution and environment options
+    parser.add_argument(
+        "--exec",
+        dest="exec_path",
+        help="Run OpenRadioss starter after generation (deprecated, use --starter-exec)",
+    )
+    parser.add_argument(
+        "--starter-exec",
+        dest="starter_exec",
+        help="Path to OpenRadioss starter binary (starter_linux64_gf)",
+    )
+    parser.add_argument(
+        "--engine-exec",
+        dest="engine_exec",
+        help="Path to OpenRadioss engine binary (engine_linux64_gf)",
+    )
+    parser.add_argument(
+        "--ld-library-path",
+        dest="ld_library_path",
+        help="LD_LIBRARY_PATH to use when running OpenRadioss",
+    )
+    parser.add_argument(
+        "--rad-cfg-path",
+        dest="rad_cfg_path",
+        help="RAD_CFG_PATH to use when running OpenRadioss",
+    )
+    parser.add_argument(
+        "--auto-env",
+        action="store_true",
+        help="Auto-detect LD_LIBRARY_PATH and RAD_CFG_PATH from openradioss_bin",
+    )
     parser.add_argument(
         "--skip-include",
         action="store_true",
@@ -52,6 +87,11 @@ def main() -> None:
         "--no-cdb-materials",
         action="store_true",
         help="Ignore material definitions extracted from the .cdb file",
+    )
+    parser.add_argument(
+        "--anim-presets",
+        action="store_true",
+        help="Add common /ANIM stress/strain requests for shell and brick",
     )
 
     args = parser.parse_args()
@@ -97,9 +137,41 @@ def main() -> None:
         write_engine(
             args.engine,
             runname=Path(args.starter or "model").stem.replace("_0000", ""),
+            anim_presets=args.anim_presets,
         )
-        if args.exec_path and args.starter:
-            subprocess.run([args.exec_path, '-i', args.starter], check=False)
+
+    # Optional execution of Starter/Engine with environment setup
+    starter_exec = args.starter_exec or args.exec_path
+    engine_exec = args.engine_exec
+
+    if starter_exec or engine_exec:
+        env = os.environ.copy()
+
+        # Auto-detect env vars from default OpenRadioss bundle
+        if args.auto_env or (args.ld_library_path is None and args.rad_cfg_path is None):
+            root = ROOT / 'openradioss_bin' / 'OpenRadioss'
+            ld_guess = root / 'extlib' / 'hm_reader' / 'linux64'
+            cfg_guess = root / 'hm_cfg_files'
+            if args.ld_library_path is None and ld_guess.exists():
+                env['LD_LIBRARY_PATH'] = str(ld_guess)
+            if args.rad_cfg_path is None and cfg_guess.exists():
+                env['RAD_CFG_PATH'] = str(cfg_guess)
+
+        # Explicit overrides
+        if args.ld_library_path:
+            env['LD_LIBRARY_PATH'] = args.ld_library_path
+        if args.rad_cfg_path:
+            env['RAD_CFG_PATH'] = args.rad_cfg_path
+
+        # Prepare inputs
+        starter_in = args.starter
+        engine_in = args.engine
+
+        if starter_exec and starter_in:
+            subprocess.run([str(starter_exec), '-i', str(starter_in)], env=env, check=False)
+
+        if engine_exec and engine_in:
+            subprocess.run([str(engine_exec), '-i', str(engine_in)], env=env, check=False)
 
 
 if __name__ == "__main__":

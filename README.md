@@ -153,6 +153,13 @@ de salida:
 python scripts/run_all.py data_files/model.cdb --all
 ```
 
+Si quieres que el `engine` incluya peticiones de animación de tensiones y
+deformaciones típicas (como en los ejemplos de Altair), usa `--anim-presets`:
+
+```bash
+python scripts/run_all.py data_files/model.cdb --all --anim-presets
+```
+
 ### Entorno virtual y OpenRadioss
 
 Para crear un entorno virtual con `pytest` y descargar la última
@@ -166,8 +173,15 @@ python scripts/download_openradioss.py
 Después se puede ejecutar OpenRadioss sobre el fichero generado:
 
 ```bash
-python scripts/run_all.py data_files/model.cdb --starter model.rad \
-    --exec openradioss_bin/OpenRadioss/exec/starter_linux64_gf
+# Starter únicamente (compatibilidad: --exec)
+python scripts/run_all.py data_files/model.cdb --starter model_0000.rad \
+  --starter-exec openradioss_bin/OpenRadioss/exec/starter_linux64_gf --auto-env
+
+# Starter + Engine en cadena
+python scripts/run_all.py data_files/model.cdb --all \
+  --starter-exec openradioss_bin/OpenRadioss/exec/starter_linux64_gf \
+  --engine-exec  openradioss_bin/OpenRadioss/exec/engine_linux64_gf \
+  --auto-env
 ```
 
 Antes de ejecutar es necesario definir dos variables de entorno para que los
@@ -181,7 +195,10 @@ export RAD_CFG_PATH=$PWD/openradioss_bin/OpenRadioss/hm_cfg_files
 Con estas variables se puede lanzar el *starter* directamente:
 
 ```bash
-openradioss_bin/OpenRadioss/exec/starter_linux64_gf -i model.rad
+openradioss_bin/OpenRadioss/exec/starter_linux64_gf -i model_0000.rad
+
+# Y opcionalmente el engine si ya generaste model_0001.rad
+openradioss_bin/OpenRadioss/exec/engine_linux64_gf -i model_0001.rad
 ```
 
 Para lanzar las pruebas:
@@ -325,4 +342,3 @@ utilizarse ``scripts/convert_to_vtk.py``:
 ```bash
 python scripts/convert_to_vtk.py model.cdb mesh.vtk
 ```
-

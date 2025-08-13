@@ -2135,6 +2135,27 @@ if file_path:
                 else:
                     st.info("Aún no existe el archivo .out")
 
+        with st.expander("Descargar ejemplo desde URL"):
+            st.caption("Introduce URLs a un starter y/o engine de la documentación de OpenRadioss (o cualquier .rad público)")
+            eg_starter_url = st.text_input("URL starter (model_0000.rad)", value=st.session_state.get("eg_starter_url", ""), key="eg_starter_url")
+            eg_engine_url = st.text_input("URL engine (model_0001.rad)", value=st.session_state.get("eg_engine_url", ""), key="eg_engine_url")
+            save_name = st.text_input("Guardar como (base)", value=run_name, key="eg_save_as")
+            if st.button("Descargar ejemplo"):
+                try:
+                    import urllib.request
+                    run_dir.mkdir(parents=True, exist_ok=True)
+                    if eg_starter_url:
+                        dst = run_dir / f"{save_name}_0000.rad"
+                        with urllib.request.urlopen(eg_starter_url) as resp, open(dst, 'wb') as out:
+                            out.write(resp.read())
+                    if eg_engine_url:
+                        dst = run_dir / f"{save_name}_0001.rad"
+                        with urllib.request.urlopen(eg_engine_url) as resp, open(dst, 'wb') as out:
+                            out.write(resp.read())
+                    st.success("Ejemplo descargado")
+                except Exception as e:
+                    st.error(f"No se pudo descargar: {e}")
+
 
         with st.expander("Probar en OpenRadioss"):
             repo_root = Path(__file__).resolve().parents[2]

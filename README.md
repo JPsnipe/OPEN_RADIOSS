@@ -204,6 +204,16 @@ python scripts/setup_test_env.py
 Al terminar, se muestran las variables de entorno necesarias para ejecutar el
 ``starter`` y se pueden lanzar las pruebas con ``pytest -q``.
 
+### Ejecutar desde el dashboard
+
+Tras subir un `.cdb` en la UI, aparece una pestaña "Ejecutar":
+
+- Configura `starter_linux64_gf` y `engine_linux64_gf` (se autocompletan si usaste `download_openradioss.py`).
+- Define `LD_LIBRARY_PATH` y `RAD_CFG_PATH` (también se autocompletan).
+- Usa “Generar y ejecutar Starter” para crear `mesh.inc`, `model_0000.rad` y `model_0001.rad` con el estado actual y lanzar el starter.
+- Consulta `stdout/stderr` y refresca el `*.out` con “Refrescar salida”.
+- Opcional: “Descargar ejemplo desde URL” permite pegar enlaces a `.rad` de la documentación oficial y ejecutarlos sin traducir desde `.cdb`.
+
 ## Interfaz web
 
 Se incluye una pequeña interfaz en Streamlit para cargar un `.cdb`, visualizar
@@ -315,5 +325,4 @@ utilizarse ``scripts/convert_to_vtk.py``:
 ```bash
 python scripts/convert_to_vtk.py model.cdb mesh.vtk
 ```
-
 

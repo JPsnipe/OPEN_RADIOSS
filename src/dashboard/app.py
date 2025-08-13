@@ -2034,44 +2034,73 @@ if file_path:
         def_lib = repo_root / "openradioss_bin" / "OpenRadioss" / "extlib" / "hm_reader" / "linux64"
         def_cfg = repo_root / "openradioss_bin" / "OpenRadioss" / "hm_cfg_files"
 
-        col1, col2 = st.columns(2)
-        with col1:
-            starter_exec = st.text_input(
-                "Ruta starter_linux64_gf",
-                value=str(def_path_starter) if def_path_starter.exists() else st.session_state.get("run_starter_exec", ""),
-                key="run_starter_exec",
-            )
-            ld_path = st.text_input(
-                "LD_LIBRARY_PATH",
-                value=str(def_lib) if def_lib.exists() else st.session_state.get("run_ld_path", ""),
-                key="run_ld_path",
-            )
-        with col2:
-            engine_exec = st.text_input(
-                "Ruta engine_linux64_gf",
-                value=str(def_path_engine) if def_path_engine.exists() else st.session_state.get("run_engine_exec", ""),
-                key="run_engine_exec",
-            )
-            cfg_path = st.text_input(
-                "RAD_CFG_PATH",
-                value=str(def_cfg) if def_cfg.exists() else st.session_state.get("run_cfg_path", ""),
-                key="run_cfg_path",
-            )
-
         run_dir = Path(st.session_state.get("rad_dir", st.session_state.get("work_dir", str(Path.cwd())))).expanduser()
         run_name = st.text_input("Nombre base (runname)", value=st.session_state.get("rad_name", "model"), key="run_runname")
         starter_path = run_dir / f"{run_name}_0000.rad"
         engine_path = run_dir / f"{run_name}_0001.rad"
         mesh_path = run_dir / "mesh.inc"
 
-        auto_validate = st.checkbox("Validar .rad antes de ejecutar", value=True, key="run_auto_validate")
-        auto_generate = st.checkbox("Generar RAD si falta", value=True, key="run_auto_generate")
+        st.markdown("Seleccione el modo de ejecución")
+        mode = st.radio(
+            "Modo",
+            ["Generado en dashboard", "Descargar tutorial oficial", "Seleccionar .rad manualmente"],
+            horizontal=True,
+            key="run_mode",
+        )
 
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            if st.button("Generar y ejecutar Starter"):
-                try:
-                    if auto_generate and (not starter_path.exists() or not engine_path.exists()):
+        st.markdown("Origen de ejecutables")
+        exec_mode = st.radio(
+            "Ejecutables",
+            ["Usar binarios descargados", "Especificar rutas"],
+            horizontal=True,
+            key="run_exec_mode",
+        )
+        if exec_mode == "Usar binarios descargados":
+            starter_exec = str(def_path_starter) if def_path_starter.exists() else st.session_state.get("run_starter_exec", "")
+            engine_exec = str(def_path_engine) if def_path_engine.exists() else st.session_state.get("run_engine_exec", "")
+            st.caption(f"Starter: {starter_exec or 'No encontrado'}")
+            st.caption(f"Engine: {engine_exec or 'No encontrado'}")
+        else:
+            col1, col2 = st.columns(2)
+            with col1:
+                starter_exec = st.text_input(
+                    "Ruta starter_linux64_gf",
+                    value=st.session_state.get("run_starter_exec", str(def_path_starter) if def_path_starter.exists() else ""),
+                    key="run_starter_exec",
+                    help="Ruta al ejecutable del starter de OpenRadioss",
+                )
+            with col2:
+                engine_exec = st.text_input(
+                    "Ruta engine_linux64_gf",
+                    value=st.session_state.get("run_engine_exec", str(def_path_engine) if def_path_engine.exists() else ""),
+                    key="run_engine_exec",
+                    help="Ruta al ejecutable del engine de OpenRadioss",
+                )
+
+        col_env1, col_env2 = st.columns(2)
+        with col_env1:
+            ld_path = st.text_input(
+                "LD_LIBRARY_PATH",
+                value=str(def_lib) if def_lib.exists() else st.session_state.get("run_ld_path", ""),
+                key="run_ld_path",
+                help="Directorio de bibliotecas hm_reader",
+            )
+        with col_env2:
+            cfg_path = st.text_input(
+                "RAD_CFG_PATH",
+                value=str(def_cfg) if def_cfg.exists() else st.session_state.get("run_cfg_path", ""),
+                key="run_cfg_path",
+                help="Directorio hm_cfg_files",
+            )
+
+        auto_validate = st.checkbox("Validar .rad antes de ejecutar", value=True, key="run_auto_validate")
+
+        if mode == "Generado en dashboard":
+            st.caption("Usa el .rad generado en 'Generar RAD' con el nombre base y directorio actuales.")
+            gen_col1, gen_col2, gen_col3 = st.columns(3)
+            with gen_col1:
+                if st.button("Generar y ejecutar Starter"):
+                    try:
                         s_txt, e_txt = build_rad_text(
                             nodes,
                             elements,
@@ -2084,65 +2113,77 @@ if file_path:
                         engine_path.write_text(e_txt)
                         if not (run_dir / "mesh.inc").exists():
                             write_mesh_inc(nodes, elements, str(mesh_path), node_sets=node_sets)
-                    if auto_validate:
-                        try:
-                            validate_rad_format(str(starter_path))
-                            st.info("Formato starter OK")
-                        except Exception as e:
-                            st.warning(f"Formato starter: {e}")
-                    env = dict(**os.environ)
-                    if ld_path:
-                        env["LD_LIBRARY_PATH"] = str(ld_path)
-                    if cfg_path:
-                        env["RAD_CFG_PATH"] = str(cfg_path)
-                    if not starter_exec:
-                        st.error("Indica la ruta al starter")
+                        if auto_validate:
+                            try:
+                                validate_rad_format(str(starter_path))
+                                st.info("Formato starter OK")
+                            except Exception as e:
+                                st.warning(f"Formato starter: {e}")
+                        env = dict(**os.environ)
+                        if ld_path:
+                            env["LD_LIBRARY_PATH"] = str(ld_path)
+                        if cfg_path:
+                            env["RAD_CFG_PATH"] = str(cfg_path)
+                        if not starter_exec:
+                            st.error("Indica la ruta al starter")
+                        else:
+                            res = subprocess.run([str(starter_exec), "-i", str(starter_path)], capture_output=True, text=True, cwd=str(run_dir), env=env)
+                            st.text_area("Starter stdout", res.stdout, height=220)
+                            if res.stderr:
+                                st.text_area("Starter stderr", res.stderr, height=160)
+                            st.write(f"Return code: {res.returncode}")
+                    except Exception as e:
+                        st.error(f"Error ejecutando starter: {e}")
+            with gen_col2:
+                if st.button("Ejecutar Engine"):
+                    try:
+                        if auto_validate:
+                            try:
+                                validate_rad_format(str(engine_path))
+                                st.info("Formato engine OK")
+                            except Exception as e:
+                                st.warning(f"Formato engine: {e}")
+                        env = dict(**os.environ)
+                        if ld_path:
+                            env["LD_LIBRARY_PATH"] = str(ld_path)
+                        if cfg_path:
+                            env["RAD_CFG_PATH"] = str(cfg_path)
+                        if not engine_exec:
+                            st.error("Indica la ruta al engine")
+                        else:
+                            res = subprocess.run([str(engine_exec), "-i", str(engine_path)], capture_output=True, text=True, cwd=str(run_dir), env=env)
+                            st.text_area("Engine stdout", res.stdout, height=220)
+                            if res.stderr:
+                                st.text_area("Engine stderr", res.stderr, height=160)
+                            st.write(f"Return code: {res.returncode}")
+                    except Exception as e:
+                        st.error(f"Error ejecutando engine: {e}")
+            with gen_col3:
+                if st.button("Refrescar salida"):
+                    out_file = run_dir / f"{run_name}_0000.out"
+                    if out_file.exists():
+                        st.text_area("Listing (.out)", out_file.read_text()[-10000:], height=400)
                     else:
-                        res = subprocess.run([str(starter_exec), "-i", str(starter_path)], capture_output=True, text=True, cwd=str(run_dir), env=env)
-                        st.text_area("Starter stdout", res.stdout, height=220)
-                        if res.stderr:
-                            st.text_area("Starter stderr", res.stderr, height=160)
-                        st.write(f"Return code: {res.returncode}")
-                except Exception as e:
-                    st.error(f"Error ejecutando starter: {e}")
-        with c2:
-            if st.button("Ejecutar Engine"):
-                try:
-                    if auto_validate:
-                        try:
-                            validate_rad_format(str(engine_path))
-                            st.info("Formato engine OK")
-                        except Exception as e:
-                            st.warning(f"Formato engine: {e}")
-                    env = dict(**os.environ)
-                    if ld_path:
-                        env["LD_LIBRARY_PATH"] = str(ld_path)
-                    if cfg_path:
-                        env["RAD_CFG_PATH"] = str(cfg_path)
-                    if not engine_exec:
-                        st.error("Indica la ruta al engine")
-                    else:
-                        res = subprocess.run([str(engine_exec), "-i", str(engine_path)], capture_output=True, text=True, cwd=str(run_dir), env=env)
-                        st.text_area("Engine stdout", res.stdout, height=220)
-                        if res.stderr:
-                            st.text_area("Engine stderr", res.stderr, height=160)
-                        st.write(f"Return code: {res.returncode}")
-                except Exception as e:
-                    st.error(f"Error ejecutando engine: {e}")
-        with c3:
-            if st.button("Refrescar salida"):
-                out_file = run_dir / f"{run_name}_0000.out"
-                if out_file.exists():
-                    st.text_area("Listing (.out)", out_file.read_text()[-10000:], height=400)
-                else:
-                    st.info("Aún no existe el archivo .out")
+                        st.info("Aún no existe el archivo .out")
 
-        with st.expander("Descargar ejemplo desde URL"):
-            st.caption("Introduce URLs a un starter y/o engine de la documentación de OpenRadioss (o cualquier .rad público)")
-            eg_starter_url = st.text_input("URL starter (model_0000.rad)", value=st.session_state.get("eg_starter_url", ""), key="eg_starter_url")
-            eg_engine_url = st.text_input("URL engine (model_0001.rad)", value=st.session_state.get("eg_engine_url", ""), key="eg_engine_url")
+        elif mode == "Descargar tutorial oficial":
+            st.caption("Selecciona un ejemplo o pega URLs de la documentación de OpenRadioss")
+            examples = {
+                "Gmsh tensile (starter+engine)": (
+                    "https://raw.githubusercontent.com/JPsnipe/OPEN_RADIOSS/main/data_files/gmsh_tensile_LAW36_BIQUAD_0000.rad",
+                    "https://raw.githubusercontent.com/JPsnipe/OPEN_RADIOSS/main/data_files/gmsh_tensile_LAW36_BIQUAD_0001.rad",
+                ),
+                "Tube Impact (engine)": (
+                    "",
+                    "https://raw.githubusercontent.com/JPsnipe/OPEN_RADIOSS/main/data_files/Tube_Impact_0001.rad",
+                ),
+            }
+            choice = st.selectbox("Ejemplos", list(examples.keys()))
+            url0_def, url1_def = examples.get(choice, ("", ""))
+            eg_starter_url = st.text_input("URL starter (model_0000.rad)", value=url0_def, key="eg_starter_url")
+            eg_engine_url = st.text_input("URL engine (model_0001.rad)", value=url1_def, key="eg_engine_url")
             save_name = st.text_input("Guardar como (base)", value=run_name, key="eg_save_as")
-            if st.button("Descargar ejemplo"):
+            if st.button("Descargar y preparar"):
                 try:
                     import urllib.request
                     run_dir.mkdir(parents=True, exist_ok=True)
@@ -2157,6 +2198,94 @@ if file_path:
                     st.success("Ejemplo descargado")
                 except Exception as e:
                     st.error(f"No se pudo descargar: {e}")
+            run_col1, run_col2 = st.columns(2)
+            with run_col1:
+                if st.button("Ejecutar Starter (ejemplo)"):
+                    try:
+                        env = dict(**os.environ)
+                        if ld_path:
+                            env["LD_LIBRARY_PATH"] = str(ld_path)
+                        if cfg_path:
+                            env["RAD_CFG_PATH"] = str(cfg_path)
+                        if not starter_exec:
+                            st.error("Indica la ruta al starter")
+                        else:
+                            res = subprocess.run([str(starter_exec), "-i", str(starter_path)], capture_output=True, text=True, cwd=str(run_dir), env=env)
+                            st.text_area("Starter stdout", res.stdout, height=220)
+                            if res.stderr:
+                                st.text_area("Starter stderr", res.stderr, height=160)
+                            st.write(f"Return code: {res.returncode}")
+                    except Exception as e:
+                        st.error(f"Error ejecutando starter: {e}")
+            with run_col2:
+                if st.button("Ejecutar Engine (ejemplo)"):
+                    try:
+                        env = dict(**os.environ)
+                        if ld_path:
+                            env["LD_LIBRARY_PATH"] = str(ld_path)
+                        if cfg_path:
+                            env["RAD_CFG_PATH"] = str(cfg_path)
+                        if not engine_exec:
+                            st.error("Indica la ruta al engine")
+                        else:
+                            res = subprocess.run([str(engine_exec), "-i", str(engine_path)], capture_output=True, text=True, cwd=str(run_dir), env=env)
+                            st.text_area("Engine stdout", res.stdout, height=220)
+                            if res.stderr:
+                                st.text_area("Engine stderr", res.stderr, height=160)
+                            st.write(f"Return code: {res.returncode}")
+                    except Exception as e:
+                        st.error(f"Error ejecutando engine: {e}")
+
+        else:  # Seleccionar .rad manualmente
+            st.caption("Sube archivos .rad manualmente si no deseas generarlos ni descargarlos")
+            up_starter = st.file_uploader("Subir model_0000.rad", type=["rad"], key="upload_starter")
+            up_engine = st.file_uploader("Subir model_0001.rad", type=["rad"], key="upload_engine")
+            if st.button("Guardar archivos subidos"):
+                if up_starter:
+                    run_dir.mkdir(parents=True, exist_ok=True)
+                    (run_dir / f"{run_name}_0000.rad").write_bytes(up_starter.getbuffer())
+                if up_engine:
+                    run_dir.mkdir(parents=True, exist_ok=True)
+                    (run_dir / f"{run_name}_0001.rad").write_bytes(up_engine.getbuffer())
+                st.success("Archivos guardados")
+
+            man_col1, man_col2 = st.columns(2)
+            with man_col1:
+                if st.button("Ejecutar Starter (manual)"):
+                    try:
+                        env = dict(**os.environ)
+                        if ld_path:
+                            env["LD_LIBRARY_PATH"] = str(ld_path)
+                        if cfg_path:
+                            env["RAD_CFG_PATH"] = str(cfg_path)
+                        if not starter_exec:
+                            st.error("Indica la ruta al starter")
+                        else:
+                            res = subprocess.run([str(starter_exec), "-i", str(starter_path)], capture_output=True, text=True, cwd=str(run_dir), env=env)
+                            st.text_area("Starter stdout", res.stdout, height=220)
+                            if res.stderr:
+                                st.text_area("Starter stderr", res.stderr, height=160)
+                            st.write(f"Return code: {res.returncode}")
+                    except Exception as e:
+                        st.error(f"Error ejecutando starter: {e}")
+            with man_col2:
+                if st.button("Ejecutar Engine (manual)"):
+                    try:
+                        env = dict(**os.environ)
+                        if ld_path:
+                            env["LD_LIBRARY_PATH"] = str(ld_path)
+                        if cfg_path:
+                            env["RAD_CFG_PATH"] = str(cfg_path)
+                        if not engine_exec:
+                            st.error("Indica la ruta al engine")
+                        else:
+                            res = subprocess.run([str(engine_exec), "-i", str(engine_path)], capture_output=True, text=True, cwd=str(run_dir), env=env)
+                            st.text_area("Engine stdout", res.stdout, height=220)
+                            if res.stderr:
+                                st.text_area("Engine stderr", res.stderr, height=160)
+                            st.write(f"Return code: {res.returncode}")
+                    except Exception as e:
+                        st.error(f"Error ejecutando engine: {e}")
 
 
         with st.expander("Probar en OpenRadioss"):

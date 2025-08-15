@@ -9,6 +9,8 @@ function parameters.
 from typing import Dict, List, Tuple, Any, TextIO
 import math
 import os
+import json
+from pathlib import Path
 
 from .writer_inc import write_mesh_inc
 from .material_defaults import apply_default_materials
@@ -337,44 +339,80 @@ def write_starter(
         if auto_properties and not properties:
             from .utils import element_summary
             _, kw_counts = element_summary(elements)
-            is_shell = kw_counts.get("SHELL", 0) >= kw_counts.get("BRICK", 0)
-            if is_shell:
-                properties = [
+            properties = []
+            pid = 1
+            if kw_counts.get("SHELL", 0) > 0:
+                properties.append(
                     {
-                        "id": 1,
-                        "name": "AutoProp",
+                        "id": pid,
+                        "name": "AutoShell",
                         "type": "SHELL",
                         "thickness": thickness,
                     }
+                )
+                pid += 1
+            brick_count = kw_counts.get("BRICK", 0)
+            tetra_count = kw_counts.get("TETRA", 0)
+            if brick_count > 0 or tetra_count > 0:
+                prop: Dict[str, Any] = {
+                    "id": pid,
+                    "name": "AutoSolid",
+                    "type": "SOLID",
+                }
+                mapping_path = Path(__file__).with_name("mapping.json")
+                with open(mapping_path, "r", encoding="utf-8") as mf:
+                    mapping = json.load(mf)
+                tetra_lens = [
+                    len(n)
+                    for _e, et, n in elements
+                    if mapping.get(str(et)) == "TETRA"
+                    or (mapping.get(str(et)) is None and len(n) in (4, 10))
                 ]
-            else:
-                properties = [
-                    {
-                        "id": 1,
-                        "name": "AutoProp",
-                        "type": "SOLID",
-                        "Isolid": 24,
-                    }
-                ]
+                if tetra_count > 0:
+                    if tetra_lens and all(l == 4 for l in tetra_lens):
+                        prop["Itetra4"] = 1
+                        prop["Isolid"] = 2
+                    elif tetra_lens and all(l == 10 for l in tetra_lens):
+                        prop["Itetra10"] = 1
+                        prop["Isolid"] = 14
+                properties.append(prop)
+                pid += 1
 
         if auto_parts and not parts and properties:
             mat_id = next(iter(all_mats.keys()), 1)
-            parts = [
-                {
-                    "id": 1,
-                    "name": "AutoPart",
-                    "pid": properties[0]["id"],
-                    "mid": mat_id,
-                }
-            ]
+            parts = []
+            for prop in properties:
+                pname = f"AutoPart{prop['type'].title()}"
+                parts.append(
+                    {
+                        "id": prop["id"],
+                        "name": pname,
+                        "pid": prop["id"],
+                        "mid": mat_id,
+                    }
+                )
 
     if include_inc:
+        if parts and properties:
+            type_by_pid = {prop["id"]: prop["type"] for prop in properties}
+            dummy_map = {}
+            for part in parts:
+                ptype = type_by_pid.get(part["pid"])
+                if ptype == "SHELL":
+                    dummy_map["SHELL"] = part["id"]
+                elif ptype == "SOLID":
+                    dummy_map["BRICK"] = part["id"]
+                    dummy_map["TETRA"] = part["id"]
+            dummy = dummy_map if dummy_map else 2000001
+        else:
+            dummy = 2000001
         write_mesh_inc(
             nodes,
             elements,
             mesh_inc,
             node_sets=node_sets,
             elem_sets=elem_sets,
+            dummy_part=dummy,
         )
 
     # Validate connector inputs
@@ -573,7 +611,7 @@ def write_starter(
                             f.write(" ".join(vals) + "\n")
 
         if include_inc:
-            f.write(f"#include {mesh_inc}\n")
+            f.write(f"#include \"{mesh_inc}\"\n")
 
         if boundary_conditions:
             set_id_map = {
@@ -734,15 +772,21 @@ def write_starter(
                     f.write(f"/PROP/SHELL/{pid}\n")
                     f.write(f"{pname}\n")
                     f.write("#   Ishell    Ismstr     Ish3n    Idrill              P_thick_fail\n")
-                    f.write(f"        {ishell}         {ismstr}         {ish3n}        {idrill}                            {p_thick_fail}\n")
+                    f.write(
+                        f"        {ishell}         {ismstr}         {ish3n}        {idrill}                            {p_thick_fail}\n"
+                    )
                     f.write("#                 hm                  hf            hr                  dm                  dn\n")
-                    f.write(f"                   {hm}                   {hf}            {hr}                   {dm}                   {dn}\n")
+                    f.write(
+                        f"                   {hm}                   {hf}            {hr}                   {dm}                   {dn}\n"
+                    )
                     f.write("#        N   Istrain               Thick   Ashear              Ithick     Iplas\n")
-                    f.write(f"         {n}         {istr}                 {thick}                   {ashear}                   {ithick}         {ip}\n")
+                    f.write(
+                        f"         {n}         {istr}                 {thick}                   {ashear}                   {ithick}         {ip}\n"
+                    )
                 elif ptype == "SOLID":
-                    isol = int(prop.get("Isolid", 24))
-                    ismstr = int(prop.get("Ismstr", 4))
-                    icpre = int(prop.get("Icpre", 1))
+                    isol = int(prop.get("Isolid", 1))
+                    ismstr = int(prop.get("Ismstr", 0))
+                    icpre = int(prop.get("Icpre", 0))
                     itetra4 = int(prop.get("Itetra4", 0))
                     itetra10 = int(prop.get("Itetra10", 0))
                     imass = int(prop.get("Imass", 0))
@@ -754,7 +798,7 @@ def write_starter(
                     dn = float(prop.get("dn", 0.0))
                     h = float(prop.get("h", 0.0))
                     dtmin = float(prop.get("dtmin", 0.0))
-                    ndir = int(prop.get("Ndir", 1))
+                    ndir = int(prop.get("Ndir", 0))
                     sphpart = int(prop.get("sphpart_ID", 0))
 
                     f.write(f"/PROP/SOLID/{pid}\n")

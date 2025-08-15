@@ -104,7 +104,7 @@ def main() -> None:
 
     nodes, elements, node_sets, elem_sets, materials = parse_cdb(args.cdb_file)
 
-    if args.inc:
+    if args.inc and not args.starter:
         write_mesh_inc(
             nodes,
             elements,
@@ -132,6 +132,7 @@ def main() -> None:
             elem_sets=elem_sets,
             materials=None if args.no_cdb_materials else materials,
             default_material=not args.no_default_material,
+            auto_parts=True,
         )
     if args.engine:
         write_engine(

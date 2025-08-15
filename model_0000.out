@@ -24,7 +24,7 @@
  COMPUTATION HARDWARE DESCRIPTION
   
  HOSTNAME     CPU TYPE, FREQUENCY AND MEMORY
- MSI   12th Gen Intel(R) Core(TM) i7-12700H (x86_64), 2687 MHz,  15843 MB RAM,   4096 MB swap
+ e561209ba397   Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz (x86_64), 2793 MHz,  10169 MB RAM,      0 MB swap
   
  STACKSIZE  . . . . . . . . . . . . . . . . . . . . 8 MB
  THREAD STACKSIZE . . . . . . . . . . . . . . . . . 0 MB

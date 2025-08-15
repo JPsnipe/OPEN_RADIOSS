@@ -10,13 +10,27 @@ MAT_1
 7.85e-09
 #                  E                  Nu
 200000.0 0.3
-#include mesh.inc
+/INCLUDE "mesh.inc"
+/PART/1
+AutoPartShell
+         1         1         0         
+/PART/2
+AutoPartSolid
+         2         1         0         
 /PROP/SHELL/1
-AutoProp
+AutoShell
 #   Ishell    Ismstr     Ish3n    Idrill              P_thick_fail
         24         0         0        0                            0.0
 #                 hm                  hf            hr                  dm                  dn
                    0.0                   0.0            0.0                   0.0                   0.0
 #        N   Istrain               Thick   Ashear              Ithick     Iplas
          5         0                 1.0                   0                   1         1
+/PROP/SOLID/2
+AutoSolid
+#  Isolid   Ismstr    Icpre   Itetra4   Itetra10   Imass   Iframe   IHKT
+       1        0        0        0        0        0        1        0
+#   Inpts        qa         qb         dn          h
+       0        0.0        0.0        0.0        0.0
+#   dtmin      Ndir  sphpart_ID
+       0.0        0        0
 /END

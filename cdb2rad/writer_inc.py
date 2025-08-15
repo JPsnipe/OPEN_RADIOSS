@@ -18,7 +18,7 @@ def write_mesh_inc(
     node_sets: Dict[str, List[int]] | None = None,
     elem_sets: Dict[str, List[int]] | None = None,
     materials: Dict[int, Dict[str, float]] | None = None,
-    dummy_part: int = 2000001,
+    dummy_part: int | Dict[str, int] = 2000001,
 ) -> None:
     """Write ``mesh.inc`` with Radioss element blocks.
 
@@ -66,7 +66,8 @@ def write_mesh_inc(
             f.write(f"{nid:10d}{x:15.6f}{y:15.6f}{z:15.6f}\n")
 
         for key, items in categorized.items():
-            f.write(f"\n/{key}/{dummy_part}\n")
+            part_id = dummy_part.get(key, 2000001) if isinstance(dummy_part, dict) else dummy_part
+            f.write(f"\n/{key}/{part_id}\n")
             for eid, nids in items:
                 line = f"{eid:10d}" + "".join(f"{nid:10d}" for nid in nids)
                 f.write(line + "\n")

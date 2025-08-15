@@ -337,44 +337,63 @@ def write_starter(
         if auto_properties and not properties:
             from .utils import element_summary
             _, kw_counts = element_summary(elements)
-            is_shell = kw_counts.get("SHELL", 0) >= kw_counts.get("BRICK", 0)
-            if is_shell:
-                properties = [
+            properties = []
+            pid = 1
+            if kw_counts.get("SHELL", 0) > 0:
+                properties.append(
                     {
-                        "id": 1,
-                        "name": "AutoProp",
+                        "id": pid,
+                        "name": "AutoShell",
                         "type": "SHELL",
                         "thickness": thickness,
                     }
-                ]
-            else:
-                properties = [
+                )
+                pid += 1
+            if kw_counts.get("BRICK", 0) > 0:
+                properties.append(
                     {
-                        "id": 1,
-                        "name": "AutoProp",
+                        "id": pid,
+                        "name": "AutoSolid",
                         "type": "SOLID",
-                        "Isolid": 24,
                     }
-                ]
+                )
+                pid += 1
 
         if auto_parts and not parts and properties:
             mat_id = next(iter(all_mats.keys()), 1)
-            parts = [
-                {
-                    "id": 1,
-                    "name": "AutoPart",
-                    "pid": properties[0]["id"],
-                    "mid": mat_id,
-                }
-            ]
+            parts = []
+            for prop in properties:
+                pname = f"AutoPart{prop['type'].title()}"
+                parts.append(
+                    {
+                        "id": prop["id"],
+                        "name": pname,
+                        "pid": prop["id"],
+                        "mid": mat_id,
+                    }
+                )
 
     if include_inc:
+        if parts and properties:
+            type_by_pid = {prop["id"]: prop["type"] for prop in properties}
+            dummy_map = {}
+            for part in parts:
+                ptype = type_by_pid.get(part["pid"])
+                if ptype == "SHELL":
+                    dummy_map["SHELL"] = part["id"]
+                elif ptype == "SOLID":
+                    dummy_map["BRICK"] = part["id"]
+                    dummy_map["TETRA"] = part["id"]
+            dummy = dummy_map if dummy_map else 2000001
+        else:
+            dummy = 2000001
         write_mesh_inc(
             nodes,
             elements,
             mesh_inc,
             node_sets=node_sets,
             elem_sets=elem_sets,
+            dummy_part=dummy,
         )
 
     # Validate connector inputs
@@ -740,9 +759,9 @@ def write_starter(
                     f.write("#        N   Istrain               Thick   Ashear              Ithick     Iplas\n")
                     f.write(f"         {n}         {istr}                 {thick}                   {ashear}                   {ithick}         {ip}\n")
                 elif ptype == "SOLID":
-                    isol = int(prop.get("Isolid", 24))
-                    ismstr = int(prop.get("Ismstr", 4))
-                    icpre = int(prop.get("Icpre", 1))
+                    isol = int(prop.get("Isolid", 1))
+                    ismstr = int(prop.get("Ismstr", 0))
+                    icpre = int(prop.get("Icpre", 0))
                     itetra4 = int(prop.get("Itetra4", 0))
                     itetra10 = int(prop.get("Itetra10", 0))
                     imass = int(prop.get("Imass", 0))
@@ -754,7 +773,7 @@ def write_starter(
                     dn = float(prop.get("dn", 0.0))
                     h = float(prop.get("h", 0.0))
                     dtmin = float(prop.get("dtmin", 0.0))
-                    ndir = int(prop.get("Ndir", 1))
+                    ndir = int(prop.get("Ndir", 0))
                     sphpart = int(prop.get("sphpart_ID", 0))
 
                     f.write(f"/PROP/SOLID/{pid}\n")

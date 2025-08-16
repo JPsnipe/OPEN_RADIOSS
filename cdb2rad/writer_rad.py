@@ -351,6 +351,7 @@ def write_starter(
                     }
                 )
                 pid += 1
+
             brick_count = kw_counts.get("BRICK", 0)
             tetra_count = kw_counts.get("TETRA", 0)
             if brick_count > 0 or tetra_count > 0:
@@ -376,6 +377,7 @@ def write_starter(
                         prop["Itetra10"] = 1
                         prop["Isolid"] = 14
                 properties.append(prop)
+
                 pid += 1
 
         if auto_parts and not parts and properties:

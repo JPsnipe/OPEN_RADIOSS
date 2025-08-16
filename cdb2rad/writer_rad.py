@@ -9,6 +9,8 @@ function parameters.
 from typing import Dict, List, Tuple, Any, TextIO
 import math
 import os
+import json
+from pathlib import Path
 
 from .writer_inc import write_mesh_inc
 from .material_defaults import apply_default_materials
@@ -349,14 +351,33 @@ def write_starter(
                     }
                 )
                 pid += 1
-            if kw_counts.get("BRICK", 0) > 0:
-                properties.append(
-                    {
-                        "id": pid,
-                        "name": "AutoSolid",
-                        "type": "SOLID",
-                    }
-                )
+
+            brick_count = kw_counts.get("BRICK", 0)
+            tetra_count = kw_counts.get("TETRA", 0)
+            if brick_count > 0 or tetra_count > 0:
+                prop: Dict[str, Any] = {
+                    "id": pid,
+                    "name": "AutoSolid",
+                    "type": "SOLID",
+                }
+                mapping_path = Path(__file__).with_name("mapping.json")
+                with open(mapping_path, "r", encoding="utf-8") as mf:
+                    mapping = json.load(mf)
+                tetra_lens = [
+                    len(n)
+                    for _e, et, n in elements
+                    if mapping.get(str(et)) == "TETRA"
+                    or (mapping.get(str(et)) is None and len(n) in (4, 10))
+                ]
+                if tetra_count > 0:
+                    if tetra_lens and all(l == 4 for l in tetra_lens):
+                        prop["Itetra4"] = 1
+                        prop["Isolid"] = 2
+                    elif tetra_lens and all(l == 10 for l in tetra_lens):
+                        prop["Itetra10"] = 1
+                        prop["Isolid"] = 14
+                properties.append(prop)
+
                 pid += 1
 
         if auto_parts and not parts and properties:
@@ -592,7 +613,7 @@ def write_starter(
                             f.write(" ".join(vals) + "\n")
 
         if include_inc:
-            f.write(f"#include {mesh_inc}\n")
+            f.write(f"#include \"{mesh_inc}\"\n")
 
         if boundary_conditions:
             set_id_map = {
@@ -753,11 +774,17 @@ def write_starter(
                     f.write(f"/PROP/SHELL/{pid}\n")
                     f.write(f"{pname}\n")
                     f.write("#   Ishell    Ismstr     Ish3n    Idrill              P_thick_fail\n")
-                    f.write(f"        {ishell}         {ismstr}         {ish3n}        {idrill}                            {p_thick_fail}\n")
+                    f.write(
+                        f"        {ishell}         {ismstr}         {ish3n}        {idrill}                            {p_thick_fail}\n"
+                    )
                     f.write("#                 hm                  hf            hr                  dm                  dn\n")
-                    f.write(f"                   {hm}                   {hf}            {hr}                   {dm}                   {dn}\n")
+                    f.write(
+                        f"                   {hm}                   {hf}            {hr}                   {dm}                   {dn}\n"
+                    )
                     f.write("#        N   Istrain               Thick   Ashear              Ithick     Iplas\n")
-                    f.write(f"         {n}         {istr}                 {thick}                   {ashear}                   {ithick}         {ip}\n")
+                    f.write(
+                        f"         {n}         {istr}                 {thick}                   {ashear}                   {ithick}         {ip}\n"
+                    )
                 elif ptype == "SOLID":
                     isol = int(prop.get("Isolid", 1))
                     ismstr = int(prop.get("Ismstr", 0))
